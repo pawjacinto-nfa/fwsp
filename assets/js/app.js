@@ -1,0 +1,1091 @@
+const loader = document.getElementById("loaderScreen");
+
+window.addEventListener("load", () => {
+    setTimeout(() => loader?.classList.add("is-hidden"), 350);
+});
+
+document.querySelectorAll(".tracked-form").forEach((form) => {
+    const progress = form.querySelector(".progress-bar");
+    const fields = Array.from(form.querySelectorAll("input, select, textarea"))
+        .filter((field) => field.type !== "hidden" && field.type !== "checkbox");
+
+    const updateProgress = () => {
+        const completed = fields.filter((field) => field.value.trim() !== "").length;
+        const width = fields.length ? Math.round((completed / fields.length) * 100) : 0;
+        progress.style.width = `${width}%`;
+        progress.textContent = width === 100 ? "Done" : `${width}%`;
+    };
+
+    form.addEventListener("input", updateProgress);
+    form.addEventListener("change", updateProgress);
+    updateProgress();
+});
+
+const themeToggle = document.getElementById("themeToggle");
+const savedTheme = localStorage.getItem("fwsp-theme");
+
+if (savedTheme) {
+    document.documentElement.setAttribute("data-bs-theme", savedTheme);
+}
+
+themeToggle?.addEventListener("click", () => {
+    const nextTheme = document.documentElement.getAttribute("data-bs-theme") === "dark" ? "light" : "dark";
+    document.documentElement.setAttribute("data-bs-theme", nextTheme);
+    localStorage.setItem("fwsp-theme", nextTheme);
+});
+
+document.querySelectorAll("[data-password-toggle]").forEach((button) => {
+    const group = button.closest(".input-group") || button.parentElement;
+    const field = group?.querySelector("[data-password-field]");
+    if (!field) return;
+
+    button.addEventListener("click", () => {
+        const isHidden = field.type === "password";
+        field.type = isHidden ? "text" : "password";
+        button.setAttribute("aria-label", isHidden ? "Hide password" : "Show password");
+        button.title = isHidden ? "Hide password" : "Show password";
+    });
+});
+
+const loginModal = document.getElementById("loginModal");
+if (loginModal) {
+    const rememberedUsername = localStorage.getItem("fwsp-remembered-username") || "";
+    const usernameField = loginModal.querySelector("[data-remember-username]");
+    const rememberField = loginModal.querySelector("[data-remember-login]");
+    const credentialAlert = loginModal.querySelector("[data-login-credential-alert]");
+    const countdown = credentialAlert?.querySelector("[data-login-error-countdown]");
+
+    if (usernameField && rememberField && rememberedUsername !== "") {
+        usernameField.value = rememberedUsername;
+        rememberField.checked = true;
+    }
+
+    if (credentialAlert && countdown) {
+        let remaining = 5;
+        countdown.textContent = String(remaining);
+
+        const timer = window.setInterval(() => {
+            remaining -= 1;
+
+            if (remaining <= 0) {
+                window.clearInterval(timer);
+                credentialAlert.classList.add("is-hidden");
+                window.setTimeout(() => credentialAlert.remove(), 240);
+                return;
+            }
+
+            countdown.textContent = String(remaining);
+        }, 1000);
+    }
+
+    loginModal.querySelector("form")?.addEventListener("submit", () => {
+        if (!usernameField || !rememberField) return;
+
+        if (rememberField.checked) {
+            localStorage.setItem("fwsp-remembered-username", usernameField.value.trim());
+        } else {
+            localStorage.removeItem("fwsp-remembered-username");
+        }
+    });
+}
+
+document.getElementById("forgotPasswordModal")?.addEventListener("show.bs.modal", () => {
+    const loginUsername = loginModal?.querySelector("[data-remember-username]")?.value || "";
+    const forgotUsername = document.querySelector("[data-forgot-username]");
+    if (forgotUsername && forgotUsername.value.trim() === "") {
+        forgotUsername.value = loginUsername.trim();
+    }
+});
+
+if (window.bootstrap && window.FWSP_AUTH_MODAL) {
+    if (window.FWSP_AUTH_MODAL.showChangePassword) {
+        const modal = document.getElementById("changePasswordModal");
+        if (modal) bootstrap.Modal.getOrCreateInstance(modal).show();
+    } else if (window.FWSP_AUTH_MODAL.showForgotPassword) {
+        const modal = document.getElementById("forgotPasswordModal");
+        if (modal) bootstrap.Modal.getOrCreateInstance(modal).show();
+    } else if (window.FWSP_AUTH_MODAL.showLogin) {
+        if (loginModal) bootstrap.Modal.getOrCreateInstance(loginModal).show();
+    }
+}
+
+document.querySelectorAll("[data-notifications-clear-form]").forEach((form) => {
+    form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const button = form.querySelector("button");
+        button.disabled = true;
+
+        try {
+            const response = await fetch("index.php", {
+                method: "POST",
+                headers: { "X-Requested-With": "fetch" },
+                body: new FormData(form),
+            });
+
+            if (!response.ok) throw new Error("Notification clear failed");
+
+            document.querySelectorAll("[data-notification-badge]").forEach((badge) => badge.remove());
+            document.querySelectorAll(".notification-menu-head span").forEach((count) => count.remove());
+            form.remove();
+
+            document.querySelectorAll("[data-notification-list]").forEach((list) => {
+                list.innerHTML = '<div class="notification-empty">No notifications yet.</div>';
+            });
+        } catch (error) {
+            button.disabled = false;
+            form.submit();
+        }
+    });
+});
+
+document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+    anchor.addEventListener("click", (event) => {
+        const target = document.querySelector(anchor.getAttribute("href"));
+        if (!target) return;
+
+        event.preventDefault();
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+});
+
+document.querySelectorAll("[data-toggle-other-input]").forEach((checkbox) => {
+    const input = document.getElementById(checkbox.dataset.toggleOtherInput);
+    if (!input) return;
+
+    const sync = () => {
+        input.disabled = !checkbox.checked;
+        if (!checkbox.checked) input.value = "";
+    };
+
+    document.querySelectorAll(`[name="${checkbox.name}"]`).forEach((field) => {
+        field.addEventListener("change", sync);
+    });
+    sync();
+});
+
+document.querySelectorAll(".rainbow-choice input").forEach((field) => {
+    const syncGroup = () => {
+        const group = field.closest(".rainbow-selection");
+        const fields = group ? group.querySelectorAll(".rainbow-choice input") : [field];
+        fields.forEach((item) => item.closest(".rainbow-choice")?.classList.toggle("is-selected", item.checked));
+    };
+    field.addEventListener("change", syncGroup);
+    syncGroup();
+});
+
+document.querySelectorAll(".sdd-check-filter input").forEach((field) => {
+    const sync = () => {
+        field.closest(".sdd-check-filter")?.classList.toggle("is-selected", field.checked);
+    };
+
+    field.addEventListener("change", sync);
+    sync();
+});
+
+document.querySelectorAll("[data-farmer-profile-form]").forEach((form) => {
+    const fieldset = form.querySelector("[data-farmer-profile-fields]");
+    const editButton = form.querySelector("[data-profile-edit-button]");
+    const saveButton = form.querySelector("[data-profile-save-button]");
+
+    if (!fieldset || !editButton || !saveButton) return;
+
+    editButton.addEventListener("click", () => {
+        fieldset.disabled = false;
+        editButton.classList.add("d-none");
+        saveButton.classList.remove("d-none");
+        const firstField = fieldset.querySelector("input, select, textarea");
+        firstField?.focus();
+    });
+});
+
+document.querySelectorAll("[data-autocomplete-field]").forEach((field) => {
+    const input = field.querySelector("[data-autocomplete-input]");
+    const menu = field.querySelector("[data-autocomplete-menu]");
+    const source = JSON.parse(input?.dataset.autocompleteSource || "[]").map((item) => String(item));
+
+    if (!input || !menu || source.length === 0) return;
+
+    const close = () => {
+        menu.innerHTML = "";
+        menu.hidden = true;
+    };
+
+    const choose = (value) => {
+        input.value = value;
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+        close();
+    };
+
+    const render = () => {
+        const query = input.value.trim().toLowerCase();
+        menu.innerHTML = "";
+
+        if (query.length === 0) {
+            close();
+            return;
+        }
+
+        const matches = source
+            .filter((item) => item.toLowerCase().includes(query))
+            .slice(0, 8);
+
+        if (matches.length === 0) {
+            close();
+            return;
+        }
+
+        matches.forEach((match) => {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "autocomplete-option";
+            button.textContent = match;
+            button.addEventListener("mousedown", (event) => {
+                event.preventDefault();
+                choose(match);
+            });
+            menu.appendChild(button);
+        });
+
+        menu.hidden = false;
+    };
+
+    input.addEventListener("input", render);
+    input.addEventListener("focus", render);
+    input.addEventListener("blur", () => window.setTimeout(close, 120));
+    close();
+});
+
+document.querySelectorAll("[data-fo-member-picker]").forEach((picker) => {
+    const form = picker.closest("form");
+    const foInput = form?.querySelector("[data-fo-name-input]");
+    const membersInput = form?.querySelector('input[name="members"]');
+    const search = picker.querySelector("[data-fo-member-search]");
+    const options = Array.from(picker.querySelectorAll("[data-fo-member-option]"));
+    const selectedList = picker.querySelector("[data-selected-member-list]");
+    const hiddenInputs = picker.querySelector("[data-selected-member-inputs]");
+    const submit = picker.querySelector("[data-fo-member-submit]");
+    const empty = picker.querySelector("[data-fo-member-empty]");
+    const selected = new Map();
+
+    if (!selectedList || !hiddenInputs || !submit) return;
+
+    const normalize = (value) => String(value || "").trim().toLowerCase();
+
+    const optionMatchesOrganization = (option, organizationQuery) => {
+        if (!organizationQuery) return true;
+
+        const organization = normalize(option.dataset.memberOrganization);
+        return organization !== "" && (organization.includes(organizationQuery) || organizationQuery.includes(organization));
+    };
+
+    const renderOptions = () => {
+        const query = normalize(search?.value);
+        const organizationQuery = normalize(foInput?.value);
+        let visibleCount = 0;
+
+        options.forEach((option) => {
+            const matchesSearch = !query || normalize(option.dataset.memberSearch).includes(query);
+            const matchesOrganization = optionMatchesOrganization(option, organizationQuery);
+            const isVisible = matchesSearch && matchesOrganization;
+            option.hidden = !isVisible;
+            if (isVisible) visibleCount += 1;
+        });
+
+        if (empty) empty.hidden = visibleCount > 0;
+    };
+
+    const renderSelected = () => {
+        selectedList.innerHTML = "";
+        hiddenInputs.innerHTML = "";
+
+        if (selected.size === 0) {
+            const placeholder = document.createElement("span");
+            placeholder.className = "text-muted";
+            placeholder.textContent = "No farmer members selected yet.";
+            selectedList.appendChild(placeholder);
+            if (membersInput) {
+                membersInput.value = "";
+                membersInput.dispatchEvent(new Event("input", { bubbles: true }));
+            }
+            return;
+        }
+
+        selected.forEach((member, id) => {
+            const pill = document.createElement("span");
+            const remove = document.createElement("button");
+            const hidden = document.createElement("input");
+            const rsbsa = document.createElement("small");
+
+            pill.className = "selected-member-pill";
+            pill.append(document.createTextNode(member.name));
+
+            rsbsa.textContent = member.rsbsa;
+            pill.appendChild(rsbsa);
+
+            remove.type = "button";
+            remove.setAttribute("aria-label", `Remove ${member.name}`);
+            remove.textContent = "x";
+            remove.addEventListener("click", () => {
+                selected.delete(id);
+                const checkbox = picker.querySelector(`[data-member-id="${id}"] input`);
+                if (checkbox) checkbox.checked = false;
+                renderSelected();
+            });
+            pill.appendChild(remove);
+
+            hidden.type = "hidden";
+            hidden.name = "delivered_farmer_ids[]";
+            hidden.value = id;
+            hiddenInputs.appendChild(hidden);
+            selectedList.appendChild(pill);
+        });
+
+        if (membersInput) {
+            membersInput.value = selected.size;
+            membersInput.dispatchEvent(new Event("input", { bubbles: true }));
+        }
+    };
+
+    submit.addEventListener("click", () => {
+        selected.clear();
+        options.forEach((option) => {
+            const checkbox = option.querySelector("input[type='checkbox']");
+            if (!checkbox?.checked) return;
+
+            selected.set(option.dataset.memberId, {
+                name: option.dataset.memberName || "Unnamed Farmer",
+                rsbsa: option.dataset.memberRsbsa || "",
+            });
+        });
+        renderSelected();
+    });
+
+    search?.addEventListener("input", renderOptions);
+    foInput?.addEventListener("input", renderOptions);
+    renderOptions();
+    renderSelected();
+});
+
+document.querySelectorAll("table").forEach((table) => {
+    if (table.dataset.noSort === "true") return;
+
+    const headers = Array.from(table.querySelectorAll("thead th"));
+    const tbody = table.querySelector("tbody");
+
+    if (!tbody || headers.length === 0) return;
+
+    headers.forEach((header, index) => {
+        if (header.textContent.trim().toLowerCase() === "actions" || header.textContent.trim().toLowerCase() === "action") return;
+
+        header.classList.add("sortable-heading");
+        header.tabIndex = 0;
+        header.setAttribute("role", "button");
+
+        const sort = () => {
+            const rows = Array.from(tbody.querySelectorAll("tr"))
+                .filter((row) => row.dataset.filterEmptyRow !== "true");
+            const direction = header.dataset.sortDirection === "asc" ? "desc" : "asc";
+            headers.forEach((item) => delete item.dataset.sortDirection);
+            header.dataset.sortDirection = direction;
+
+            rows.sort((left, right) => {
+                const leftText = left.children[index]?.dataset.sortValue || left.children[index]?.textContent.trim() || "";
+                const rightText = right.children[index]?.dataset.sortValue || right.children[index]?.textContent.trim() || "";
+                const leftNumber = Number(leftText.replace(/,/g, ""));
+                const rightNumber = Number(rightText.replace(/,/g, ""));
+                const result = Number.isNaN(leftNumber) || Number.isNaN(rightNumber)
+                    ? leftText.localeCompare(rightText)
+                    : leftNumber - rightNumber;
+
+                return direction === "asc" ? result : -result;
+            });
+
+            rows.forEach((row) => tbody.appendChild(row));
+            table.dispatchEvent(new CustomEvent("table:changed"));
+        };
+
+        header.addEventListener("click", sort);
+        header.addEventListener("keydown", (event) => {
+            if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                sort();
+            }
+        });
+    });
+});
+
+document.querySelectorAll("[data-table-filter]").forEach((input) => {
+    const table = document.getElementById(input.dataset.tableFilter);
+    const tbody = table?.querySelector("tbody");
+    if (!table || !tbody) return;
+
+    const rows = Array.from(tbody.querySelectorAll("tr"));
+    const emptyRow = document.createElement("tr");
+    const emptyCell = document.createElement("td");
+
+    emptyRow.hidden = true;
+    emptyRow.dataset.filterEmptyRow = "true";
+    emptyCell.colSpan = table.querySelectorAll("thead th").length || 1;
+    emptyCell.className = "text-muted";
+    emptyCell.textContent = "No matching records found.";
+    emptyRow.appendChild(emptyCell);
+    tbody.appendChild(emptyRow);
+
+    const applyFilter = () => {
+        const query = input.value.trim().toLowerCase();
+        let visibleCount = 0;
+
+        rows.forEach((row) => {
+            const matches = !query || row.textContent.toLowerCase().includes(query);
+            row.dataset.filterHidden = matches ? "false" : "true";
+            row.hidden = !matches;
+            if (matches) visibleCount += 1;
+        });
+
+        emptyRow.hidden = visibleCount > 0;
+        table.dispatchEvent(new CustomEvent("table:changed"));
+    };
+
+    input.addEventListener("input", applyFilter);
+    applyFilter();
+});
+
+document.querySelectorAll("table").forEach((table) => {
+    const tbody = table.querySelector("tbody");
+    const rowSelector = table.dataset.paginateRowSelector || "tr";
+    const rows = tbody ? Array.from(tbody.querySelectorAll(rowSelector)).filter((row) => row.dataset.filterEmptyRow !== "true") : [];
+    const pageSizes = (table.dataset.pageSizes || "10,20,30,40,50")
+        .split(",")
+        .map((size) => Number(size.trim()))
+        .filter((size) => size > 0);
+    const defaultPageSize = Number(table.dataset.pageSize || pageSizes[0] || 10);
+
+    if (!tbody || rows.length <= defaultPageSize) return;
+
+    const wrapper = table.closest(".table-responsive") || table.parentElement;
+    const controls = document.createElement("div");
+    const status = document.createElement("span");
+    const sizeLabel = document.createElement("label");
+    const sizeSelect = document.createElement("select");
+    const pager = document.createElement("div");
+    const previous = document.createElement("button");
+    const next = document.createElement("button");
+
+    let currentPage = 1;
+    let pageSize = defaultPageSize;
+
+    controls.className = "table-pagination no-print";
+    status.className = "table-pagination-status";
+    sizeLabel.className = "table-page-size";
+    pager.className = "table-page-buttons";
+
+    sizeLabel.textContent = "Rows";
+    sizeSelect.className = "form-select form-select-sm";
+    sizeSelect.setAttribute("aria-label", "Rows per page");
+    pageSizes.forEach((size) => {
+        const option = document.createElement("option");
+        option.value = size;
+        option.textContent = size;
+        if (size === pageSize) option.selected = true;
+        sizeSelect.appendChild(option);
+    });
+    sizeLabel.appendChild(sizeSelect);
+
+    previous.className = "btn btn-sm btn-outline-success";
+    previous.type = "button";
+    previous.textContent = "Previous";
+    next.className = "btn btn-sm btn-outline-success";
+    next.type = "button";
+    next.textContent = "Next";
+
+    pager.append(previous, next);
+    controls.append(status, sizeLabel, pager);
+    wrapper.after(controls);
+
+    const render = () => {
+        const currentRows = Array.from(tbody.querySelectorAll(rowSelector))
+            .filter((row) => row.dataset.filterEmptyRow !== "true");
+        const visibleRows = currentRows.filter((row) => row.dataset.filterHidden !== "true");
+        const totalRows = currentRows.length;
+        const totalVisibleRows = visibleRows.length;
+        const totalPages = Math.max(1, Math.ceil(totalVisibleRows / pageSize));
+        currentPage = Math.min(currentPage, totalPages);
+
+        const start = (currentPage - 1) * pageSize;
+        const end = start + pageSize;
+
+        currentRows.forEach((row) => {
+            row.hidden = true;
+        });
+
+        visibleRows.forEach((row, index) => {
+            const isHidden = index < start || index >= end;
+            row.hidden = isHidden;
+            if (rowSelector !== "tr" && row.nextElementSibling?.classList.contains("ticket-detail-row")) {
+                row.nextElementSibling.hidden = isHidden;
+                if (isHidden) {
+                    row.nextElementSibling.querySelector(".collapse.show")?.classList.remove("show");
+                }
+            }
+        });
+
+        const firstShown = totalVisibleRows === 0 ? 0 : start + 1;
+        const lastShown = Math.min(end, totalVisibleRows);
+        status.textContent = `Showing ${firstShown}-${lastShown} of ${totalVisibleRows}`;
+        previous.disabled = currentPage <= 1;
+        next.disabled = currentPage >= totalPages;
+    };
+
+    sizeSelect.addEventListener("change", () => {
+        pageSize = Number(sizeSelect.value);
+        currentPage = 1;
+        render();
+    });
+
+    previous.addEventListener("click", () => {
+        currentPage = Math.max(1, currentPage - 1);
+        render();
+    });
+
+    next.addEventListener("click", () => {
+        currentPage += 1;
+        render();
+    });
+
+    table.addEventListener("table:changed", () => {
+        currentPage = 1;
+        render();
+    });
+
+    render();
+});
+
+document.querySelectorAll("[data-print-target]").forEach((button) => {
+    button.addEventListener("click", () => {
+        const target = document.getElementById(button.dataset.printTarget);
+        if (!target) return;
+
+        const printable = target.cloneNode(true);
+        printable.querySelectorAll("tr[hidden]").forEach((row) => {
+            row.hidden = false;
+        });
+        printable.querySelectorAll(".print-exclude").forEach((element) => {
+            element.remove();
+        });
+        printable.querySelectorAll("a").forEach((link) => {
+            link.replaceWith(document.createTextNode(link.textContent));
+        });
+        const reportTitle = button.dataset.reportTitle || "Records Report";
+        const isPdf = button.dataset.printMode === "pdf";
+
+        const preview = window.open("", "_blank", "width=1200,height=800");
+        if (!preview) return;
+
+        preview.document.write(`
+            <!doctype html>
+            <html>
+            <head>
+                <title>${reportTitle}</title>
+                <style>
+                    @page { size: legal landscape; margin: 0.35in; }
+                    * { box-sizing: border-box; }
+                    body { font-family: Arial, sans-serif; padding: 18px; color: #222; }
+                    h1 { font-size: 16px; text-align: center; margin: 0 0 4px; }
+                    p { text-align: center; margin: 0 0 14px; font-size: 11px; }
+                    table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 8.5px; line-height: 1.15; }
+                    th, td { border: 1px solid #444; padding: 4px; text-align: left; white-space: normal; overflow-wrap: anywhere; }
+                    th { background: #ffe94a; }
+                    tfoot th, tfoot td { background: #eef8ef; font-weight: 700; }
+                    .table-responsive { overflow: visible; }
+                    .actions { margin: 18px 0; text-align: right; }
+                    button { padding: 8px 12px; border: 1px solid #146b3a; background: #146b3a; color: white; border-radius: 6px; }
+                    .table-location-cell { font-size: 8px; line-height: 1.25; }
+                    @media print { .actions { display: none; } body { padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+                </style>
+            </head>
+            <body>
+                <h1>${reportTitle.toUpperCase()}</h1>
+                <p>Generated ${new Date().toLocaleString()}</p>
+                <div class="actions"><button onclick="window.print()">Print / Save PDF</button></div>
+                ${printable.outerHTML}
+            </body>
+            </html>
+        `);
+        preview.document.close();
+        preview.focus();
+        if (isPdf) {
+            preview.addEventListener("load", () => preview.print(), { once: true });
+            window.setTimeout(() => preview.print(), 350);
+        }
+    });
+});
+
+const transactionDetailModal = document.getElementById("transactionDetailModal");
+if (transactionDetailModal && window.bootstrap?.Modal) {
+    const modal = new bootstrap.Modal(transactionDetailModal);
+    modal.show();
+    transactionDetailModal.addEventListener("hidden.bs.modal", () => {
+        const url = new URL(window.location.href);
+        url.searchParams.delete("transaction_id");
+        window.history.replaceState({}, "", url.toString());
+    });
+}
+
+const locationData = window.FWSP_LOCATIONS || {};
+const locationGroups = new Set(
+    Array.from(document.querySelectorAll("[data-location-level]")).map((select) => {
+        return select.closest(".row") || select.closest("form") || document;
+    })
+);
+
+const resetOptions = (select, label) => {
+    const first = select.querySelector("option[value='']")?.textContent || label;
+    select.innerHTML = `<option value="">${first}</option>`;
+};
+
+const addOptions = (select, items) => {
+    const selected = select.dataset.selected || select.value;
+    items.forEach((item) => {
+        const option = document.createElement("option");
+        option.value = item.id;
+        option.textContent = item.name;
+        if (String(item.id) === String(selected)) option.selected = true;
+        select.appendChild(option);
+    });
+};
+
+locationGroups.forEach((group) => {
+    const region = group.querySelector('[data-location-level="region"]');
+    const branch = group.querySelector('[data-location-level="branch"]');
+    const province = group.querySelector('[data-location-level="province"]');
+    const warehouse = group.querySelector('[data-location-level="warehouse"]');
+
+    if (!region || !branch || !province || !warehouse) return;
+
+    const renderBranches = () => {
+        resetOptions(branch, "Select");
+        resetOptions(province, "Select");
+        resetOptions(warehouse, "Select");
+        addOptions(branch, (locationData.branches || []).filter((item) => String(item.region_id) === String(region.value)));
+        renderProvinces();
+    };
+
+    const renderProvinces = () => {
+        resetOptions(province, "Select");
+        resetOptions(warehouse, "Select");
+        addOptions(province, (locationData.provinces || []).filter((item) => String(item.branch_id) === String(branch.value)));
+        renderWarehouses();
+    };
+
+    const renderWarehouses = () => {
+        resetOptions(warehouse, "Select");
+        addOptions(warehouse, (locationData.warehouses || []).filter((item) => String(item.province_id) === String(province.value)));
+    };
+
+    region.addEventListener("change", () => {
+        branch.dataset.selected = "";
+        province.dataset.selected = "";
+        warehouse.dataset.selected = "";
+        renderBranches();
+    });
+
+    branch.addEventListener("change", () => {
+        province.dataset.selected = "";
+        warehouse.dataset.selected = "";
+        renderProvinces();
+    });
+
+    province.addEventListener("change", () => {
+        warehouse.dataset.selected = "";
+        renderWarehouses();
+    });
+
+    group.querySelectorAll("[data-clear-location-filters]").forEach((button) => {
+        button.addEventListener("click", () => {
+            [region, branch, province, warehouse].forEach((select) => {
+                select.dataset.selected = "";
+                select.value = "";
+            });
+            renderBranches();
+            [region, branch, province, warehouse].forEach((select) => {
+                select.dispatchEvent(new Event("change", { bubbles: true }));
+            });
+        });
+    });
+
+    renderBranches();
+});
+
+document.querySelectorAll("[data-location-add-stack]").forEach((stack) => {
+    const region = stack.querySelector('[data-location-add-level="region"]');
+    const branch = stack.querySelector('[data-location-add-level="branch"]');
+    const province = stack.querySelector('[data-location-add-level="province"]');
+
+    const renderBranches = () => {
+        if (!branch || !region) return;
+
+        resetOptions(branch, "Select");
+        if (province) resetOptions(province, "Select");
+        addOptions(branch, (locationData.branches || []).filter((item) => String(item.region_id) === String(region.value)));
+        renderProvinces();
+    };
+
+    const renderProvinces = () => {
+        if (!province || !branch) return;
+
+        resetOptions(province, "Select");
+        addOptions(province, (locationData.provinces || []).filter((item) => String(item.branch_id) === String(branch.value)));
+    };
+
+    region?.addEventListener("change", () => {
+        if (branch) branch.dataset.selected = "";
+        if (province) province.dataset.selected = "";
+        renderBranches();
+    });
+
+    branch?.addEventListener("change", () => {
+        if (province) province.dataset.selected = "";
+        renderProvinces();
+    });
+
+    stack.querySelector("[data-clear-location-add]")?.addEventListener("click", () => {
+        [region, branch, province].forEach((select) => {
+            if (!select) return;
+            select.dataset.selected = "";
+            select.value = "";
+        });
+        renderBranches();
+    });
+
+    renderBranches();
+});
+
+document.querySelectorAll("form").forEach((form) => {
+    const scopeInput = form.querySelector("[data-registration-office-scope]");
+    const tabs = Array.from(form.querySelectorAll("[data-registration-scope-tab]"));
+    const panels = Array.from(form.querySelectorAll("[data-registration-scope-panel]"));
+
+    if (!scopeInput || tabs.length === 0 || panels.length === 0) return;
+
+    const setScope = (scope) => {
+        scopeInput.value = scope;
+        panels.forEach((panel) => {
+            const isActive = panel.dataset.registrationScopePanel === scope;
+            panel.querySelectorAll("input, select, textarea").forEach((field) => {
+                field.disabled = !isActive;
+            });
+        });
+    };
+
+    tabs.forEach((tab) => {
+        tab.addEventListener("shown.bs.tab", () => setScope(tab.dataset.registrationScopeTab));
+        tab.addEventListener("click", () => setScope(tab.dataset.registrationScopeTab));
+    });
+
+    setScope(scopeInput.value || "field");
+});
+
+const centralOfficeData = window.FWSP_CENTRAL_OFFICE || {};
+const centralOfficeGroups = new Set(
+    Array.from(document.querySelectorAll("[data-central-office-level]")).map((select) => {
+        return select.closest(".row") || select.closest("form") || document;
+    })
+);
+
+centralOfficeGroups.forEach((group) => {
+    const department = group.querySelector('[data-central-office-level="department"]');
+    const division = group.querySelector('[data-central-office-level="division"]');
+    const unit = group.querySelector('[data-central-office-level="unit"]');
+
+    if (!department || !division || !unit) return;
+
+    const renderDivisions = () => {
+        resetOptions(division, "Select");
+        resetOptions(unit, "Select");
+        addOptions(division, (centralOfficeData.divisions || []).filter((item) => String(item.department_id) === String(department.value)));
+        renderUnits();
+    };
+
+    const renderUnits = () => {
+        resetOptions(unit, "Select");
+        addOptions(unit, (centralOfficeData.units || []).filter((item) => String(item.division_id) === String(division.value)));
+    };
+
+    department.addEventListener("change", () => {
+        division.dataset.selected = "";
+        unit.dataset.selected = "";
+        renderDivisions();
+    });
+
+    division.addEventListener("change", () => {
+        unit.dataset.selected = "";
+        renderUnits();
+    });
+
+    renderDivisions();
+});
+
+document.querySelectorAll("[data-central-office-add-stack]").forEach((stack) => {
+    const department = stack.querySelector('[data-central-office-add-level="department"]');
+    const division = stack.querySelector('[data-central-office-add-level="division"]');
+
+    const renderDivisions = () => {
+        if (!division || !department) return;
+
+        resetOptions(division, "Select");
+        addOptions(division, (centralOfficeData.divisions || []).filter((item) => String(item.department_id) === String(department.value)));
+    };
+
+    department?.addEventListener("change", () => {
+        if (division) division.dataset.selected = "";
+        renderDivisions();
+    });
+
+    stack.querySelector("[data-clear-central-office-add]")?.addEventListener("click", () => {
+        [department, division].forEach((select) => {
+            if (!select) return;
+            select.dataset.selected = "";
+            select.value = "";
+        });
+        renderDivisions();
+    });
+
+    renderDivisions();
+});
+
+document.querySelectorAll("[data-pie-chart]").forEach((canvas) => {
+    const context = canvas.getContext("2d");
+    if (!context) return;
+
+    const palettes = {
+        sex: ["#146b3a", "#d8a31e"],
+        sectoral: ["#146b3a", "#5f8f2f", "#d8a31e", "#2f80b7", "#8a5a9f"],
+        rainbow: ["#e53935", "#fb8c00", "#fdd835", "#43a047", "#1e88e5", "#8e24aa", "#d81b60"],
+    };
+
+    const piePath = (cx, cy, radius, start, end) => {
+        context.beginPath();
+        context.moveTo(cx, cy);
+        context.arc(cx, cy, radius, start, end);
+        context.closePath();
+    };
+
+    const roundedRect = (x, y, width, height, radius) => {
+        context.beginPath();
+        context.moveTo(x + radius, y);
+        context.lineTo(x + width - radius, y);
+        context.quadraticCurveTo(x + width, y, x + width, y + radius);
+        context.lineTo(x + width, y + height - radius);
+        context.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+        context.lineTo(x + radius, y + height);
+        context.quadraticCurveTo(x, y + height, x, y + height - radius);
+        context.lineTo(x, y + radius);
+        context.quadraticCurveTo(x, y, x + radius, y);
+        context.closePath();
+    };
+
+    const drawText = (text, x, y, options = {}) => {
+        context.fillStyle = options.color || "#1d2b22";
+        context.font = options.font || "600 12px Poppins, Arial, sans-serif";
+        context.textAlign = options.align || "left";
+        context.textBaseline = "middle";
+        context.fillText(text, x, y);
+    };
+
+    let activeIndex = -1;
+    let geometry = null;
+
+    const draw = () => {
+        const raw = JSON.parse(canvas.getAttribute("data-pie-chart") || "{}");
+        const entries = Object.entries(raw).filter(([, value]) => Number(value) > 0);
+        const ratio = window.devicePixelRatio || 1;
+        const width = canvas.clientWidth || canvas.parentElement?.clientWidth || 360;
+        const height = 320;
+        const colors = palettes[canvas.dataset.palette] || palettes.sectoral;
+        const total = entries.reduce((sum, [, value]) => sum + Number(value), 0);
+
+        canvas.width = width * ratio;
+        canvas.height = height * ratio;
+        canvas.style.height = `${height}px`;
+        context.setTransform(ratio, 0, 0, ratio, 0, 0);
+        context.clearRect(0, 0, width, height);
+
+        if (total === 0) {
+            drawText("No data", width / 2, height / 2, {
+                align: "center",
+                font: "700 18px Poppins, Arial, sans-serif",
+                color: "#5d6f64",
+            });
+            return;
+        }
+
+        const cx = width * 0.50;
+        const cy = 108;
+        const radius = Math.min(width * 0.30, 92);
+        let angle = -Math.PI / 2;
+        const slices = [];
+
+        entries.forEach(([, value], index) => {
+            const slice = (Number(value) / total) * Math.PI * 2;
+            slices.push({
+                start: angle,
+                end: angle + slice,
+                index,
+                label: entries[index][0],
+                value: Number(value),
+                color: colors[index % colors.length],
+            });
+            angle += slice;
+        });
+
+        const drawSlice = (slice, isActive = false) => {
+            const middle = (slice.start + slice.end) / 2;
+            const offset = isActive ? 13 : 0;
+            const sliceCx = cx + Math.cos(middle) * offset;
+            const sliceCy = cy + Math.sin(middle) * offset;
+
+            if (isActive) {
+                context.save();
+                context.shadowColor = "rgba(7, 59, 34, 0.26)";
+                context.shadowBlur = 16;
+                context.shadowOffsetY = 8;
+            }
+
+            piePath(sliceCx, sliceCy, radius, slice.start, slice.end);
+            context.fillStyle = slice.color;
+            context.fill();
+            context.strokeStyle = "#ffffff";
+            context.lineWidth = isActive ? 4 : 2;
+            context.stroke();
+
+            if (isActive) {
+                context.restore();
+            }
+        };
+
+        slices.forEach((slice) => {
+            if (slice.index !== activeIndex) drawSlice(slice, false);
+        });
+
+        const activeSlice = slices.find((slice) => slice.index === activeIndex);
+        if (activeSlice) {
+            drawSlice(activeSlice, true);
+        }
+
+        geometry = { cx, cy, radius, slices };
+
+        if (activeSlice) {
+            const middle = (activeSlice.start + activeSlice.end) / 2;
+            const percent = (activeSlice.value / total) * 100;
+            const edgeX = cx + Math.cos(middle) * (radius + 18);
+            const edgeY = cy + Math.sin(middle) * (radius + 18);
+            const boxWidth = Math.min(170, width * 0.48);
+            const boxHeight = 86;
+            const rightSide = Math.cos(middle) >= 0;
+            const boxX = rightSide
+                ? Math.min(width - boxWidth - 8, edgeX + 12)
+                : Math.max(8, edgeX - boxWidth - 12);
+            const boxY = Math.max(12, Math.min(height - boxHeight - 12, edgeY - boxHeight / 2));
+            const anchorX = rightSide ? boxX : boxX + boxWidth;
+
+            context.strokeStyle = activeSlice.color;
+            context.lineWidth = 2;
+            context.beginPath();
+            context.moveTo(edgeX, edgeY);
+            context.lineTo(anchorX, boxY + boxHeight / 2);
+            context.stroke();
+
+            roundedRect(boxX, boxY, boxWidth, boxHeight, 10);
+            context.fillStyle = "rgba(255, 255, 255, 0.96)";
+            context.fill();
+            context.strokeStyle = activeSlice.color;
+            context.lineWidth = 2;
+            context.stroke();
+
+            drawText(activeSlice.label, boxX + 12, boxY + 18, {
+                font: "800 12px Poppins, Arial, sans-serif",
+                color: activeSlice.color,
+            });
+            drawText(`Count: ${activeSlice.value.toLocaleString()}`, boxX + 12, boxY + 38, {
+                font: "700 11px Poppins, Arial, sans-serif",
+            });
+            drawText(`Share: ${percent.toFixed(2)}%`, boxX + 12, boxY + 56, {
+                font: "700 11px Poppins, Arial, sans-serif",
+            });
+            drawText(`Total basis: ${total.toLocaleString()}`, boxX + 12, boxY + 74, {
+                font: "600 10px Poppins, Arial, sans-serif",
+                color: "#5d6f64",
+            });
+        }
+
+        let legendY = cy + radius + 28;
+        entries.forEach(([label, value], index) => {
+            const numeric = Number(value);
+            const percent = total > 0 ? (numeric / total) * 100 : 0;
+            const x = width * 0.10;
+            context.fillStyle = colors[index % colors.length];
+            context.beginPath();
+            context.arc(x, legendY, 5, 0, Math.PI * 2);
+            context.fill();
+
+            drawText(`${label}: ${numeric.toLocaleString()} (${percent.toFixed(2)}%)`, x + 12, legendY, {
+                font: "700 11px Poppins, Arial, sans-serif",
+                color: "#1d2b22",
+            });
+            legendY += 20;
+        });
+    };
+
+    draw();
+    window.addEventListener("resize", draw);
+    canvas.addEventListener("mousemove", (event) => {
+        if (!geometry) return;
+
+        const rect = canvas.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+        const dx = x - geometry.cx;
+        const dy = y - geometry.cy;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        let pointerAngle = Math.atan2(dy, dx);
+        if (pointerAngle < -Math.PI / 2) pointerAngle += Math.PI * 2;
+
+        const nextIndex = distance <= geometry.radius
+            ? geometry.slices.find((slice) => pointerAngle >= slice.start && pointerAngle < slice.end)?.index ?? -1
+            : -1;
+
+        if (nextIndex !== activeIndex) {
+            activeIndex = nextIndex;
+            canvas.style.cursor = activeIndex >= 0 ? "pointer" : "default";
+            draw();
+        }
+    });
+    canvas.addEventListener("mouseleave", () => {
+        if (activeIndex === -1) return;
+        activeIndex = -1;
+        canvas.style.cursor = "default";
+        draw();
+    });
+});
+
+document.querySelectorAll(".activity-transition").forEach((link) => {
+    link.addEventListener("click", (event) => {
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
+
+        event.preventDefault();
+
+        if (!window.FWSP_IS_AUTHENTICATED) {
+            const modal = document.getElementById("activityLoginRequiredModal");
+            if (modal && window.bootstrap?.Modal) {
+                window.bootstrap.Modal.getOrCreateInstance(modal).show();
+            }
+            return;
+        }
+
+        document.body.classList.add("route-fade");
+        window.setTimeout(() => {
+            window.location.href = link.href;
+        }, 360);
+    });
+});
