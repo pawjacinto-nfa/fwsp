@@ -1,16 +1,23 @@
 <section class="workspace-section">
     <div class="section-head compact">
-        <div><p class="eyebrow">Super Admin</p><h3>User Control Management</h3></div>
+        <div><p class="eyebrow">System Admin</p><h3>User Control Management</h3></div>
     </div>
-    <?php if (($_SESSION['role'] ?? '') !== 'Super Admin'): ?>
-        <div class="panel"><p class="mb-0">Only Super Admin can access this page.</p></div>
+    <?php if (($_SESSION['role'] ?? '') !== 'System Admin'): ?>
+        <div class="panel"><p class="mb-0">Only System Admin can access this page.</p></div>
     <?php else: ?>
-        <section class="panel table-section">
-            <div class="panel-head">
-                <h2>Users</h2>
-            </div>
-            <div class="table-responsive">
-            <table class="table align-middle" id="users-table" data-page-size="10">
+        <ul class="nav nav-tabs mb-3" id="userControlTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="users-tab" type="button" role="tab" data-bs-toggle="tab" data-bs-target="#users-panel" aria-controls="users-panel" aria-selected="true">Users</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="audit-logs-tab" type="button" role="tab" data-bs-toggle="tab" data-bs-target="#audit-logs-panel" aria-controls="audit-logs-panel" aria-selected="false">Audit Logs</button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="userControlTabContent">
+            <section class="tab-pane fade show active panel table-section" id="users-panel" role="tabpanel" aria-labelledby="users-tab" tabindex="0">
+                <div class="table-responsive">
+                <table class="table align-middle" id="users-table" data-page-size="10">
                 <thead><tr><th>Username</th><th>Name</th><th>Office</th><th>Designation</th><th>Status</th><th>Role</th><th>Password Reset</th><th>Action</th></tr></thead>
                 <tbody>
                 <?php foreach ($users as $account): ?>
@@ -45,39 +52,37 @@
                     </tr>
                 <?php endforeach; ?>
                 </tbody>
-            </table>
-            </div>
-        </section>
-
-        <section class="panel table-section">
-            <div class="panel-head">
-                <h2>Audit Logs</h2>
-            </div>
-            <div class="table-responsive">
-                <table class="table align-middle" id="audit-logs-table" data-page-size="10">
-                    <thead>
-                        <tr>
-                            <th>Date/Time</th>
-                            <th>User</th>
-                            <th>Name</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    <?php foreach (($auditLogs ?? []) as $log): ?>
-                        <tr>
-                            <td data-sort-value="<?= e($log['sortable_created_at']) ?>"><?= e($log['created_at']) ?></td>
-                            <td><?= e($log['username']) ?></td>
-                            <td><?= e($log['full_name']) ?></td>
-                            <td><?= e($log['action']) ?></td>
-                        </tr>
-                    <?php endforeach; ?>
-                    <?php if (($auditLogs ?? []) === []): ?>
-                        <tr><td colspan="4" class="text-muted">No audit logs have been recorded yet.</td></tr>
-                    <?php endif; ?>
-                    </tbody>
                 </table>
-            </div>
-        </section>
+                </div>
+            </section>
+
+            <section class="tab-pane fade panel table-section" id="audit-logs-panel" role="tabpanel" aria-labelledby="audit-logs-tab" tabindex="0">
+                <div class="table-responsive">
+                    <table class="table align-middle" id="audit-logs-table" data-page-size="10">
+                        <thead>
+                            <tr>
+                                <th>Date/Time</th>
+                                <th>User</th>
+                                <th>Name</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        <?php foreach (($auditLogs ?? []) as $log): ?>
+                            <tr>
+                                <td data-sort-value="<?= e($log['sortable_created_at']) ?>"><?= e($log['created_at']) ?></td>
+                                <td><?= e($log['username']) ?></td>
+                                <td><?= e($log['full_name']) ?></td>
+                                <td><?= e($log['action']) ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                        <?php if (($auditLogs ?? []) === []): ?>
+                            <tr><td colspan="4" class="text-muted">No audit logs have been recorded yet.</td></tr>
+                        <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
     <?php endif; ?>
 </section>

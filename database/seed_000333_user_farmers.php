@@ -151,7 +151,7 @@ try {
         'username' => '000333',
         'email' => '000333@fwsp.local',
         'password_hash' => password_hash('password', PASSWORD_DEFAULT),
-        'role' => 'Warehouse Supervisor',
+        'role' => 'Warehouse Personnel',
         'region_id' => $target['region_id'],
         'branch_id' => $target['branch_id'],
         'province_id' => $target['province_id'],

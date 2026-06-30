@@ -1,37 +1,39 @@
 <div class="modal fade auth-modal" id="loginModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <?php if (isset($_GET['login_error'])): ?>
-            <div class="login-credential-alert" role="alert" data-login-credential-alert>
-                <span>Incorrect credentials</span>
-                <strong data-login-error-countdown>5</strong>
-            </div>
-        <?php endif; ?>
-        <form method="post" class="modal-content">
-            <input type="hidden" name="action" value="login">
-            <div class="modal-header">
-                <h2 class="modal-title fs-5">Sign in</h2>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <label class="form-label">Username</label>
-                <input required name="username" class="form-control mb-3" data-remember-username>
-                <label class="form-label">Password</label>
-                <div class="input-group">
-                    <input type="password" name="password" class="form-control" data-password-field>
-                    <button class="btn btn-outline-secondary" type="button" data-password-toggle aria-label="Show password" title="Show password">&#128065;</button>
+        <div class="login-modal-stack">
+            <?php if (isset($_GET['login_error'])): ?>
+                <div class="login-credential-alert" role="alert" data-login-credential-alert>
+                    <span>Incorrect credentials</span>
+                    <strong data-login-error-countdown>5</strong>
                 </div>
-                <div class="d-flex justify-content-between align-items-center gap-3 mt-3">
-                    <div class="form-check mb-0">
-                        <input class="form-check-input" type="checkbox" name="remember_me" id="rememberLogin" value="1" data-remember-login>
-                        <label class="form-check-label" for="rememberLogin">Remember me</label>
+            <?php endif; ?>
+            <form method="post" class="modal-content">
+                <input type="hidden" name="action" value="login">
+                <div class="modal-header">
+                    <h2 class="modal-title fs-5">Sign in</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <label class="form-label">Username</label>
+                    <input required name="username" class="form-control mb-3" data-remember-username>
+                    <label class="form-label">Password</label>
+                    <div class="input-group">
+                        <input type="password" name="password" class="form-control" data-password-field>
+                        <button class="btn btn-outline-secondary" type="button" data-password-toggle aria-label="Show password" title="Show password">&#128065;</button>
                     </div>
-                    <button class="btn btn-link btn-sm p-0" type="button" data-bs-toggle="modal" data-bs-target="#forgotPasswordModal" data-bs-dismiss="modal">Forgot password?</button>
+                    <div class="d-flex justify-content-between align-items-center gap-3 mt-3">
+                        <div class="form-check mb-0">
+                            <input class="form-check-input" type="checkbox" name="remember_me" id="rememberLogin" value="1" data-remember-login>
+                            <label class="form-check-label" for="rememberLogin">Remember me</label>
+                        </div>
+                        <button class="btn btn-link btn-sm p-0" type="button" data-bs-toggle="modal" data-bs-target="#forgotPasswordModal" data-bs-dismiss="modal">Forgot password?</button>
+                    </div>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-success" type="submit">Login</button>
-            </div>
-        </form>
+                <div class="modal-footer">
+                    <button class="btn btn-success" type="submit">Login</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -129,6 +131,7 @@
                             <?php
                             $locationClass = 'col-md-6';
                             $locationRequired = false;
+                            $locationRequiredLevels = ['region', 'branch'];
                             $locationIncludeAll = false;
                             $locationLabelWarehouse = 'Facility Name';
                             require BASE_PATH . '/app/Views/partials/location-selects.php';
@@ -154,7 +157,7 @@
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">Service/Unit</label>
-                                <select required disabled name="central_unit_id" class="form-select" data-central-office-level="unit">
+                                <select disabled name="central_unit_id" class="form-select" data-central-office-level="unit">
                                     <option value="">Select</option>
                                 </select>
                             </div>

@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS users (
     username VARCHAR(80) NOT NULL UNIQUE,
     email VARCHAR(160) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
-    role VARCHAR(60) NOT NULL DEFAULT 'Viewer',
+    role VARCHAR(60) NOT NULL DEFAULT 'Read-Only User',
     is_active BOOLEAN NOT NULL DEFAULT FALSE,
     status VARCHAR(30) NOT NULL DEFAULT 'Pending',
     office_scope VARCHAR(30) NOT NULL DEFAULT 'field',
@@ -25,6 +25,16 @@ CREATE TABLE IF NOT EXISTS users (
     password_reset_requested_at TIMESTAMP NULL,
     password_reset_approved_at TIMESTAMP NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS report_signatories (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT UNSIGNED NOT NULL,
+    full_name VARCHAR(160) NOT NULL,
+    designation VARCHAR(160) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX report_signatories_user_idx (user_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS regions (
@@ -92,11 +102,19 @@ CREATE TABLE IF NOT EXISTS central_units (
 CREATE TABLE IF NOT EXISTS farmer_organizations (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(180) NOT NULL UNIQUE,
+    is_indigenous_sector_group BOOLEAN NOT NULL DEFAULT FALSE,
+    classification_type VARCHAR(40) NOT NULL DEFAULT 'Farmer Organization',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS farmer_key_sequences (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS farmers (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    farmer_key VARCHAR(32) UNIQUE,
     rsbsa_number VARCHAR(60) NOT NULL UNIQUE,
     first_name VARCHAR(100) NOT NULL,
     middle_name VARCHAR(100),
@@ -113,6 +131,7 @@ CREATE TABLE IF NOT EXISTS farmers (
     photo_path VARCHAR(255),
     gender_orientation JSON,
     sector JSON,
+    is_ip_group_member BOOLEAN NOT NULL DEFAULT FALSE,
     farmer_organization_id BIGINT UNSIGNED,
     warehouse_id BIGINT UNSIGNED,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -142,11 +161,13 @@ CREATE TABLE IF NOT EXISTS transactions (
     farmer_organization_id BIGINT UNSIGNED,
     representative_name VARCHAR(180),
     total_members INT UNSIGNED,
+    is_ip_group_delivery BOOLEAN NOT NULL DEFAULT FALSE,
     verified_farm_area DECIMAL(10,2),
     delivery_date DATE NOT NULL,
     warehouse_stock_receipt_number VARCHAR(80) NOT NULL UNIQUE,
     price_per_kilogram DECIMAL(10,2) NOT NULL,
     net_kilogram DECIMAL(12,2) NOT NULL,
+    total_cost DECIMAL(20,2) GENERATED ALWAYS AS (ROUND(price_per_kilogram * net_kilogram, 2)) STORED,
     bags_50kg INT UNSIGNED NOT NULL,
     warehouse_id BIGINT UNSIGNED,
     created_by BIGINT UNSIGNED,
@@ -157,7 +178,7 @@ CREATE TABLE IF NOT EXISTS transactions (
     FOREIGN KEY (warehouse_id) REFERENCES warehouse_offices(id)
 );
 
-ALTER TABLE users MODIFY role VARCHAR(60) NOT NULL DEFAULT 'Viewer';
+ALTER TABLE users MODIFY role VARCHAR(60) NOT NULL DEFAULT 'Read-Only User';
 ALTER TABLE users ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT FALSE;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS status VARCHAR(30) NOT NULL DEFAULT 'Pending';
 ALTER TABLE users ADD COLUMN IF NOT EXISTS office_scope VARCHAR(30) NOT NULL DEFAULT 'field';
@@ -176,7 +197,17 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS password_reset_requested_at TIMESTAMP
 ALTER TABLE users ADD COLUMN IF NOT EXISTS password_reset_approved_at TIMESTAMP NULL;
 ALTER TABLE farmers ADD COLUMN IF NOT EXISTS warehouse_id BIGINT UNSIGNED NULL;
 ALTER TABLE farmers ADD COLUMN IF NOT EXISTS photo_path VARCHAR(255) NULL;
+ALTER TABLE farmers ADD COLUMN IF NOT EXISTS farmer_key VARCHAR(32) NULL AFTER id;
+ALTER TABLE farmers ADD COLUMN IF NOT EXISTS is_ip_group_member TINYINT(1) NOT NULL DEFAULT 0;
+ALTER TABLE farmer_organizations ADD COLUMN IF NOT EXISTS is_indigenous_sector_group TINYINT(1) NOT NULL DEFAULT 0;
+ALTER TABLE farmer_organizations ADD COLUMN IF NOT EXISTS classification_type VARCHAR(40) NOT NULL DEFAULT 'Farmer Organization';
+UPDATE farmer_organizations
+SET classification_type = CASE
+    WHEN is_indigenous_sector_group = 1 THEN 'Indigenous People Group'
+    ELSE 'Farmer Organization'
+END;
 ALTER TABLE transactions ADD COLUMN IF NOT EXISTS warehouse_id BIGINT UNSIGNED NULL;
+ALTER TABLE transactions ADD COLUMN IF NOT EXISTS is_ip_group_delivery TINYINT(1) NOT NULL DEFAULT 0;
 ALTER TABLE warehouse_offices ADD COLUMN IF NOT EXISTS province_id BIGINT UNSIGNED NULL;
 
 CREATE TABLE IF NOT EXISTS province_offices (
@@ -238,8 +269,8 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 );
 
 INSERT IGNORE INTO users (full_name, username, email, password_hash, role, is_active, status, designation, contact_number) VALUES
-('Super Admin', '940640', 'superadmin@fwsp.local', '$2y$10$GN7cBbOJqlqWKG4WTlq9WeDddCeEISNlbqSS3enkM2UeyQxVXti9e', 'Super Admin', 1, 'Active', 'System Administrator', 'n/a'),
-('Maria Warehouse', 'warehouse', 'warehouse@fwsp.local', '$2y$10$eImiTXuWVxfM37uY4JANjQeD8ZtcVgHPwrFA4ocK9n53KRzLtPz4S', 'Warehouse Supervisor', 1, 'Active', 'Warehouse Supervisor', '09170000000');
+('System Admin', '940640', 'superadmin@fwsp.local', '$2y$10$GN7cBbOJqlqWKG4WTlq9WeDddCeEISNlbqSS3enkM2UeyQxVXti9e', 'System Admin', 1, 'Active', 'System Administrator', 'n/a'),
+('Maria Warehouse', 'warehouse', 'warehouse@fwsp.local', '$2y$10$eImiTXuWVxfM37uY4JANjQeD8ZtcVgHPwrFA4ocK9n53KRzLtPz4S', 'Warehouse Personnel', 1, 'Active', 'Warehouse Personnel', '09170000000');
 
 INSERT IGNORE INTO regions (id, name) VALUES
 (1, 'Region 1'), (2, 'Region 2'), (3, 'Region 3'), (4, 'Region 4'), (5, 'Region 5'),
@@ -291,8 +322,13 @@ INSERT IGNORE INTO farmers (
     (SELECT id FROM farmer_organizations WHERE name = 'Munoz Rice Growers Association')
 );
 
-UPDATE users SET role = 'Warehouse Supervisor', is_active = 1, status = 'Active' WHERE username = 'warehouse';
-UPDATE users SET role = 'Super Admin', is_active = 1, status = 'Active' WHERE username = '940640';
+UPDATE users SET role = 'Warehouse Personnel', is_active = 1, status = 'Active' WHERE username = 'warehouse';
+UPDATE users SET role = 'System Admin', is_active = 1, status = 'Active' WHERE username = '940640';
+
+UPDATE users SET role = 'System Admin' WHERE role = 'Super Admin';
+UPDATE users SET role = 'Warehouse Personnel' WHERE role = 'Warehouse Supervisor';
+UPDATE users SET role = 'Manager' WHERE role = 'Regional/Branch Manager';
+UPDATE users SET role = 'Read-Only User' WHERE role = 'Viewer';
 UPDATE farmers SET warehouse_id = (SELECT id FROM warehouse_offices WHERE name = 'San Jose Warehouse' LIMIT 1) WHERE warehouse_id IS NULL;
 UPDATE transactions SET warehouse_id = (SELECT id FROM warehouse_offices WHERE name = 'San Jose Warehouse' LIMIT 1) WHERE warehouse_id IS NULL;
 

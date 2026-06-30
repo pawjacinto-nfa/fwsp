@@ -79,7 +79,7 @@
                                 <input type="hidden" name="id" value="<?= e($location['region_id']) ?>">
                                 <input name="name" class="form-control form-control-sm" value="<?= e($location['region_name']) ?>">
                                 <button class="btn btn-sm btn-outline-success" type="submit" name="action" value="location-update">Save</button>
-                                <button class="location-delete-x" type="submit" name="action" value="location-delete" formnovalidate onclick="return confirm('Delete this region?')" aria-label="Delete region">X</button>
+                                <button class="location-delete-x" type="submit" name="action" value="location-delete" formnovalidate data-confirm-message="Delete this region?" aria-label="Delete region">X</button>
                             </form>
                         </td>
                         <td>
@@ -88,7 +88,7 @@
                                 <input type="hidden" name="id" value="<?= e($location['branch_id']) ?>">
                                 <input name="name" class="form-control form-control-sm" value="<?= e($location['branch_name']) ?>">
                                 <button class="btn btn-sm btn-outline-success" type="submit" name="action" value="location-update">Save</button>
-                                <button class="location-delete-x" type="submit" name="action" value="location-delete" formnovalidate onclick="return confirm('Delete this branch?')" aria-label="Delete branch">X</button>
+                                <button class="location-delete-x" type="submit" name="action" value="location-delete" formnovalidate data-confirm-message="Delete this branch?" aria-label="Delete branch">X</button>
                             </form>
                         </td>
                         <td>
@@ -97,7 +97,7 @@
                                 <input type="hidden" name="id" value="<?= e($location['province_id']) ?>">
                                 <input name="name" class="form-control form-control-sm" value="<?= e($location['province_name']) ?>">
                                 <button class="btn btn-sm btn-outline-success" type="submit" name="action" value="location-update">Save</button>
-                                <button class="location-delete-x" type="submit" name="action" value="location-delete" formnovalidate onclick="return confirm('Delete this province?')" aria-label="Delete province">X</button>
+                                <button class="location-delete-x" type="submit" name="action" value="location-delete" formnovalidate data-confirm-message="Delete this province?" aria-label="Delete province">X</button>
                             </form>
                         </td>
                         <td>
@@ -106,7 +106,7 @@
                                 <input type="hidden" name="id" value="<?= e($location['warehouse_id']) ?>">
                                 <input name="name" class="form-control form-control-sm" value="<?= e($location['warehouse_name']) ?>">
                                 <button class="btn btn-sm btn-outline-success" type="submit" name="action" value="location-update">Save</button>
-                                <button class="location-delete-x" type="submit" name="action" value="location-delete" formnovalidate onclick="return confirm('Delete this facility?')" aria-label="Delete facility">X</button>
+                                <button class="location-delete-x" type="submit" name="action" value="location-delete" formnovalidate data-confirm-message="Delete this facility?" aria-label="Delete facility">X</button>
                             </form>
                         </td>
                     </tr>

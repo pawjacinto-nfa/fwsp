@@ -5,10 +5,12 @@
     </div>
     <div class="form-section-title">Personal Details</div>
     <div class="row g-3">
+        <div class="col-md-3"><label class="form-label">Farmer Key</label><input value="<?= e($nextFarmerKey ?? '') ?>" class="form-control" disabled></div>
         <div class="col-md-3"><label class="form-label">RSBSA Number</label><input required name="rsbsa" class="form-control"></div>
-        <div class="col-md-3"><label class="form-label">First Name</label><input required name="first_name" class="form-control"></div>
-        <div class="col-md-3"><label class="form-label">Middle Name</label><input name="middle_name" class="form-control"></div>
-        <div class="col-md-3"><label class="form-label">Last Name</label><input required name="last_name" class="form-control"></div>
+        <div class="w-100 d-none d-md-block"></div>
+        <div class="col-md-4"><label class="form-label">First Name</label><input required name="first_name" class="form-control"></div>
+        <div class="col-md-4"><label class="form-label">Middle Name</label><input name="middle_name" class="form-control"></div>
+        <div class="col-md-4"><label class="form-label">Last Name</label><input required name="last_name" class="form-control"></div>
         <div class="col-md-6"><label class="form-label">Full Home Address</label><input required name="address" class="form-control"></div>
         <div class="col-md-3"><label class="form-label">Birth Date</label><input type="date" name="birthdate" class="form-control"></div>
         <div class="col-md-3"><label class="form-label">Birthplace</label><input name="birthplace" class="form-control"></div>
@@ -17,7 +19,13 @@
         <div class="col-md-3"><label class="form-label">Dependents</label><input type="number" min="0" name="dependents" class="form-control"></div>
         <div class="col-md-3"><label class="form-label">Contact Number</label><input name="contact" class="form-control"></div>
         <div class="col-md-4"><label class="form-label">Email Address</label><input type="email" name="email" class="form-control"></div>
-        <div class="col-md-4"><label class="form-label">Sex</label><select required name="sex" class="form-select"><option>Female</option><option>Male</option></select></div>
+        <div class="col-md-4">
+            <label class="form-label d-block">Sex</label>
+            <div class="sex-radio-group" role="radiogroup" aria-label="Sex">
+                <label><input required type="radio" name="sex" value="Male"> Male</label>
+                <label><input required type="radio" name="sex" value="Female" checked> Female</label>
+            </div>
+        </div>
         <div class="col-md-4"><label class="form-label">Farmer Photo</label><input type="file" name="farmer_photo" accept=".jpg,.jpeg,.png,image/jpeg,image/png" class="form-control"><small class="text-muted">JPG or PNG only, max 50MB.</small></div>
     </div>
     <div class="form-section-title">NFA Location</div>
@@ -31,34 +39,39 @@
         require BASE_PATH . '/app/Views/partials/location-selects.php';
         ?>
     </div>
-    <div class="identity-sector-row">
-        <section>
-            <div class="form-section-title">SOGIE</div>
-            <div class="rainbow-selection rainbow-selection-vertical" role="radiogroup" aria-label="LGBTQIA+ identity selection">
-                <?php foreach (['Lesbian', 'Gay', 'Bisexual', 'Transgender'] as $item): ?>
-                    <label class="rainbow-choice">
-                        <input type="radio" name="gender_orientation" value="<?= e($item) ?>">
-                        <span><?= e($item) ?></span>
-                    </label>
-                <?php endforeach; ?>
-                <label class="rainbow-choice rainbow-choice-other">
-                    <input type="radio" name="gender_orientation" value="Other" data-toggle-other-input="identityOtherField">
-                    <span>Others</span>
-                </label>
-                <input id="identityOtherField" class="form-control rainbow-other-input" name="gender_orientation_other" placeholder="Please specify" disabled>
-                <label class="rainbow-choice rainbow-choice-na">
-                    <input type="radio" name="gender_orientation" value="N/A" checked>
-                    <span>N/A</span>
-                </label>
-            </div>
-        </section>
+    <div class="identity-sector-row sector-sogie-row">
         <section>
             <div class="form-section-title">Sector</div>
             <div class="check-grid sector-check-grid">
                 <?php foreach (['Persons with Disability', 'Indigenous People', 'Senior Citizen', 'Muslim', 'Youth', 'Adult'] as $item): ?>
                     <label><input type="checkbox" name="sector[]" value="<?= e($item) ?>"> <?= e($item) ?></label>
                 <?php endforeach; ?>
+                <label class="ip-group-member-choice"><input type="checkbox" name="is_ip_group_member" value="1"> Indigenous Sector Group Delivery Member</label>
             </div>
+        </section>
+        <section>
+            <details class="sogie-rainbow-dropdown">
+                <summary>SOGIE</summary>
+                <div class="sogie-rainbow-dropdown-content">
+                    <div class="rainbow-selection rainbow-selection-vertical" role="radiogroup" aria-label="LGBTQIA+ identity selection">
+                        <?php foreach (['Lesbian', 'Gay', 'Bisexual', 'Transgender'] as $item): ?>
+                            <label class="rainbow-choice">
+                                <input type="radio" name="gender_orientation" value="<?= e($item) ?>">
+                                <span><?= e($item) ?></span>
+                            </label>
+                        <?php endforeach; ?>
+                        <label class="rainbow-choice rainbow-choice-other">
+                            <input type="radio" name="gender_orientation" value="Other" data-toggle-other-input="identityOtherField">
+                            <span>Others</span>
+                        </label>
+                        <input id="identityOtherField" class="form-control rainbow-other-input" name="gender_orientation_other" placeholder="Please specify" disabled>
+                        <label class="rainbow-choice rainbow-choice-na">
+                            <input type="radio" name="gender_orientation" value="N/A" checked>
+                            <span>N/A</span>
+                        </label>
+                    </div>
+                </div>
+            </details>
         </section>
     </div>
     <div class="form-section-title">Landholding Data</div>

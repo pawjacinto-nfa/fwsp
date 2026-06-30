@@ -53,7 +53,7 @@ final class Notification
         $stmt = Database::connection()->query("
             SELECT id
             FROM users
-            WHERE role = 'Super Admin' AND is_active = 1
+            WHERE role = 'System Admin' AND is_active = 1
         ");
 
         foreach (array_map('intval', array_column($stmt->fetchAll(), 'id')) as $adminId) {

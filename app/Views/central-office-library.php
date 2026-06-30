@@ -73,7 +73,7 @@
                                 <input type="hidden" name="id" value="<?= e($location['department_id']) ?>">
                                 <input name="name" class="form-control form-control-sm" value="<?= e($location['department_name']) ?>">
                                 <button class="btn btn-sm btn-outline-success" type="submit" name="action" value="central-office-update">Save</button>
-                                <button class="location-delete-x" type="submit" name="action" value="central-office-delete" formnovalidate onclick="return confirm('Delete this department?')" aria-label="Delete department">X</button>
+                                <button class="location-delete-x" type="submit" name="action" value="central-office-delete" formnovalidate data-confirm-message="Delete this department?" aria-label="Delete department">X</button>
                             </form>
                         </td>
                         <td>
@@ -83,7 +83,7 @@
                                     <input type="hidden" name="id" value="<?= e($location['division_id']) ?>">
                                     <input name="name" class="form-control form-control-sm" value="<?= e($location['division_name']) ?>">
                                     <button class="btn btn-sm btn-outline-success" type="submit" name="action" value="central-office-update">Save</button>
-                                    <button class="location-delete-x" type="submit" name="action" value="central-office-delete" formnovalidate onclick="return confirm('Delete this division?')" aria-label="Delete division">X</button>
+                                    <button class="location-delete-x" type="submit" name="action" value="central-office-delete" formnovalidate data-confirm-message="Delete this division?" aria-label="Delete division">X</button>
                                 </form>
                             <?php endif; ?>
                         </td>
@@ -94,7 +94,7 @@
                                     <input type="hidden" name="id" value="<?= e($location['unit_id']) ?>">
                                     <input name="name" class="form-control form-control-sm" value="<?= e($location['unit_name']) ?>">
                                     <button class="btn btn-sm btn-outline-success" type="submit" name="action" value="central-office-update">Save</button>
-                                    <button class="location-delete-x" type="submit" name="action" value="central-office-delete" formnovalidate onclick="return confirm('Delete this service/unit?')" aria-label="Delete service or unit">X</button>
+                                    <button class="location-delete-x" type="submit" name="action" value="central-office-delete" formnovalidate data-confirm-message="Delete this service/unit?" aria-label="Delete service or unit">X</button>
                                 </form>
                             <?php endif; ?>
                         </td>

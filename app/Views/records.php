@@ -84,6 +84,9 @@ if ($mode === 'transactions') {
                             <div><dt>WSR Number</dt><dd><?= e($selectedTransaction['wsr']) ?></dd></div>
                             <div><dt>Seller</dt><dd><?= e(trim($selectedTransaction['farmer_name']) ?: $selectedTransaction['fo_name']) ?></dd></div>
                             <div><dt>Type</dt><dd><?= e($selectedTransaction['seller_type']) ?> / <?= e($selectedTransaction['procurement_type']) ?></dd></div>
+                            <?php if (($selectedTransaction['seller_type'] ?? '') === 'Farmer Organization'): ?>
+                                <div><dt>Farmer Classification</dt><dd><?= !empty($selectedTransaction['is_ip_group_delivery']) ? 'Indigenous People Group' : 'Farmer Organization' ?></dd></div>
+                            <?php endif; ?>
                             <div><dt>Delivery Date</dt><dd><?= e($selectedTransaction['delivery_date']) ?></dd></div>
                             <div><dt>Representative</dt><dd><?= e($selectedTransaction['representative_name'] ?: 'N/A') ?></dd></div>
                             <div><dt>Total Farmer-Members</dt><dd><?= number_format((int) ($selectedTransaction['total_members'] ?? 0)) ?></dd></div>
@@ -91,7 +94,7 @@ if ($mode === 'transactions') {
                             <div><dt>Bags</dt><dd><?= number_format((float) $selectedTransaction['bags_50kg']) ?></dd></div>
                             <div><dt>Net Kilogram</dt><dd><?= number_format((float) $selectedTransaction['net_kilogram'], 2) ?></dd></div>
                             <div><dt>Price/Kg</dt><dd><?= number_format((float) $selectedTransaction['price_per_kilogram'], 2) ?></dd></div>
-                            <div><dt>Amount Paid</dt><dd><?= number_format((float) $selectedTransaction['net_kilogram'] * (float) $selectedTransaction['price_per_kilogram'], 2) ?></dd></div>
+                            <div><dt>Amount Paid</dt><dd><?= number_format((float) ($selectedTransaction['total_cost'] ?? ((float) $selectedTransaction['net_kilogram'] * (float) $selectedTransaction['price_per_kilogram'])), 2) ?></dd></div>
                             <div><dt>Location</dt><dd><?= e($selectedTransaction['region_name'] . ' / ' . $selectedTransaction['branch_name'] . ' / ' . $selectedTransaction['province_name'] . ' / ' . $selectedTransaction['warehouse_name']) ?></dd></div>
                         </dl>
                         <?php if (($selectedTransaction['seller_type'] ?? '') === 'Farmer Organization'): ?>
@@ -136,7 +139,7 @@ if ($mode === 'transactions') {
             </div>
             <div class="table-responsive">
                 <table class="table align-middle sortable-table" id="farmers-print-area">
-                    <thead><tr><th>RSBSA</th><th>Full Name</th><th>Sex</th><th>Age</th><th>Location</th><th>SOGIE</th><th>Sector/s</th><th>Farmer Organization</th></tr></thead>
+                    <thead><tr><th>Farmer Key</th><th>RSBSA</th><th>Full Name</th><th>Sex</th><th>Age</th><th>Location</th><th>SOGIE</th><th>Sector/s</th><th>Farmer Organization</th></tr></thead>
                     <tbody>
                     <?php foreach ($farmers as $farmer): ?>
                         <?php
@@ -151,8 +154,16 @@ if ($mode === 'transactions') {
                         $sectors = implode(', ', array_filter($farmer['sector'] ?? []));
                         ?>
                         <tr>
+                            <td><?= e($farmer['farmer_key'] ?? '') ?></td>
                             <td><?= e($farmer['rsbsa']) ?></td>
-                            <td><a class="table-profile-link" href="index.php?page=farmer-view&id=<?= e($farmer['id']) ?>"><?= e($fullName) ?></a></td>
+                            <td>
+                                <span class="farmer-name-with-limit">
+                                    <a class="table-profile-link" href="index.php?page=farmer-view&id=<?= e($farmer['id']) ?>"><?= e($fullName) ?></a>
+                                    <?php if ((int) ($farmer['annual_bags_delivered'] ?? 0) >= \App\Models\Transaction::MAX_INDIVIDUAL_ANNUAL_BAGS): ?>
+                                        <span class="delivery-limit-indicator print-exclude" role="img" aria-label="Annual delivery limit reached" title="Annual delivery limit reached: <?= number_format((int) $farmer['annual_bags_delivered']) ?> bags in <?= date('Y') ?>">!</span>
+                                    <?php endif; ?>
+                                </span>
+                            </td>
                             <td><?= e($farmer['sex']) ?></td>
                             <td><?= e($farmer['age'] ?? '') ?></td>
                             <td class="table-location-cell"><?= e($location) ?></td>
@@ -178,7 +189,7 @@ if ($mode === 'transactions') {
             </div>
             <div class="table-responsive">
                 <table class="table align-middle sortable-table" id="individual-transactions-print-area">
-                    <thead><tr><th>WSR</th><th>Seller</th><th>Type</th><th>Date</th><th>Province</th><th>Facility</th><th>Bags</th><th>Net Kg</th><th>Amount</th><th class="print-exclude">Action</th></tr></thead>
+                    <thead><tr><th>WSR</th><th>Seller</th><th>Type</th><th>Date</th><th>Province</th><th>Facility</th><th>No. of Bags</th><th>In MT</th><th>Amount</th><th class="print-exclude">Action</th></tr></thead>
                     <tbody>
                     <?php foreach ($individualTransactions as $transaction): ?>
                         <tr>
@@ -189,7 +200,7 @@ if ($mode === 'transactions') {
                             <td><?= e($transaction['province_name']) ?></td>
                             <td><?= e($transaction['warehouse_name']) ?></td>
                             <td><?= number_format((float) $transaction['bags']) ?></td>
-                            <td><?= number_format((float) $transaction['net_kg'], 2) ?></td>
+                            <td><?= number_format((float) $transaction['bags'] / 20, 2) ?></td>
                             <td><?= number_format((float) $transaction['net_kg'] * (float) $transaction['price'], 2) ?></td>
                             <td class="print-exclude"><a class="btn btn-sm btn-outline-success" href="index.php?page=transactions&transaction_id=<?= e($transaction['id']) ?>">View</a></td>
                         </tr>
@@ -212,7 +223,7 @@ if ($mode === 'transactions') {
             </div>
             <div class="table-responsive">
                 <table class="table align-middle sortable-table" id="organization-transactions-print-area">
-                    <thead><tr><th>WSR</th><th>Seller</th><th>Type</th><th>Date</th><th>Province</th><th>Facility</th><th>Bags</th><th>Net Kg</th><th>Amount</th><th class="print-exclude">Action</th></tr></thead>
+                    <thead><tr><th>WSR</th><th>Seller</th><th>Type</th><th>Date</th><th>Province</th><th>Facility</th><th>No. of Bags</th><th>In MT</th><th>Amount</th><th class="print-exclude">Action</th></tr></thead>
                     <tbody>
                     <?php foreach ($organizationTransactions as $transaction): ?>
                         <tr>
@@ -223,7 +234,7 @@ if ($mode === 'transactions') {
                             <td><?= e($transaction['province_name']) ?></td>
                             <td><?= e($transaction['warehouse_name']) ?></td>
                             <td><?= number_format((float) $transaction['bags']) ?></td>
-                            <td><?= number_format((float) $transaction['net_kg'], 2) ?></td>
+                            <td><?= number_format((float) $transaction['bags'] / 20, 2) ?></td>
                             <td><?= number_format((float) $transaction['net_kg'] * (float) $transaction['price'], 2) ?></td>
                             <td class="print-exclude"><a class="btn btn-sm btn-outline-success" href="index.php?page=transactions&transaction_id=<?= e($transaction['id']) ?>">View</a></td>
                         </tr>

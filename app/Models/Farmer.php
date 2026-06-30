@@ -9,9 +9,11 @@ final class Farmer
 {
     public static function all(): array
     {
+        self::ensureFarmerKeySchema();
         $sql = "
             SELECT
                 f.id,
+                f.farmer_key,
                 f.rsbsa_number AS rsbsa,
                 f.first_name,
                 f.middle_name,
@@ -28,7 +30,15 @@ final class Farmer
                 f.photo_path,
                 f.gender_orientation,
                 f.sector,
+                f.is_ip_group_member,
                 f.warehouse_id,
+                COALESCE((
+                    SELECT SUM(limit_t.bags_50kg)
+                    FROM transactions limit_t
+                    WHERE limit_t.seller_type = 'Individual'
+                        AND limit_t.farmer_id = f.id
+                        AND YEAR(limit_t.delivery_date) = YEAR(CURDATE())
+                ), 0) AS annual_bags_delivered,
                 r.id AS region_id,
                 b.id AS branch_id,
                 p.id AS province_id,
@@ -57,9 +67,11 @@ final class Farmer
 
     public static function search(array $filters): array
     {
+        self::ensureFarmerKeySchema();
         $sql = "
             SELECT
                 f.id,
+                f.farmer_key,
                 f.rsbsa_number AS rsbsa,
                 f.first_name,
                 f.middle_name,
@@ -74,7 +86,15 @@ final class Farmer
                 f.photo_path,
                 f.gender_orientation,
                 f.sector,
+                f.is_ip_group_member,
                 f.created_at,
+                COALESCE((
+                    SELECT SUM(limit_t.bags_50kg)
+                    FROM transactions limit_t
+                    WHERE limit_t.seller_type = 'Individual'
+                        AND limit_t.farmer_id = f.id
+                        AND YEAR(limit_t.delivery_date) = YEAR(CURDATE())
+                ), 0) AS annual_bags_delivered,
                 COALESCE(fo.name, '') AS organization,
                 COALESCE(l.palay_location, '') AS palay_location,
                 COALESCE(r.name, '') AS region_name,
@@ -93,8 +113,21 @@ final class Farmer
         $params = [];
 
         if (($filters['q'] ?? '') !== '') {
-            $sql .= " AND (f.rsbsa_number LIKE :q OR f.first_name LIKE :q OR f.last_name LIKE :q OR f.address LIKE :q)";
-            $params['q'] = '%' . $filters['q'] . '%';
+            $sql .= " AND (
+                f.farmer_key LIKE :q_farmer_key
+                OR f.rsbsa_number LIKE :q_rsbsa
+                OR f.first_name LIKE :q_first_name
+                OR f.last_name LIKE :q_last_name
+                OR f.address LIKE :q_address
+            )";
+            $query = '%' . $filters['q'] . '%';
+            $params += [
+                'q_farmer_key' => $query,
+                'q_rsbsa' => $query,
+                'q_first_name' => $query,
+                'q_last_name' => $query,
+                'q_address' => $query,
+            ];
         }
 
         foreach (['region_id' => 'r.id', 'branch_id' => 'b.id', 'province_id' => 'p.id', 'warehouse_id' => 'w.id'] as $key => $column) {
@@ -129,24 +162,27 @@ final class Farmer
 
     public static function create(array $farmer): void
     {
+        self::ensureFarmerKeySchema();
         $db = Database::connection();
         $db->beginTransaction();
 
         try {
             $organizationId = self::organizationId($farmer['organization'] ?? '');
+            $farmerKey = self::reserveFarmerKey($db);
 
             $stmt = $db->prepare("
                 INSERT INTO farmers (
-                    rsbsa_number, first_name, middle_name, last_name, address, birthdate, birthplace,
+                    farmer_key, rsbsa_number, first_name, middle_name, last_name, address, birthdate, birthplace,
                     civil_status, spouse_name, dependents, contact_number, email, sex,
-                    gender_orientation, sector, farmer_organization_id, warehouse_id, photo_path
+                    gender_orientation, sector, is_ip_group_member, farmer_organization_id, warehouse_id, photo_path
                 ) VALUES (
-                    :rsbsa, :first_name, :middle_name, :last_name, :address, :birthdate, :birthplace,
+                    :farmer_key, :rsbsa, :first_name, :middle_name, :last_name, :address, :birthdate, :birthplace,
                     :civil_status, :spouse, :dependents, :contact, :email, :sex,
-                    :gender_orientation, :sector, :farmer_organization_id, :warehouse_id, :photo_path
+                    :gender_orientation, :sector, :is_ip_group_member, :farmer_organization_id, :warehouse_id, :photo_path
                 )
             ");
             $stmt->execute([
+                'farmer_key' => $farmerKey,
                 'rsbsa' => $farmer['rsbsa'],
                 'first_name' => $farmer['first_name'],
                 'middle_name' => $farmer['middle_name'],
@@ -162,6 +198,7 @@ final class Farmer
                 'sex' => $farmer['sex'],
                 'gender_orientation' => json_encode($farmer['gender_orientation']),
                 'sector' => json_encode($farmer['sector']),
+                'is_ip_group_member' => !empty($farmer['is_ip_group_member']) ? 1 : 0,
                 'farmer_organization_id' => $organizationId,
                 'warehouse_id' => $farmer['warehouse_id'] ?: Location::defaultWarehouseId(),
                 'photo_path' => $farmer['photo_path'],
@@ -195,6 +232,7 @@ final class Farmer
 
     public static function update(int $id, array $farmer): void
     {
+        self::ensureFarmerKeySchema();
         if ($id <= 0) {
             return;
         }
@@ -223,6 +261,7 @@ final class Farmer
                     sex = :sex,
                     gender_orientation = :gender_orientation,
                     sector = :sector,
+                    is_ip_group_member = :is_ip_group_member,
                     farmer_organization_id = :farmer_organization_id,
                     warehouse_id = :warehouse_id,
                     photo_path = COALESCE(:photo_path, photo_path)
@@ -245,6 +284,7 @@ final class Farmer
                 'sex' => $farmer['sex'],
                 'gender_orientation' => json_encode($farmer['gender_orientation']),
                 'sector' => json_encode($farmer['sector']),
+                'is_ip_group_member' => !empty($farmer['is_ip_group_member']) ? 1 : 0,
                 'farmer_organization_id' => $organizationId,
                 'warehouse_id' => $farmer['warehouse_id'] ?: Location::defaultWarehouseId(),
                 'photo_path' => $farmer['photo_path'],
@@ -283,11 +323,27 @@ final class Farmer
 
     public static function idFromRsbsa(string $rsbsa): ?int
     {
+        self::ensureFarmerKeySchema();
         $stmt = Database::connection()->prepare('SELECT id FROM farmers WHERE rsbsa_number = :rsbsa LIMIT 1');
         $stmt->execute(['rsbsa' => self::extractRsbsa($rsbsa)]);
         $id = $stmt->fetchColumn();
 
         return $id ? (int) $id : null;
+    }
+
+    public static function areIpGroupMembers(array $farmerIds): bool
+    {
+        self::ensureFarmerKeySchema();
+        $farmerIds = array_values(array_unique(array_filter(array_map('intval', $farmerIds), fn (int $id): bool => $id > 0)));
+        if ($farmerIds === []) {
+            return false;
+        }
+
+        $placeholders = implode(', ', array_fill(0, count($farmerIds), '?'));
+        $stmt = Database::connection()->prepare("SELECT COUNT(*) FROM farmers WHERE is_ip_group_member = 1 AND id IN ({$placeholders})");
+        $stmt->execute($farmerIds);
+
+        return (int) $stmt->fetchColumn() === count($farmerIds);
     }
 
     public static function organizationId(string $name): ?int
@@ -311,6 +367,88 @@ final class Farmer
     public static function extractRsbsa(string $value): string
     {
         return trim(explode(' - ', $value)[0]);
+    }
+
+    public static function nextKeyPreview(): string
+    {
+        self::ensureFarmerKeySchema();
+        $stmt = Database::connection()->prepare("
+            SELECT AUTO_INCREMENT
+            FROM information_schema.TABLES
+            WHERE TABLE_SCHEMA = DATABASE()
+                AND TABLE_NAME = 'farmer_key_sequences'
+            LIMIT 1
+        ");
+        $stmt->execute();
+
+        return self::formatFarmerKey(max(1, (int) $stmt->fetchColumn()));
+    }
+
+    private static function reserveFarmerKey(\PDO $db): string
+    {
+        $db->exec('INSERT INTO farmer_key_sequences () VALUES ()');
+        $sequence = (int) $db->lastInsertId();
+        if ($sequence > 9999999) {
+            throw new \RuntimeException('The farmer key sequence has exceeded seven digits.');
+        }
+
+        return self::formatFarmerKey($sequence);
+    }
+
+    private static function formatFarmerKey(int $sequence, ?string $period = null): string
+    {
+        return sprintf('NFAFWSP-%s-%07d', $period ?: date('ym'), $sequence);
+    }
+
+    private static function ensureFarmerKeySchema(): void
+    {
+        static $ready = false;
+        if ($ready) {
+            return;
+        }
+
+        $db = Database::connection();
+        $db->exec("
+            CREATE TABLE IF NOT EXISTS farmer_key_sequences (
+                id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        ");
+        $db->exec('ALTER TABLE farmers ADD COLUMN IF NOT EXISTS farmer_key VARCHAR(32) NULL AFTER id');
+        $db->exec('ALTER TABLE farmers ADD COLUMN IF NOT EXISTS is_ip_group_member TINYINT(1) NOT NULL DEFAULT 0');
+
+        $indexStmt = $db->prepare("
+            SELECT COUNT(*)
+            FROM information_schema.STATISTICS
+            WHERE TABLE_SCHEMA = DATABASE()
+                AND TABLE_NAME = 'farmers'
+                AND INDEX_NAME = 'farmers_farmer_key_unique'
+        ");
+        $indexStmt->execute();
+        if ((int) $indexStmt->fetchColumn() === 0) {
+            $db->exec('CREATE UNIQUE INDEX farmers_farmer_key_unique ON farmers (farmer_key)');
+        }
+
+        $missingFarmers = $db->query("
+            SELECT id, DATE_FORMAT(created_at, '%y%m') AS key_period
+            FROM farmers
+            WHERE farmer_key IS NULL OR farmer_key = ''
+            ORDER BY created_at, id
+        ")->fetchAll();
+        if ($missingFarmers !== []) {
+            $sequenceStmt = $db->prepare('INSERT INTO farmer_key_sequences () VALUES ()');
+            $updateStmt = $db->prepare('UPDATE farmers SET farmer_key = :farmer_key WHERE id = :id');
+            foreach ($missingFarmers as $farmer) {
+                $sequenceStmt->execute();
+                $sequence = (int) $db->lastInsertId();
+                $updateStmt->execute([
+                    'id' => $farmer['id'],
+                    'farmer_key' => self::formatFarmerKey($sequence, $farmer['key_period'] ?: date('ym')),
+                ]);
+            }
+        }
+
+        $ready = true;
     }
 
     private static function nullable(string|int|float|null $value): string|int|float|null

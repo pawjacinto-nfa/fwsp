@@ -1,7 +1,7 @@
 <section class="workspace-section">
     <div class="section-head compact">
         <div>
-            <p class="eyebrow">Farmer Organizations</p>
+            <p class="eyebrow">Farmer Classifications</p>
             <h3><?= e($organization['name'] ?? 'Farmer Organization') ?></h3>
             <?php if ($organization): ?>
                 <?php $officeLocation = trim((string) ($organization['office_location'] ?? '')); ?>
@@ -14,7 +14,7 @@
                 </form>
             <?php endif; ?>
         </div>
-        <a class="btn btn-outline-success" href="index.php?page=farmer-organization-library">Back to FO list</a>
+        <a class="btn btn-outline-success" href="index.php?page=farmer-organization-library&classification=<?= e($activeClassification ?? 'organizations') ?>">Back to Classifications</a>
     </div>
 
     <?php if (!$organization): ?>

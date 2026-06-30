@@ -6,24 +6,37 @@ namespace App\Controllers;
 use App\Core\View;
 use App\Models\Activity;
 use App\Models\CentralOffice;
+use App\Models\DatabaseSchema;
 use App\Models\Farmer;
 use App\Models\FarmerOrganization;
 use App\Models\Location;
 use App\Models\Notification;
 use App\Models\Report;
+use App\Models\Signatory;
 use App\Models\SupportTicket;
 use App\Models\Transaction;
 use App\Models\User;
 
 final class DashboardController
 {
+    private const ROLES = ['System Admin', 'Manager', 'Warehouse Personnel', 'Read-Only User'];
+
+    public function __construct()
+    {
+        User::migrateLegacyRoles();
+        $legacyRoles = [
+            'Super Admin' => 'System Admin',
+            'Regional/Branch Manager' => 'Manager',
+            'Warehouse Supervisor' => 'Warehouse Personnel',
+            'Viewer' => 'Read-Only User',
+        ];
+        if (isset($_SESSION['role'], $legacyRoles[$_SESSION['role']])) {
+            $_SESSION['role'] = $legacyRoles[$_SESSION['role']];
+        }
+    }
+
     public function index(): void
     {
-        if ($this->isViewer()) {
-            $this->redirect('?page=reports');
-            return;
-        }
-
         View::render('dashboard', [
             'title' => "Farmer's Who Sold Palay to NFA",
             'alert' => $this->pullFlash(),
@@ -111,6 +124,7 @@ final class DashboardController
         View::render('encode-farmer', [
             'title' => 'Encode Farmer Profile',
             'alert' => $this->pullFlash(),
+            'nextFarmerKey' => Farmer::nextKeyPreview(),
             'locationDefaults' => $this->currentUserLocationValues(),
             'farmerOrganizations' => FarmerOrganization::all(),
         ]);
@@ -140,6 +154,7 @@ final class DashboardController
             'title' => 'Farmers Organization Delivery',
             'alert' => $this->pullFlash(),
             'farmers' => Farmer::all(),
+            'farmerOrganizations' => FarmerOrganization::all(),
             'locationDefaults' => $this->currentUserLocationValues(),
         ]);
     }
@@ -154,7 +169,11 @@ final class DashboardController
         $filters = $this->withUserLocationDefaults($filters);
         $filters = $this->withCurrentYearDateDefaults($filters);
         $scope = $filters['scope'] ?? 'region';
-        $reportFormat = ($filters['report_format'] ?? 'default') === 'branch_region' ? 'branch_region' : 'default';
+        $allowedReportFormats = ['default', 'branch_region', 'sdd_summary', 'full_list_fwsp', 'ip_group_delivery'];
+        $requestedReportFormat = $filters['report_format'] ?? 'default';
+        $reportFormat = in_array($requestedReportFormat, $allowedReportFormats, true)
+            ? $requestedReportFormat
+            : 'default';
 
         View::render('reports', [
             'title' => $view === 'sectoral' ? 'Sex Disaggregated Data Analytics' : 'Reports',
@@ -162,10 +181,90 @@ final class DashboardController
             'view' => $view,
             'scope' => $scope,
             'reportFormat' => $reportFormat,
-            'rows' => $reportFormat === 'branch_region' ? Report::summaryByBranchRegion($filters) : Report::summary($scope, $filters),
+            'rows' => match ($reportFormat) {
+                'branch_region' => Report::summaryByBranchRegion($filters),
+                'sdd_summary' => Report::sddSummary($filters),
+                'full_list_fwsp' => [
+                    'individual' => Report::fullListIndividual($filters),
+                    'organizations' => Report::fullListFarmerOrganizations($filters),
+                ],
+                'ip_group_delivery' => Report::ipGroupDeliveries($filters),
+                default => Report::summary($scope, $filters),
+            },
             'filters' => $filters,
             'sectoralScore' => $view === 'sectoral' ? Report::sectoralScore($filters) : null,
+            'signatories' => $this->isReadOnlyUser() ? [] : Signatory::forUser((int) $_SESSION['user_id']),
         ]);
+    }
+
+    public function reportSettings(): void
+    {
+        if (!$this->authorizeSignatories()) {
+            return;
+        }
+
+        View::render('report-settings', [
+            'title' => 'Report Settings',
+            'alert' => $this->pullFlash(),
+            'signatories' => Signatory::forUser((int) $_SESSION['user_id']),
+        ]);
+    }
+
+    public function storeSignatories(array $payload): void
+    {
+        if (!$this->authorizeSignatories()) {
+            return;
+        }
+
+        $names = $this->arrayValue($payload['full_name'] ?? []);
+        $designations = $this->arrayValue($payload['designation'] ?? []);
+        $saved = 0;
+        foreach ($names as $index => $fullName) {
+            $designation = $designations[$index] ?? '';
+            if ($fullName === '' && $designation === '') {
+                continue;
+            }
+            if ($fullName === '' || $designation === '') {
+                $this->flash('danger', 'Every signatory requires both a full name and designation.');
+                $this->redirect('?page=report-settings');
+                return;
+            }
+
+            Signatory::create((int) $_SESSION['user_id'], $fullName, $designation);
+            $saved++;
+        }
+
+        $this->flash($saved > 0 ? 'success' : 'warning', $saved > 0 ? "{$saved} signatory record(s) saved." : 'Enter at least one signatory.');
+        $this->redirect('?page=report-settings');
+    }
+
+    public function updateSignatory(array $payload): void
+    {
+        if (!$this->authorizeSignatories()) {
+            return;
+        }
+
+        $id = (int) ($payload['id'] ?? 0);
+        $fullName = $this->clean($payload['full_name'] ?? '');
+        $designation = $this->clean($payload['designation'] ?? '');
+        if ($id <= 0 || $fullName === '' || $designation === '') {
+            $this->flash('danger', 'Full name and designation are required.');
+        } else {
+            Signatory::update($id, (int) $_SESSION['user_id'], $fullName, $designation);
+            $this->flash('success', 'Signatory updated.');
+        }
+        $this->redirect('?page=report-settings');
+    }
+
+    public function deleteSignatory(array $payload): void
+    {
+        if (!$this->authorizeSignatories()) {
+            return;
+        }
+
+        Signatory::delete((int) ($payload['id'] ?? 0), (int) $_SESSION['user_id']);
+        $this->flash('success', 'Signatory removed from your account.');
+        $this->redirect('?page=report-settings');
     }
 
     public function sectoralReport(array $filters): void
@@ -190,6 +289,12 @@ final class DashboardController
             return;
         }
 
+        if ($this->isReadOnlyUser()) {
+            $this->flash('danger', 'Read-Only User accounts can only access Reports.');
+            $this->redirect('?page=reports');
+            return;
+        }
+
         $user = !empty($_SESSION['user_id']) ? User::find((int) $_SESSION['user_id']) : null;
 
         View::render('account', [
@@ -201,8 +306,8 @@ final class DashboardController
 
     public function users(): void
     {
-        if (($_SESSION['role'] ?? '') !== 'Super Admin') {
-            $this->flash('danger', 'Only Super Admin can manage user access.');
+        if (($_SESSION['role'] ?? '') !== 'System Admin') {
+            $this->flash('danger', 'Only System Admin can manage user access.');
             $this->redirect();
             return;
         }
@@ -212,17 +317,38 @@ final class DashboardController
             'alert' => $this->pullFlash(),
             'users' => User::all(),
             'auditLogs' => Activity::auditLogs(),
-            'roles' => ['Super Admin', 'Regional/Branch Manager', 'Warehouse Supervisor', 'Viewer'],
+            'roles' => self::ROLES,
+        ]);
+    }
+
+    public function databaseManagement(array $filters): void
+    {
+        if (($_SESSION['role'] ?? '') !== 'System Admin') {
+            $this->flash('danger', 'Only System Admin can view database metadata.');
+            $this->redirect();
+            return;
+        }
+
+        $tables = DatabaseSchema::tables();
+        $selectedTable = trim((string) ($filters['table'] ?? ''));
+        $schema = $selectedTable !== '' ? DatabaseSchema::describe($selectedTable) : null;
+
+        View::render('database-management', [
+            'title' => 'Database Management',
+            'alert' => $this->pullFlash(),
+            'tables' => $tables,
+            'selectedTable' => $selectedTable,
+            'schema' => $schema,
         ]);
     }
 
     public function techSupport(): void
     {
-        if (!$this->authorizeAuthenticated()) {
+        if (!$this->authorizeHelp()) {
             return;
         }
 
-        $isSuperAdmin = ($_SESSION['role'] ?? '') === 'Super Admin';
+        $isSuperAdmin = ($_SESSION['role'] ?? '') === 'System Admin';
 
         View::render('tech-support', [
             'title' => 'Tech Support',
@@ -235,14 +361,26 @@ final class DashboardController
         ]);
     }
 
-    public function storeSupportTicket(array $payload, array $files): void
+    public function userManual(): void
     {
-        if (!$this->authorizeAuthenticated('?page=tech-support')) {
+        if (!$this->authorizeHelp()) {
             return;
         }
 
-        if (($_SESSION['role'] ?? '') === 'Super Admin') {
-            $this->flash('danger', 'Super Admin accounts manage tickets instead of submitting them.');
+        View::render('user-manual', [
+            'title' => "User's Manual",
+            'alert' => $this->pullFlash(),
+        ]);
+    }
+
+    public function storeSupportTicket(array $payload, array $files): void
+    {
+        if (!$this->authorizeHelp()) {
+            return;
+        }
+
+        if (($_SESSION['role'] ?? '') === 'System Admin') {
+            $this->flash('danger', 'System Admin accounts manage tickets instead of submitting them.');
             $this->redirect('?page=tech-support');
             return;
         }
@@ -276,7 +414,7 @@ final class DashboardController
 
     public function replySupportTicket(array $payload): void
     {
-        if (!$this->authorizeAuthenticated('?page=tech-support')) {
+        if (!$this->authorizeHelp()) {
             return;
         }
 
@@ -298,7 +436,7 @@ final class DashboardController
 
         SupportTicket::addMessage($ticketId, (int) $_SESSION['user_id'], $message);
 
-        if (($_SESSION['role'] ?? '') === 'Super Admin') {
+        if (($_SESSION['role'] ?? '') === 'System Admin') {
             Notification::add('Developer team replied to your ticket: ' . $ticket['title'] . '.', (int) $ticket['reporter_id'], 'index.php?page=tech-support');
         } else {
             foreach (SupportTicket::superAdminIds() as $adminId) {
@@ -313,8 +451,8 @@ final class DashboardController
 
     public function completeSupportTicket(array $payload): void
     {
-        if (($_SESSION['role'] ?? '') !== 'Super Admin') {
-            $this->flash('danger', 'Only Super Admin can mark support tickets as completed.');
+        if (($_SESSION['role'] ?? '') !== 'System Admin') {
+            $this->flash('danger', 'Only System Admin can mark support tickets as completed.');
             $this->redirect('?page=tech-support');
             return;
         }
@@ -336,7 +474,7 @@ final class DashboardController
 
     public function archiveSupportTicket(array $payload): void
     {
-        if (!$this->authorizeAuthenticated('?page=tech-support')) {
+        if (!$this->authorizeHelp()) {
             return;
         }
 
@@ -387,31 +525,57 @@ final class DashboardController
 
     public function farmerOrganizationLibrary(array $filters = []): void
     {
-        if (!$this->authorizeLocationLibrary()) {
+        if (!$this->authorizeRecords()) {
             return;
         }
 
+        $filters = $this->withUserLocationDefaults($filters);
+        $classification = ($filters['classification'] ?? 'organizations') === 'indigenous'
+            ? 'indigenous'
+            : 'organizations';
+        $locationFilters = array_intersect_key($filters, array_flip(['region_id', 'branch_id', 'province_id', 'warehouse_id']));
+        $editOrganization = !empty($filters['edit_id']) ? FarmerOrganization::find((int) $filters['edit_id']) : null;
+        if ($editOrganization && !isset($filters['classification'])) {
+            $classification = ($editOrganization['classification_type'] ?? '') === FarmerOrganization::CLASSIFICATION_INDIGENOUS
+                ? 'indigenous'
+                : 'organizations';
+        }
+        $isIndigenousTab = $classification === 'indigenous';
+        $organizations = array_values(array_filter(
+            FarmerOrganization::all($locationFilters),
+            fn (array $organization): bool => ($organization['classification_type'] ?? FarmerOrganization::CLASSIFICATION_ORGANIZATION)
+                === ($isIndigenousTab ? FarmerOrganization::CLASSIFICATION_INDIGENOUS : FarmerOrganization::CLASSIFICATION_ORGANIZATION)
+        ));
+
         View::render('farmer-organization-library', [
-            'title' => 'Farmer Organizations',
+            'title' => 'Farmer Classifications',
             'alert' => $this->pullFlash(),
-            'farmerOrganizations' => FarmerOrganization::all(),
-            'editOrganization' => !empty($filters['edit_id']) ? FarmerOrganization::find((int) $filters['edit_id']) : null,
+            'farmerOrganizations' => $organizations,
+            'editOrganization' => $editOrganization,
+            'activeClassification' => $classification,
+            'locationFilters' => $locationFilters,
+            'canManageClassifications' => $this->canEncode(),
         ]);
     }
 
     public function farmerOrganizationView(array $filters): void
     {
-        if (!$this->authorizeLocationLibrary()) {
+        if (!$this->authorizeRecords()) {
             return;
         }
 
         $id = (int) ($filters['id'] ?? 0);
+        $organization = $id > 0 ? FarmerOrganization::find($id) : null;
+        $classification = ($organization['classification_type'] ?? '') === FarmerOrganization::CLASSIFICATION_INDIGENOUS
+            ? 'indigenous'
+            : 'organizations';
 
         View::render('farmer-organization-view', [
-            'title' => 'Farmer Organization Members',
+            'title' => 'Farmer Classification Members',
             'alert' => $this->pullFlash(),
-            'organization' => $id > 0 ? FarmerOrganization::find($id) : null,
+            'organization' => $organization,
             'members' => $id > 0 ? FarmerOrganization::members($id) : [],
+            'activeClassification' => $classification,
         ]);
     }
 
@@ -421,20 +585,31 @@ final class DashboardController
             return;
         }
 
+        $classification = ($payload['classification'] ?? 'organizations') === 'indigenous' ? 'indigenous' : 'organizations';
+        $redirectParams = ['page' => 'farmer-organization-library', 'classification' => $classification];
+        foreach (['region_id', 'branch_id', 'province_id', 'warehouse_id'] as $key) {
+            if (!empty($payload[$key])) {
+                $redirectParams[$key] = $payload[$key];
+            }
+        }
+        $redirectUrl = '?' . http_build_query($redirectParams);
         $name = $this->clean($payload['name'] ?? '');
         if ($name === '') {
             $this->flash('danger', 'Farmer organization name is required.');
-            $this->redirect('?page=farmer-organization-library');
+            $this->redirect($redirectUrl);
             return;
         }
 
         FarmerOrganization::create(
             $name,
-            (int) ($payload['total_members'] ?? 0)
+            (int) ($payload['total_members'] ?? 0),
+            $this->clean($payload['office_location'] ?? ''),
+            $classification === 'indigenous',
+            !empty($payload['organization_warehouse_id']) ? (int) $payload['organization_warehouse_id'] : null
         );
-        Activity::add('Farmer organization added: ' . $name . '.');
-        $this->flash('success', 'Farmer organization saved.');
-        $this->redirect('?page=farmer-organization-library');
+        Activity::add('Farmer classification added: ' . $name . '.');
+        $this->flash('success', 'Farmer classification saved.');
+        $this->redirect($redirectUrl);
     }
 
     public function updateFarmerOrganization(array $payload): void
@@ -443,10 +618,18 @@ final class DashboardController
             return;
         }
 
+        $classification = ($payload['classification'] ?? 'organizations') === 'indigenous' ? 'indigenous' : 'organizations';
+        $redirectParams = ['page' => 'farmer-organization-library', 'classification' => $classification];
+        foreach (['region_id', 'branch_id', 'province_id', 'warehouse_id'] as $key) {
+            if (!empty($payload[$key])) {
+                $redirectParams[$key] = $payload[$key];
+            }
+        }
+        $redirectUrl = '?' . http_build_query($redirectParams);
         $name = $this->clean($payload['name'] ?? '');
         if ($name === '') {
             $this->flash('danger', 'Farmer organization name is required.');
-            $this->redirect('?page=farmer-organization-library');
+            $this->redirect($redirectUrl);
             return;
         }
 
@@ -454,11 +637,13 @@ final class DashboardController
             (int) ($payload['id'] ?? 0),
             $name,
             (int) ($payload['total_members'] ?? 0),
-            $this->clean($payload['office_location'] ?? '')
+            $this->clean($payload['office_location'] ?? ''),
+            $classification === 'indigenous',
+            !empty($payload['organization_warehouse_id']) ? (int) $payload['organization_warehouse_id'] : null
         );
-        Activity::add('Farmer organization edited: ' . $name . '.');
-        $this->flash('success', 'Farmer organization updated.');
-        $this->redirect('?page=farmer-organization-library');
+        Activity::add('Farmer classification edited: ' . $name . '.');
+        $this->flash('success', 'Farmer classification updated.');
+        $this->redirect($redirectUrl);
     }
 
     public function updateFarmerOrganizationLocation(array $payload): void
@@ -479,7 +664,9 @@ final class DashboardController
             $id,
             $organization['name'],
             (int) ($organization['total_members'] ?? 0),
-            $this->clean($payload['office_location'] ?? '')
+            $this->clean($payload['office_location'] ?? ''),
+            ($organization['classification_type'] ?? '') === FarmerOrganization::CLASSIFICATION_INDIGENOUS,
+            !empty($organization['warehouse_id']) ? (int) $organization['warehouse_id'] : null
         );
         Activity::add('Farmer organization office location edited: ' . $organization['name'] . '.');
         $this->flash('success', 'Office location updated.');
@@ -521,6 +708,7 @@ final class DashboardController
             return;
         }
 
+        session_regenerate_id(true);
         $_SESSION['user_id'] = (int) $user['id'];
         $_SESSION['user'] = $user['full_name'];
         $_SESSION['role'] = $user['role'];
@@ -537,7 +725,7 @@ final class DashboardController
         $user = $username !== '' ? User::findByUsername($username) : null;
 
         if (!$user || (int) $user['is_active'] !== 1) {
-            $this->flash('danger', 'Enter an active username so Super Admin can review the password reset request.');
+            $this->flash('danger', 'Enter an active username so System Admin can review the password reset request.');
             $this->redirect('?forgot_password=1');
             return;
         }
@@ -553,14 +741,14 @@ final class DashboardController
         }
 
         Activity::add('Password reset requested for ' . $user['username'] . '.');
-        $this->flash('success', 'Your password reset request was sent to Super Admin. You will be able to change your password after approval.');
+        $this->flash('success', 'Your password reset request was sent to System Admin. You will be able to change your password after approval.');
         $this->redirect();
     }
 
     public function approvePasswordReset(array $payload): void
     {
-        if (($_SESSION['role'] ?? '') !== 'Super Admin') {
-            $this->flash('danger', 'Only Super Admin can approve password resets.');
+        if (($_SESSION['role'] ?? '') !== 'System Admin') {
+            $this->flash('danger', 'Only System Admin can approve password resets.');
             $this->redirect('?page=users');
             return;
         }
@@ -614,31 +802,57 @@ final class DashboardController
 
     public function register(array $payload): void
     {
-        if (($payload['password'] ?? '') !== ($payload['password_confirmation'] ?? '')) {
+        $fullName = $this->clean($payload['full_name'] ?? '');
+        $username = $this->clean($payload['username'] ?? '');
+        $designation = $this->clean($payload['designation'] ?? '');
+        $password = (string) ($payload['password'] ?? '');
+        $passwordConfirmation = (string) ($payload['password_confirmation'] ?? '');
+        $officeScope = ($payload['office_scope'] ?? '') === 'central' ? 'central' : 'field';
+        $firstLocation = $officeScope === 'central'
+            ? $this->clean($payload['central_department_id'] ?? '')
+            : $this->clean($payload['region_id'] ?? '');
+        $secondLocation = $officeScope === 'central'
+            ? $this->clean($payload['central_division_id'] ?? '')
+            : $this->clean($payload['branch_id'] ?? '');
+
+        if ($fullName === '' || $username === '' || $designation === '' || $password === '' || $passwordConfirmation === '') {
+            $this->flash('danger', 'Full name, username/employee number, designation, and both password fields are required.');
+            $this->redirect('?show_register=1');
+            return;
+        }
+
+        if ($firstLocation === '' || $secondLocation === '') {
+            $locationLabels = $officeScope === 'central' ? 'Department and Division' : 'Region and Branch';
+            $this->flash('danger', $locationLabels . ' are required.');
+            $this->redirect('?show_register=1');
+            return;
+        }
+
+        if ($password !== $passwordConfirmation) {
             $this->flash('danger', 'Password confirmation does not match.');
-            $this->redirect();
+            $this->redirect('?show_register=1');
             return;
         }
 
         User::register([
-            'full_name' => $this->clean($payload['full_name'] ?? ''),
-            'username' => $this->clean($payload['username'] ?? ''),
-            'office_scope' => ($payload['office_scope'] ?? '') === 'central' ? 'central' : 'field',
-            'region_id' => ($payload['office_scope'] ?? '') === 'central' ? '' : $this->clean($payload['region_id'] ?? ''),
-            'branch_id' => ($payload['office_scope'] ?? '') === 'central' ? '' : $this->clean($payload['branch_id'] ?? ''),
-            'province_id' => ($payload['office_scope'] ?? '') === 'central' ? '' : $this->clean($payload['province_id'] ?? ''),
-            'warehouse_id' => ($payload['office_scope'] ?? '') === 'central' ? '' : $this->clean($payload['warehouse_id'] ?? ''),
-            'central_department_id' => ($payload['office_scope'] ?? '') === 'central' ? $this->clean($payload['central_department_id'] ?? '') : '',
-            'central_division_id' => ($payload['office_scope'] ?? '') === 'central' ? $this->clean($payload['central_division_id'] ?? '') : '',
-            'central_unit_id' => ($payload['office_scope'] ?? '') === 'central' ? $this->clean($payload['central_unit_id'] ?? '') : '',
-            'designation' => $this->clean($payload['designation'] ?? ''),
-            'password' => (string) ($payload['password'] ?? ''),
+            'full_name' => $fullName,
+            'username' => $username,
+            'office_scope' => $officeScope,
+            'region_id' => $officeScope === 'central' ? '' : $this->clean($payload['region_id'] ?? ''),
+            'branch_id' => $officeScope === 'central' ? '' : $this->clean($payload['branch_id'] ?? ''),
+            'province_id' => $officeScope === 'central' ? '' : $this->clean($payload['province_id'] ?? ''),
+            'warehouse_id' => $officeScope === 'central' ? '' : $this->clean($payload['warehouse_id'] ?? ''),
+            'central_department_id' => $officeScope === 'central' ? $this->clean($payload['central_department_id'] ?? '') : '',
+            'central_division_id' => $officeScope === 'central' ? $this->clean($payload['central_division_id'] ?? '') : '',
+            'central_unit_id' => $officeScope === 'central' ? $this->clean($payload['central_unit_id'] ?? '') : '',
+            'designation' => $designation,
+            'password' => $password,
             'email' => $this->clean($payload['email'] ?? ''),
             'contact_number' => $this->clean($payload['contact_number'] ?? ''),
         ]);
-        Activity::add('New user registration submitted for ' . $this->clean($payload['username'] ?? '') . '.');
+        Activity::add('New user registration submitted for ' . $username . '.');
         Notification::addUserRegistrationPending();
-        $this->flash('success', 'Registration submitted for Super Admin activation.');
+        $this->flash('success', 'Registration submitted for System Admin activation.');
         $this->redirect();
     }
 
@@ -684,15 +898,22 @@ final class DashboardController
 
     public function updateUserAccess(array $payload): void
     {
-        if (($_SESSION['role'] ?? '') !== 'Super Admin') {
-            $this->flash('danger', 'Only Super Admin can manage user access.');
+        if (($_SESSION['role'] ?? '') !== 'System Admin') {
+            $this->flash('danger', 'Only System Admin can manage user access.');
+            $this->redirect('?page=users');
+            return;
+        }
+
+        $role = $this->clean($payload['role'] ?? 'Read-Only User');
+        if (!in_array($role, self::ROLES, true)) {
+            $this->flash('danger', 'Select a valid user role.');
             $this->redirect('?page=users');
             return;
         }
 
         User::updateAccess(
             (int) ($payload['user_id'] ?? 0),
-            $this->clean($payload['role'] ?? 'Viewer'),
+            $role,
             $this->clean($payload['status'] ?? 'Pending')
         );
         Activity::add('User access updated.');
@@ -866,6 +1087,11 @@ final class DashboardController
     public function logout(): void
     {
         Activity::add(($_SESSION['user'] ?? 'User') . ' logged out.');
+        $_SESSION = [];
+        if (ini_get('session.use_cookies')) {
+            $params = session_get_cookie_params();
+            setcookie(session_name(), '', time() - 42000, $params['path'], $params['domain'], $params['secure'], $params['httponly']);
+        }
         session_destroy();
         $this->redirect();
     }
@@ -903,6 +1129,7 @@ final class DashboardController
             'sex' => $this->clean($payload['sex'] ?? ''),
             'gender_orientation' => $genderOrientation,
             'sector' => $this->arrayValue($payload['sector'] ?? []),
+            'is_ip_group_member' => !empty($payload['is_ip_group_member']),
             'landholding' => $this->arrayValue($payload['landholding'] ?? []),
             'irrigated' => $this->clean($payload['irrigated'] ?? ''),
             'palay_location' => $this->clean($payload['palay_location'] ?? ''),
@@ -912,6 +1139,10 @@ final class DashboardController
             'warehouse_id' => $this->clean($payload['warehouse_id'] ?? ''),
             'photo_path' => $photoPath,
         ];
+
+        if ($farmer['is_ip_group_member'] && !in_array('Indigenous People', $farmer['sector'], true)) {
+            $farmer['sector'][] = 'Indigenous People';
+        }
 
         Farmer::create($farmer);
         Activity::add('Farmer profile added for ' . $farmer['first_name'] . ' ' . $farmer['last_name'] . '.');
@@ -954,6 +1185,7 @@ final class DashboardController
             'sex' => $this->clean($payload['sex'] ?? ''),
             'gender_orientation' => $genderOrientation,
             'sector' => $this->arrayValue($payload['sector'] ?? []),
+            'is_ip_group_member' => !empty($payload['is_ip_group_member']),
             'landholding' => $this->arrayValue($payload['landholding'] ?? []),
             'irrigated' => $this->clean($payload['irrigated'] ?? ''),
             'palay_location' => $this->clean($payload['palay_location'] ?? ''),
@@ -963,6 +1195,10 @@ final class DashboardController
             'warehouse_id' => $this->clean($payload['warehouse_id'] ?? ''),
             'photo_path' => $photoPath,
         ];
+
+        if ($farmer['is_ip_group_member'] && !in_array('Indigenous People', $farmer['sector'], true)) {
+            $farmer['sector'][] = 'Indigenous People';
+        }
 
         Farmer::update($id, $farmer);
         Activity::add('Farmer profile updated for ' . $farmer['first_name'] . ' ' . $farmer['last_name'] . '.');
@@ -994,7 +1230,7 @@ final class DashboardController
         ];
 
         try {
-            Transaction::create($transaction);
+            $transactionResult = Transaction::create($transaction);
         } catch (\DomainException $exception) {
             $this->flash('danger', $exception->getMessage());
             $this->redirect(($transaction['type'] === 'Farmer Organization') ? '?page=organization-delivery' : '?page=individual-delivery');
@@ -1003,8 +1239,24 @@ final class DashboardController
 
         Activity::add('Warehouse transaction recorded for ' . ($transaction['rsbsa'] ?: $transaction['fo_name']) . '.');
         Notification::add('New palay delivery awaiting manager review.');
+        $flashMessage = 'Transaction recorded.';
+        if (!empty($transactionResult['reached_annual_limit'])) {
+            $deliveryYear = (int) ($transactionResult['delivery_year'] ?? date('Y'));
+            $limitMessage = sprintf(
+                'Farmer %s has reached the annual %d-bag delivery limit for %d.',
+                $transaction['rsbsa'],
+                Transaction::MAX_INDIVIDUAL_ANNUAL_BAGS,
+                $deliveryYear
+            );
+            Notification::add(
+                $limitMessage,
+                !empty($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : null,
+                'index.php?page=farmers&q=' . rawurlencode($transaction['rsbsa'])
+            );
+            $flashMessage .= ' ' . $limitMessage;
+        }
         $this->notifyCrossLocationPalaySale($transaction);
-        $this->flash('success', 'Transaction recorded.');
+        $this->flash('success', $flashMessage);
         $this->redirect(($transaction['type'] === 'Farmer Organization') ? '?page=organization-delivery' : '?page=individual-delivery');
     }
 
@@ -1052,8 +1304,8 @@ final class DashboardController
             return true;
         }
 
-        $this->flash('danger', 'Only Warehouse Supervisors, Regional/Branch Managers, and Super Admins can encode records.');
-        $this->redirect($this->isViewer() ? '?page=reports' : '');
+        $this->flash('danger', 'Only Warehouse Personnel and System Admins can encode records.');
+        $this->redirect($this->isReadOnlyUser() ? '?page=reports' : '');
         return false;
     }
 
@@ -1065,11 +1317,11 @@ final class DashboardController
             return false;
         }
 
-        if (!$this->isViewer()) {
+        if (in_array($_SESSION['role'] ?? '', ['Manager', 'Warehouse Personnel', 'System Admin'], true)) {
             return true;
         }
 
-        $this->flash('danger', 'Viewers can only access the Reports page.');
+        $this->flash('danger', 'Read-Only Users can only access the Reports page.');
         $this->redirect('?page=reports');
         return false;
     }
@@ -1172,8 +1424,38 @@ final class DashboardController
             return true;
         }
 
-        $this->flash('danger', 'Only Warehouse Supervisors, Regional/Branch Managers, and Super Admins can edit the location library.');
-        $this->redirect($this->isViewer() ? '?page=reports' : '');
+        $this->flash('danger', 'Only Warehouse Personnel and System Admins can edit the location library.');
+        $this->redirect($this->isReadOnlyUser() ? '?page=reports' : '');
+        return false;
+    }
+
+    private function authorizeHelp(): bool
+    {
+        if (!$this->authorizeAuthenticated()) {
+            return false;
+        }
+
+        if (in_array($_SESSION['role'] ?? '', ['Manager', 'Warehouse Personnel', 'System Admin'], true)) {
+            return true;
+        }
+
+        $this->flash('danger', 'Read-Only User accounts can only access Reports.');
+        $this->redirect('?page=reports');
+        return false;
+    }
+
+    private function authorizeSignatories(): bool
+    {
+        if (!$this->authorizeAuthenticated()) {
+            return false;
+        }
+
+        if (!$this->isReadOnlyUser()) {
+            return true;
+        }
+
+        $this->flash('danger', 'Signatories are not available to Read-Only User accounts.');
+        $this->redirect('?page=reports');
         return false;
     }
 
@@ -1187,14 +1469,14 @@ final class DashboardController
         return strtolower((string) ($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '')) === 'fetch';
     }
 
-    private function isViewer(): bool
+    private function isReadOnlyUser(): bool
     {
-        return ($_SESSION['role'] ?? '') === 'Viewer';
+        return ($_SESSION['role'] ?? '') === 'Read-Only User';
     }
 
     private function canEncode(): bool
     {
-        return in_array($_SESSION['role'] ?? '', ['Warehouse Supervisor', 'Regional/Branch Manager', 'Super Admin'], true);
+        return in_array($_SESSION['role'] ?? '', ['Warehouse Personnel', 'System Admin'], true);
     }
 
     private function superAdminIds(): array
@@ -1271,8 +1553,17 @@ final class DashboardController
             return null;
         }
 
+        if (($file['size'] ?? 0) > 8 * 1024 * 1024) {
+            return null;
+        }
+
         $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
         if (!in_array($extension, ['jpg', 'jpeg', 'png', 'webp'], true)) {
+            return null;
+        }
+
+        $mime = mime_content_type($file['tmp_name']);
+        if (!in_array($mime, ['image/jpeg', 'image/png', 'image/webp'], true)) {
             return null;
         }
 

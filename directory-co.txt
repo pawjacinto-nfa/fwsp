@@ -1,0 +1,1753 @@
+<h2 style="text-align: center;">NFA DIRECTORY</h2>
+<span style="font-size: 8pt;">[su_accordion][su_spoiler title="Central Office: NFA Building" open="yes" style="modern-dark" icon="plus-circle" anchor="" anchor_in_url="no" class=""]</span>
+<table style="width: 100%; height: 863px;" width="100%">
+<tbody>
+<tr style="height: 16px;">
+<td style="text-align: center; height: 16px; width: 94.5028%;" colspan="4"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;"><strong><em> For the list of NFA Hotline Numbers, visit our <a href="contact/hotline-numbers">Hotline Contact page</a>.
+</em></strong></span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="text-align: center; height: 16px; width: 94.5028%;" colspan="4"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;"><strong>NFA CENTRAL OFFICE DIRECTORY</strong></span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="text-align: center; height: 16px; width: 23.3886%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;"><strong>NAME</strong></span></td>
+<td style="text-align: center; height: 16px; width: 26.7352%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;"><strong>POSITION/OFFICE</strong></span></td>
+<td style="text-align: center; height: 16px; width: 13.0444%;" width="5%"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;"><strong>TEL. NO.</strong></span></td>
+<td style="text-align: center; height: 16px; width: 31.3346%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;"><strong>EMAIL-ADDRESS</strong></span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="background-color: #b0e1f7; height: 16px; width: 94.5028%;" colspan="4"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;"><strong>Office of the Administrator - 8th Floor. NFA Building</strong></span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 23.3886%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">LARRY DEL ROSARIO LACSON</span></td>
+<td style="height: 16px; width: 26.7352%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">Administrator</span></td>
+<td style="height: 16px; width: 13.0444%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;"><strong> </strong><strong>
+</strong></span></td>
+<td style="height: 16px; width: 31.3346%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;"><strong> </strong>administrator@nfa.gov.ph</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 23.3886%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">ATTY. BERNIE G. FONDEVILLA</span></td>
+<td style="height: 16px; width: 26.7352%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">Special Assistant to the Administrator</span></td>
+<td style="height: 16px; width: 13.0444%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;"> </span></td>
+<td style="height: 32px; width: 31.3346%;" rowspan="2"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;"> oa.sa@nfa.gov.ph</span>
+<span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;"> </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 23.3886%;"><span style="font-family: tahoma, arial, helvetica, sans-serif; font-size: 8pt;">ATTY. MARIA LUCILA MARGARITA P. MANGROBANG</span></td>
+<td style="height: 16px; width: 26.7352%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">Executive Assistant V</span></td>
+<td style="height: 16px; width: 13.0444%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;"> </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 23.3886%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">CAROLINA B. MANZANO</span></td>
+<td style="height: 16px; width: 26.7352%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">Public Affairs Division</span></td>
+<td style="height: 16px; width: 13.0444%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;"> 0917-113-9347</span></td>
+<td style="height: 16px; width: 31.3346%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">publicaffairs@nfa.gov.ph</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="background-color: #b0e1f7; height: 16px; width: 94.5028%;" colspan="4"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;"><strong>Office of the Deputy Administrator - 8th Floor. NFA Building</strong></span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 23.3886%;"><span style="font-family: tahoma, arial, helvetica, sans-serif; font-size: 8pt;">JOHN ROBERT R. HERMANO</span></td>
+<td style="height: 16px; width: 26.7352%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">Acting Deputy Administrator</span></td>
+<td style="height: 16px; width: 13.0444%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;"> </span></td>
+<td style="height: 16px; width: 31.3346%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">oda@nfa.gov.ph</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="background-color: #b0e1f7; height: 16px; width: 94.5028%;" colspan="4"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;"><strong>Office of the Assistant Administrator for Finance and Administration (OAAFA) - 6th Floor, NFA Building</strong></span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 23.3886%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">JOEY C. PIMENTEL</span></td>
+<td style="height: 16px; width: 26.7352%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">Acting Assistant Administrator</span></td>
+<td style="height: 16px; width: 13.0444%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;"> </span></td>
+<td style="height: 16px; width: 31.3346%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">oaafa@nfa.gov.ph</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="background-color: #b0e1f7; height: 16px; width: 94.5028%;" colspan="4"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;"><strong> Office of the Assistant Administrator for Operations - 8th Floor. NFA Building</strong>    </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 23.3886%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">VERALEW DG. DE VERA</span></td>
+<td style="height: 16px; width: 26.7352%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">Assistant Administrator
+</span></td>
+<td style="height: 16px; width: 13.0444%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;"> </span></td>
+<td style="height: 16px; width: 31.3346%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">oaao@nfa.gov.ph</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="background-color: #b0e1f7; height: 16px; width: 94.5028%;" colspan="4"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;"><strong> Office of the NFA Council Secretary - 8th Floor. NFA Building</strong>    </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 23.3886%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">ATTY. VINCENT PAOLO B. RACOMA</span></td>
+<td style="height: 16px; width: 26.7352%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">Board Secretary V</span></td>
+<td style="height: 16px; width: 13.0444%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;"> </span></td>
+<td style="height: 16px; width: 31.3346%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;"> councilsecretariat@nfa.gov.ph</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="background-color: #b0e1f7; height: 16px; width: 94.5028%;" colspan="4"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;"><strong> Administrative and General Services Department - 6th Floor, NFA Building</strong></span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 23.3886%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">ALLAN JOSEPH P. ABAPO</span></td>
+<td style="height: 16px; width: 26.7352%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">Acting Department Manager</span></td>
+<td style="height: 16px; width: 13.0444%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;"> </span></td>
+<td style="height: 16px; width: 31.3346%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">agsd@nfa.gov.ph</span></td>
+</tr>
+<tr style="height: 32px;">
+<td style="height: 32px; width: 23.3886%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">LILYBETH A. SUNGA</span></td>
+<td style="height: 32px; width: 26.7352%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">Chief Personnel Specialist,
+Human Resource Devt. &amp; Services Division</span></td>
+<td style="height: 32px; width: 13.0444%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;"> </span></td>
+<td style="height: 32px; width: 31.3346%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">humanresource@nfa.gov.ph</span></td>
+</tr>
+<tr style="height: 32px;">
+<td style="height: 32px; width: 23.3886%;"><span style="font-family: tahoma, arial, helvetica, sans-serif; font-size: 8pt;">ENGR. LESLIE M. NAVARRO</span></td>
+<td style="height: 32px; width: 26.7352%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">Chief Administrative Officer, General Services Division</span></td>
+<td style="height: 32px; width: 13.0444%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;"> </span></td>
+<td style="height: 32px; width: 31.3346%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">generalservices@nfa.gov.ph</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="background-color: #b0e1f7; height: 16px; width: 94.5028%;" colspan="4"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;"><strong>Commission On Audit (COA) - 2nd Floor, NFA Bldg.</strong></span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 23.3886%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">RADITO G. CHING</span></td>
+<td style="height: 16px; width: 26.7352%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">Supervising Auditor</span></td>
+<td style="height: 16px; width: 13.0444%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;"> </span></td>
+<td style="height: 16px; width: 31.3346%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;"> </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="background-color: #b0e1f7; height: 16px; width: 94.5028%;" colspan="4"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;"><strong>Corporate Planning and Management Services Department (CPMSD) - 6th Floor, NFA Building</strong></span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 23.3886%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">MARIO G. ANDRADA, Ph.D.</span></td>
+<td style="height: 16px; width: 26.7352%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">Department Manager</span></td>
+<td style="height: 16px; width: 13.0444%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;"> </span></td>
+<td style="height: 16px; width: 31.3346%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">cpmsd@nfa.gov.ph</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 23.3886%;"><span style="font-family: tahoma, arial, helvetica, sans-serif; font-size: 8pt;"> MARIA LUISA DL. QUIROZ</span></td>
+<td style="height: 16px; width: 26.7352%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">Planning Officer V, Corporate Planning Division</span></td>
+<td style="height: 16px; width: 13.0444%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;"> </span></td>
+<td style="height: 16px; width: 31.3346%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">cpd.cpmsd@nfa.gov.ph</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 23.3886%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;"> GARY L. RIPARIP</span></td>
+<td style="height: 16px; width: 26.7352%;"><span style="font-size: 8pt;">Chi<span style="font-family: tahoma, arial, helvetica, sans-serif;">ef, ICTSD</span></span></td>
+<td style="height: 16px; width: 13.0444%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;"> </span></td>
+<td style="height: 16px; width: 31.3346%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">ictsd@nfa.gov.ph</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="background-color: #b0e1f7; height: 16px; width: 94.5028%;" colspan="4"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;"><strong>Finance Department - 6th Floor, NFA Building</strong></span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 23.3886%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">MARK JING D. TAYACTAC</span></td>
+<td style="height: 16px; width: 26.7352%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">Department Manager</span></td>
+<td style="height: 16px; width: 13.0444%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;"> </span></td>
+<td style="height: 16px; width: 31.3346%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">finance@nfa.gov.ph</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 23.3886%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">JACQUELYN D. ARIÑO</span></td>
+<td style="height: 16px; width: 26.7352%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">Chief Accountant, Accounting Division</span></td>
+<td style="height: 16px; width: 13.0444%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;"> </span></td>
+<td style="height: 16px; width: 31.3346%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">accounting@nfa.gov.ph</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 23.3886%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">LOURDES M. ADVIENTO</span></td>
+<td style="height: 16px; width: 26.7352%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">Budget Officer V, Budget Division</span></td>
+<td style="height: 16px; width: 13.0444%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;"> </span></td>
+<td style="height: 16px; width: 31.3346%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">budget@nfa.gov.ph</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="background-color: #b0e1f7; height: 16px; width: 94.5028%;" colspan="4"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;"><strong>Internal Audit Department - 3rd Floor, NFA Bldg.</strong></span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 23.3886%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">ATTY. ANA LORRAINE G. SANTOS-DEL ROSARIO</span></td>
+<td style="height: 16px; width: 26.7352%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">Department Manager</span></td>
+<td style="height: 16px; width: 13.0444%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;"> </span></td>
+<td style="height: 16px; width: 31.3346%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">internalaudit@nfa.gov.ph</span></td>
+</tr>
+<tr style="height: 15px;">
+<td style="height: 15px; width: 23.3886%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">GILBERT M. CARIOS</span></td>
+<td style="height: 15px; width: 26.7352%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">Internal Auditor V, Management Audit Division</span></td>
+<td style="height: 15px; width: 13.0444%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;"> </span></td>
+<td style="height: 15px; width: 31.3346%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">management.audit@nfa.gov.ph</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 23.3886%;"></td>
+<td style="height: 16px; width: 26.7352%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">Internal Auditor V, Operations Audit Division</span></td>
+<td style="height: 16px; width: 13.0444%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;"> </span></td>
+<td style="height: 16px; width: 31.3346%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">operation.audit@nfa.gov.ph</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="background-color: #b0e1f7; height: 16px; width: 94.5028%;" colspan="4"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;"><strong>Legal Affairs Department (LAD) - 7th Floor, NFA Bldg.</strong></span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 23.3886%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">ATTY. SHYLA JOY C. RAMOS</span></td>
+<td style="height: 16px; width: 26.7352%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">Attorney VI</span></td>
+<td style="height: 16px; width: 13.0444%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;"> </span></td>
+<td style="height: 16px; width: 31.3346%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">legalaffairs@nfa.gov.ph</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 23.3886%;"><span style="font-family: tahoma, arial, helvetica, sans-serif; font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 26.7352%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">Investigation and Documentation Division</span></td>
+<td style="height: 16px; width: 13.0444%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;"> </span></td>
+<td style="height: 16px; width: 31.3346%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">idd.legal@nfa.gov.ph</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 23.3886%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">ATTY. RAOUL JANN R. BALANQUIT</span></td>
+<td style="height: 16px; width: 26.7352%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">Acting Attorney V/Chief,
+Litigation and Prosecution Div.</span></td>
+<td style="height: 16px; width: 13.0444%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;"> </span></td>
+<td style="height: 16px; width: 31.3346%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">litigation.legal@nfa.gov.ph</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="background-color: #b0e1f7; height: 16px; width: 94.5028%;" colspan="4"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;"><strong>Operations Coordination Department - 7th Floor, NFA Bldg.</strong></span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 23.3886%;"><span style="font-family: tahoma, arial, helvetica, sans-serif; font-size: 8pt;">ROY Q. UNTIVEROS</span></td>
+<td style="height: 16px; width: 26.7352%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">Acting Department Manager</span></td>
+<td style="height: 16px; width: 13.0444%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;"> </span></td>
+<td style="height: 16px; width: 31.3346%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">ocd@nfa.gov.ph</span></td>
+</tr>
+<tr style="height: 32px;">
+<td style="height: 32px; width: 23.3886%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">ROSALYN D. COMIA</span></td>
+<td style="height: 32px; width: 26.7352%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">Division Manager,
+Operations Planning and Monitoring Div.</span></td>
+<td style="height: 32px; width: 13.0444%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;"> </span></td>
+<td style="height: 32px; width: 31.3346%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">opmd.ocd@nfa.gov.ph</span></td>
+</tr>
+<tr style="height: 32px;">
+<td style="height: 32px; width: 23.3886%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">ENGR. CHRISTOPHER G. ALINGOD</span></td>
+<td style="height: 32px; width: 26.7352%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">Division Manager
+Technical Services Division</span></td>
+<td style="height: 32px; width: 13.0444%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;"> </span></td>
+<td style="height: 32px; width: 31.3346%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">ts.ocd@nfa.gov.ph</span></td>
+</tr>
+<tr style="height: 32px;">
+<td style="height: 32px; background-color: #b0e1f7; width: 94.5028%;" colspan="4"><span style="font-size: 8pt;"><strong>Penthouse - 8th Floor, NFA Bldg.</strong></span></td>
+</tr>
+<tr style="height: 32px;">
+<td style="height: 32px; width: 23.3886%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">Employees Association (NFAEA)</span></td>
+<td style="height: 32px; width: 26.7352%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">NFAEA Office</span></td>
+<td style="height: 32px; width: 13.0444%;"><span style="font-family: tahoma, arial, helvetica, sans-serif; font-size: 8pt;"> </span></td>
+<td style="height: 32px; width: 31.3346%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">nfa_ea@yahoo.com</span></td>
+</tr>
+<tr style="height: 32px;">
+<td style="height: 32px; width: 23.3886%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">Multi-Purpose Cooperative (NFAMPC)</span></td>
+<td style="height: 32px; width: 26.7352%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">NFAMPC Office</span></td>
+<td style="height: 32px; width: 13.0444%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;"> 0922-3086507 / 0916-6637845</span></td>
+<td style="height: 32px; width: 31.3346%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">nfamultipurposecooperative@yahoo.com</span></td>
+</tr>
+<tr style="height: 32px;">
+<td style="height: 32px; width: 23.3886%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">Provident Fund, Inc. (NFAPFI)</span></td>
+<td style="height: 32px; width: 26.7352%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">NFAPFI Office</span></td>
+<td style="height: 32px; width: 13.0444%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">0927-988-4799</span></td>
+<td style="height: 32px; width: 31.3346%;"><span style="font-size: 8pt; font-family: tahoma, arial, helvetica, sans-serif;">nfaprovident@yahoo.com.ph</span></td>
+</tr>
+</tbody>
+</table>
+<span style="font-size: 8pt;">[/su_spoiler] [su_spoiler title="Region I: Ilocos Region" open="yes" style="modern-dark" icon="plus-circle" anchor="" anchor_in_url="no" class=""]</span>
+<table style="width: 100%; height: 576px;">
+<tbody>
+<tr style="height: 24px;">
+<td style="width: 31.6919%; text-align: center; height: 24px;"><span style="font-size: 8pt;">Office</span></td>
+<td style="width: 18.4343%; text-align: center; height: 24px;"><span style="font-size: 8pt;">Contact Person</span></td>
+<td style="width: 30.9343%; text-align: center; height: 24px;"><span style="font-size: 8pt;">Position</span></td>
+<td style="width: 17.4242%; text-align: center; height: 24px;"><span style="font-size: 8pt;">Phone Number/s</span></td>
+</tr>
+<tr style="height: 48px;">
+<td style="width: 31.6919%; height: 48px;"><span style="font-size: 8pt;"><strong>REGION I - ILOCOS REGION</strong></span></td>
+<td style="width: 18.4343%; height: 48px;"><span style="font-size: 10.6667px;">LOLITA O. SANEDRIN</span></td>
+<td style="width: 30.9343%; height: 48px;"><span style="font-size: 8pt;">Regional Manager</span></td>
+<td style="width: 17.4242%; height: 48px;"><span style="font-size: 8pt;">(072) 610-5355</span></td>
+</tr>
+<tr style="height: 48px;">
+<td dir="ltr" style="width: 31.6919%; height: 72px;" rowspan="2"><span style="font-size: 8pt;"><em>Urbiztondo, San Juan, La Union 2514
+</em>region1@nfa.gov.ph</span></td>
+<td style="width: 18.4343%; height: 48px;"><span style="font-size: 8pt;">EMELY D. BATO</span></td>
+<td style="width: 30.9343%; height: 48px;"><span style="font-size: 8pt;">Assistant Regional Manager</span></td>
+<td style="width: 17.4242%; height: 48px;"></td>
+</tr>
+<tr style="height: 24px;">
+<td style="width: 18.4343%; height: 24px;"><span style="font-size: 8pt;"> </span></td>
+<td style="width: 30.9343%; height: 24px;"><span style="font-size: 8pt;"> </span></td>
+<td style="width: 17.4242%; height: 24px;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 48px;">
+<td style="width: 31.6919%; height: 48px;"><span style="font-size: 8pt;"><strong>LA UNION BRANCH</strong></span></td>
+<td style="width: 18.4343%; height: 48px;"><span style="font-size: 8pt;">CELERINA T. CAPONES</span></td>
+<td style="width: 30.9343%; height: 48px;"><span style="font-size: 8pt;">Branch Manager</span></td>
+<td style="width: 17.4242%; height: 48px;"><span style="font-size: 8pt;">(072) 682-9011</span></td>
+</tr>
+<tr style="height: 48px;">
+<td style="width: 31.6919%; height: 48px;"><span style="font-size: 8pt;"><em>San Juan, La Union
+</em>launion@nfa.gov.ph</span></td>
+<td style="width: 18.4343%; height: 48px;"><span style="font-size: 8pt;">MARCELINA A. DOMINGO</span></td>
+<td style="width: 30.9343%; height: 48px;"><span style="font-size: 8pt;">Assistant Branch Manager</span></td>
+<td style="width: 17.4242%; height: 48px;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 24px;">
+<td style="width: 31.6919%; height: 24px;"><span style="font-size: 8pt;"><em> </em></span></td>
+<td style="width: 18.4343%; height: 24px;"><span style="font-size: 8pt;"> </span></td>
+<td style="width: 30.9343%; height: 24px;"></td>
+<td style="width: 17.4242%; height: 24px;"></td>
+</tr>
+<tr style="height: 24px;">
+<td style="width: 31.6919%; height: 24px;"><span style="font-size: 8pt;"><em> </em></span></td>
+<td style="width: 18.4343%; height: 24px;"><span style="font-size: 8pt;"> </span></td>
+<td style="width: 30.9343%; height: 24px;"></td>
+<td style="width: 17.4242%; height: 24px;"></td>
+</tr>
+<tr style="height: 24px;">
+<td style="width: 31.6919%; height: 24px;"><span style="font-size: 8pt;"><strong>ILOCOS NORTE BRANCH</strong></span></td>
+<td style="width: 18.4343%; height: 24px;"><span style="font-size: 8pt;">JONATHAN U. CORPUZ</span></td>
+<td style="width: 30.9343%; height: 24px;"><span style="font-size: 8pt;">Acting Branch Manager</span></td>
+<td style="width: 17.4242%; height: 24px;"><span style="font-size: 8pt;">(077) 770-4248</span></td>
+</tr>
+<tr style="height: 48px;">
+<td style="width: 31.6919%; height: 48px;"><span style="font-size: 8pt;"><em>Gomburza St., Brgy. 2, Sta. Joaquina,
+Laoag City, </em></span><span style="font-size: 8pt;"><em>Ilocos Norte, 2900</em></span></td>
+<td style="width: 18.4343%; height: 48px;"></td>
+<td style="width: 30.9343%; height: 48px;"><span style="font-size: 8pt;">Assistant Branch Manager</span></td>
+<td style="width: 17.4242%; height: 48px;"></td>
+</tr>
+<tr style="height: 48px;">
+<td style="width: 31.6919%; height: 48px;"><span style="font-size: 8pt;">ilocosnorte@nfa.gov.ph </span></td>
+<td style="width: 18.4343%; height: 48px;"><span style="font-size: 8pt;"> </span></td>
+<td style="width: 30.9343%; height: 48px;"><span style="font-size: 8pt;"> </span></td>
+<td style="width: 17.4242%; height: 48px;"><span style="font-size: 8pt;">(077) 772-0082 (Fax)</span></td>
+</tr>
+<tr style="height: 48px;">
+<td style="width: 31.6919%; height: 48px;"><span style="font-size: 8pt;"><strong>PANGASINAN BRANCH</strong></span></td>
+<td style="width: 18.4343%; height: 48px;"><span style="font-size: 8pt;">FREDERICK B. DULAY</span></td>
+<td style="width: 30.9343%; height: 48px;"><span style="font-size: 8pt;">Acting Branch Manager</span></td>
+<td style="width: 17.4242%; height: 48px;"><span style="font-size: 8pt;">(075) 511-3542</span></td>
+</tr>
+<tr style="height: 24px;">
+<td style="width: 31.6919%; height: 24px;"><span style="font-size: 8pt;"> <em>McArthur Highway, Brgy. Canarvacanan,</em>
+<em> Binalonan, Pangasinan</em></span></td>
+<td style="width: 18.4343%; height: 24px;"><span style="font-size: 8pt;">SHOREEN B. MANGLINONG</span></td>
+<td style="width: 30.9343%; height: 24px;"><span style="font-size: 8pt;">Acting Assistant Branch Manager</span></td>
+<td style="width: 17.4242%; height: 24px;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 48px;">
+<td style="width: 31.6919%; height: 48px;"><span style="font-size: 8pt;">easternpangasinan@nfa.gov.ph</span></td>
+<td style="width: 18.4343%; height: 48px;"><span style="font-size: 8pt;"> </span></td>
+<td style="width: 30.9343%; height: 48px;"></td>
+<td style="width: 17.4242%; height: 48px;"></td>
+</tr>
+<tr style="height: 48px;">
+<td style="width: 31.6919%; height: 48px;"></td>
+<td style="width: 18.4343%; height: 48px;"><span style="font-size: 8pt;"> </span></td>
+<td style="width: 30.9343%; height: 48px;"></td>
+<td style="width: 17.4242%; height: 48px;"></td>
+</tr>
+</tbody>
+</table>
+<span style="font-size: 8pt;">[/su_spoiler] [su_spoiler title="Region II: Cagayan Valley" open="yes" style="modern-dark" icon="plus-circle" anchor="" anchor_in_url="no" class=""]</span>
+<table style="width: 100%; height: 352px;">
+<tbody>
+<tr style="height: 24px;">
+<td style="width: 31.6919%; text-align: center; height: 31px;"><span style="font-size: 8pt;">Office</span></td>
+<td style="width: 18.4343%; text-align: center; height: 31px;"><span style="font-size: 8pt;">Contact Person</span></td>
+<td style="width: 30.9343%; text-align: center; height: 31px;"><span style="font-size: 8pt;">Position</span></td>
+<td style="width: 17.4242%; text-align: center; height: 31px;"><span style="font-size: 8pt;">Phone Number/s</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;"><strong>REGION II - CAGAYAN VALLEY </strong></span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">JULIUS B. SUGUE</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Acting Regional Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;">(078) 305-1528</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;"><em>Maharlika Highway, Mabini, Santiago City</em></span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">JENNELYN G. PASAY-AN</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Acting Assistant Regional Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">region2@nfa.gov.ph</span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 30.9343%;"></td>
+<td style="height: 16px; width: 17.4242%;"></td>
+</tr>
+<tr style="height: 31px;">
+<td style="height: 31px; width: 31.6919%;"><span style="font-size: 8pt;"><strong>ISABELA BRANCH</strong></span></td>
+<td style="height: 31px; width: 18.4343%;"><span style="font-size: 8pt;">GERARD V. LIM</span></td>
+<td style="height: 31px; width: 30.9343%;"><span style="font-size: 8pt;">Branch Manager</span></td>
+<td style="height: 31px; width: 17.4242%;"><span style="font-size: 8pt;">(078) 305-0628</span></td>
+</tr>
+<tr style="height: 33px;">
+<td style="height: 33px; width: 31.6919%;"><span style="font-size: 8pt;"><em>Mabini, Santiago City,</em></span>
+<span style="font-size: 10.6667px;"><i>Isabela 3311</i></span></td>
+<td style="height: 33px; width: 18.4343%;"><span style="font-size: 8pt;">LOUISE MARIE G. MACARTO</span></td>
+<td style="height: 33px; width: 30.9343%;"><span style="font-size: 8pt;">Acting Asst. Branch Manager</span></td>
+<td style="height: 33px; width: 17.4242%;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">isabela@nfa.gov.ph</span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 30.9343%;"></td>
+<td style="height: 16px; width: 17.4242%;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 17.4242%;"></td>
+</tr>
+<tr style="height: 47px;">
+<td style="height: 47px; width: 31.6919%;"><span style="font-size: 8pt;"><strong>CAGAYAN BRANCH</strong></span></td>
+<td style="height: 47px; width: 18.4343%;"><span style="font-size: 8pt;">ELIMAR C REGINDIN</span></td>
+<td style="height: 47px; width: 30.9343%;"><span style="font-size: 8pt;">Branch Manager</span></td>
+<td style="height: 47px; width: 17.4242%;"><span style="font-size: 8pt;">(078) 396-9721</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;"><em>Nursery Site, Bagay Road, Tuguegarao City</em> </span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">ENGR. RHODERICK A. FERNANDEZ</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Acting Assistant Branch Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 33px;">
+<td style="height: 33px; width: 31.6919%;"><span style="font-size: 8pt;">cagayan@nfa.gov.ph</span></td>
+<td style="height: 33px; width: 18.4343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 33px; width: 30.9343%;"></td>
+<td style="height: 33px; width: 17.4242%;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 30.9343%;"></td>
+<td style="height: 16px; width: 17.4242%;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 10.6667px;"><b>NUEVA VIZCAYA BRANCH</b></span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">ELSA A. LIM</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Branch Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;">(078) 321-8047</span></td>
+</tr>
+<tr style="height: 33px;">
+<td style="height: 33px; width: 31.6919%;"><span style="font-size: 8pt;"><em>Capitol Compound</em></span>
+<span style="font-size: 8pt;"><em> Bayombong, Nueva Viscaya 3700</em></span></td>
+<td style="height: 33px; width: 18.4343%;"><span style="font-size: 8pt;">EMILY B. REGINDIN</span></td>
+<td style="height: 33px; width: 30.9343%;"><span style="font-family: tahoma, arial, helvetica, sans-serif; font-size: 8pt;">Acting Assistant Branch Manager</span></td>
+<td style="height: 33px; width: 17.4242%;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">nuevaviscaya@nfa.gov.ph</span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+</tbody>
+</table>
+<span style="font-size: 8pt;">[/su_spoiler]</span>
+
+<span style="font-size: 8pt;">[su_spoiler title="Region III: Central Luzon" open="yes" style="modern-dark" icon="plus-circle" anchor="" anchor_in_url="no" class=""]</span>
+<table style="width: 100%; height: 396px;">
+<tbody>
+<tr style="height: 24px;">
+<td style="width: 31.6919%; text-align: center; height: 24px;"><span style="font-size: 8pt;">Office</span></td>
+<td style="width: 18.4343%; text-align: center; height: 24px;"><span style="font-size: 8pt;">Contact Person</span></td>
+<td style="width: 30.9343%; text-align: center; height: 24px;"><span style="font-size: 8pt;">Position</span></td>
+<td style="width: 17.4242%; text-align: center; height: 24px;"><span style="font-size: 8pt;">Phone Number/s</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 10.6667px;"><b>REGION III - C</b></span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">JEOFFREY S. PARATON</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">Regional Manager</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">(044) 958-0142</span></td>
+</tr>
+<tr style="height: 33px;">
+<td style="height: 33px;"><span style="font-size: 8pt;">Maharlika Highway,</span>
+<span style="font-size: 8pt;"> Cabanatuan City 3100</span></td>
+<td style="height: 33px;"><span style="font-size: 8pt;"> ME-ANN C. VILLAFLOR</span></td>
+<td style="height: 33px;"><span style="font-size: 8pt;">Acting Assistant Regional Manager</span></td>
+<td style="height: 33px;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;">region3@nfa.gov.ph</span></td>
+<td style="height: 16px;"></td>
+<td style="height: 16px;"></td>
+<td style="height: 16px;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px;"></td>
+<td style="height: 16px;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px;"></td>
+<td style="height: 16px;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px;"></td>
+<td style="height: 16px;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;"><strong>NUEVA ECIJA BRANCH</strong></span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">MARIA LUISA L. LULUQUISEN</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">Acting Branch Manager</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">(044) 958-2328</span></td>
+</tr>
+<tr style="height: 33px;">
+<td style="height: 33px;"><span style="font-size: 8pt;">Maharlika Higway,</span>
+<span style="font-size: 8pt;">Cabanatuan City</span></td>
+<td style="height: 33px;"><span style="font-size: 8pt;">VIRGINIA S. MARIANO</span></td>
+<td style="height: 33px;"><span style="font-size: 8pt;">Assistant Branch Manager</span></td>
+<td style="height: 33px;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;">nuevaecija@nfa.gov.ph</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;"><strong>BULACAN BRANCH</strong></span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">RHONA P. TALENS</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">Acting Branch Manager</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">(044) 767-7363</span></td>
+</tr>
+<tr style="height: 33px;">
+<td style="height: 33px;"><span style="font-size: 8pt;">536 Mc Arthur Hi-way,</span>
+<span style="font-size: 8pt;">Tikay, City of Malolos, Bulacan</span></td>
+<td style="height: 33px;"><span style="font-size: 8pt;">SONNY REY R. RIVERA</span></td>
+<td style="height: 33px;"><span style="font-size: 8pt;">Assistant Branch Manager</span></td>
+<td style="height: 33px;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;">bulacan@nfa.gov.ph</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;"><strong>PAMPANGA BRANCH</strong></span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">FERDINAND S. MACUSI</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">Acting Branch Manager</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">(045) 455-0562</span></td>
+</tr>
+<tr style="height: 33px;">
+<td style="height: 33px;"><span style="font-size: 10.6667px;">McArthur Highway, Sindalan,
+City of San Fernando, Pampanga</span></td>
+<td style="height: 33px;"><span style="font-size: 8pt;">BENJAMIN F. DE GUZMAN</span></td>
+<td style="height: 33px;"><span style="font-size: 8pt;">Assistant Branch Manager</span></td>
+<td style="height: 33px;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;">pampanga@nfa.gov.ph</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 32.3833px;">
+<td style="height: 32px;"><span style="font-size: 8pt;"><strong>TARLAC BRANCH</strong></span></td>
+<td style="height: 32px;"><span style="font-size: 8pt;">KAREEN KRIS M. HERNAL</span></td>
+<td style="height: 32px;"><span style="font-size: 8pt;">Acting Branch Manager</span></td>
+<td style="height: 32px;"><span style="font-size: 8pt;">(045) 982-2173</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;">Brgy. Aguso, Tarlac City</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">MIA KRISTEL P. CHICO</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">Acting Assistant Branch Manager</span></td>
+<td style="height: 16px;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;">tarlac@nfa.gov.ph</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px;"></td>
+</tr>
+</tbody>
+</table>
+<span style="font-size: 8pt;">[/su_spoiler]</span>
+
+<span style="font-size: 8pt;">[su_spoiler title="Region IV: Southern Tagalog" open="yes" style="modern-dark" icon="plus-circle" anchor="" anchor_in_url="no" class=""]</span>
+<table style="width: 100%; height: 650px;">
+<tbody>
+<tr style="height: 24px;">
+<td style="width: 31.6919%; text-align: center; height: 24px;"><span style="font-size: 8pt;">Office</span></td>
+<td style="width: 18.4343%; text-align: center; height: 24px;"><span style="font-size: 8pt;">Contact Person</span></td>
+<td style="width: 30.9343%; text-align: center; height: 24px;"><span style="font-size: 8pt;">Position</span></td>
+<td style="width: 17.4242%; text-align: center; height: 24px;"><span style="font-size: 8pt;">Phone Number/s</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;"><strong>REGION IV - SOUTHERN TAGALOG </strong></span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">BEVERLY M. NAVARRO</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Regional Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;">(043) 783-3325</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">Balagtas, Batangas City</span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">CHARLES G. ALINGOD</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Assistant Regional Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">region4@nfa.gov.ph</span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 30.9343%;"></td>
+<td style="height: 16px; width: 17.4242%;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 30.9343%;"></td>
+<td style="height: 16px; width: 17.4242%;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;"><strong>BATANGAS BRANCH</strong></span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">LLEWELYN D.A. VILLAMAR</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Acting Branch Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;"> (043) 723-1473</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">Balagtas, Batangas City</span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">EVELYN M. MARQUEZ</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Assistant Branch Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;"> batangas@nfa.gov.ph</span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 30.9343%;"></td>
+<td style="height: 16px; width: 17.4242%;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 30.9343%;"></td>
+<td style="height: 16px; width: 17.4242%;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 30.9343%;"></td>
+<td style="height: 16px; width: 17.4242%;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 30.9343%;"></td>
+<td style="height: 16px; width: 17.4242%;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;"><strong>LAGUNA BRANCH</strong></span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">JOSEPH M. CANDAVA</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Branch Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;">(049) 562-3161</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">San Pablo City, Laguna</span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">MATT ANDREW C. BAGON</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Assistant Branch Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">laguna@nfa.gov.ph</span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 30.9343%;"></td>
+<td style="height: 16px; width: 17.4242%;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 30.9343%;"></td>
+<td style="height: 16px; width: 17.4242%;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 17.4242%;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;"><strong>ORIENTAL MINDORO BRANCH</strong></span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">DENNIS N. MEJICO</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Branch Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;">(043) 286-7789</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">Brgy. Tawiran, Calapan City,
+Oriental Mindoro 5200</span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">FERNANDO I. SANQUE</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Assistant Branch Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">calapan@nfa.gov.ph</span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 30.9343%;"></td>
+<td style="height: 16px; width: 17.4242%;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 30.9343%;"></td>
+<td style="height: 16px; width: 17.4242%;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;"><strong>PALAWAN BRANCH</strong></span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">OSMUNDO R. GUINTO, JR.</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Branch Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;">(048) 717-4776</span></td>
+</tr>
+<tr style="height: 33px;">
+<td style="height: 33px; width: 31.6919%;"><span style="font-size: 8pt;">City Government Center Brgy. Sta. Monica</span>
+<span style="font-size: 8pt;">Puerto Princesa City, 5300</span></td>
+<td style="height: 33px; width: 18.4343%;"><span style="font-size: 8pt;">JULUIS U. LOPEZ</span></td>
+<td style="height: 33px; width: 30.9343%;"><span style="font-size: 8pt;">Assistant Branch Manager</span></td>
+<td style="height: 33px; width: 17.4242%;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">palawan@nfa.gov.ph</span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 30.9343%;"></td>
+<td style="height: 16px; width: 17.4242%;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"></td>
+<td style="height: 16px; width: 18.4343%;"></td>
+<td style="height: 16px; width: 30.9343%;"></td>
+<td style="height: 16px; width: 17.4242%;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;"><strong>QUEZON BRANCH</strong></span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">ATTY. ANGELIQUE D. BALINSANG</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Acting Branch Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;"> (042) 784-4778</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">Isabang, Lucena City, Quezon 4301</span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">ARLYN C. TAGUIAM</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Assistant Branch Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">quezon@nfa.gov.ph</span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 30.9343%;"></td>
+<td style="height: 16px; width: 17.4242%;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 30.9343%;"></td>
+<td style="height: 16px; width: 17.4242%;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;"><strong>OCCIDENTAL MINDORO BRANCH</strong></span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">HAROLD D. CUARTERO</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Acting Branch Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;"> (043) 491-0536 </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">Labangan, San Jose, Occidental Mindoro</span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">KATHLYN M. GONZALES</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Assistant Branch Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">sanjose@nfa.gov.ph</span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 30.9343%;"></td>
+<td style="height: 16px; width: 17.4242%;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 30.9343%;"></td>
+<td style="height: 16px; width: 17.4242%;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 30.9343%;"></td>
+<td style="height: 16px; width: 17.4242%;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"></td>
+<td style="height: 16px; width: 18.4343%;"></td>
+<td style="height: 16px; width: 30.9343%;"></td>
+<td style="height: 16px; width: 17.4242%;"></td>
+</tr>
+<tr style="height: 33px;">
+<td style="height: 33px; width: 31.6919%;"></td>
+<td style="height: 33px; width: 18.4343%;"></td>
+<td style="height: 33px; width: 30.9343%;"></td>
+<td style="height: 33px; width: 17.4242%;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"></td>
+<td style="height: 16px; width: 18.4343%;"></td>
+<td style="height: 16px; width: 30.9343%;"></td>
+<td style="height: 16px; width: 17.4242%;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 30.9343%;"></td>
+<td style="height: 16px; width: 17.4242%;"></td>
+</tr>
+</tbody>
+</table>
+<span style="font-size: 8pt;">[/su_spoiler]</span>
+
+<span style="font-size: 8pt;">[su_spoiler title="Region V: Bicol Region" open="yes" style="modern-dark" icon="plus-circle" anchor="" anchor_in_url="no" class=""]</span>
+<table style="width: 100%; height: 232px;">
+<tbody>
+<tr style="height: 24px;">
+<td style="width: 31.6919%; text-align: center; height: 24px;"><span style="font-size: 8pt;">Office</span></td>
+<td style="width: 18.4343%; text-align: center; height: 24px;"><span style="font-size: 8pt;">Contact Person</span></td>
+<td style="width: 30.9343%; text-align: center; height: 24px;"><span style="font-size: 8pt;">Position</span></td>
+<td style="width: 17.4242%; text-align: center; height: 24px;"><span style="font-size: 8pt;">Phone Number/s</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;"><strong>REGIOB V - BICOL REGION</strong></span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">RODRIGO O. EMBATE, JR.</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Regional Manager II</span></td>
+<td style="height: 16px; width: 17.4242%;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">Pier Site, Dinagaan Street, Legazpi City</span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;"> JULLIE B. LLENARESAS</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Assistant Regional Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">region5@nfa.gov.ph</span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 17.4242%;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;"><strong>ALBAY BRANCH</strong></span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">AL MARTIN A. MENES</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Acting  Branch Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">Pier Site, Legazpi City, Albay</span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">AIRENE A. POYATOS</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Acting Assistant Branch Manager </span></td>
+<td style="height: 16px; width: 17.4242%;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">albay@nfa.gov.ph</span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 30.9343%;"></td>
+<td style="height: 16px; width: 17.4242%;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 30.9343%;"></td>
+<td style="height: 16px; width: 17.4242%;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;"><strong>CAMARINES SUR BRANCH </strong></span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">JENNILYN B. CELESTIAL</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Acting Branch Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">Barangay Palestina, Pili, Camarines Sur 4418</span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">JULLIE B. LLENARESAS</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Acting Assistant Branch Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">camarinessur@nfa.gov.ph</span></td>
+<td style="height: 16px; width: 18.4343%;"></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;"><strong>SORSOGON BRANCH </strong></span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">CRISELDA C. DELA TORRE</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Acting Branch Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">Brgy. Cabid-an, Sorsogon City 4700</span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">EPIFANIO G. COSCA</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Assistant Branch Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;"><a href="mailto:sorsogon@nfa.gov.ph" target="_blank" rel="noopener noreferrer">sorsogon@nfa.gov.ph</a></span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+</tbody>
+</table>
+<span style="font-size: 8pt;">[/su_spoiler]</span>
+
+<span style="font-size: 8pt;">[su_spoiler title="Region VI: Western Visayas" open="yes" style="modern-dark" icon="plus-circle" anchor="" anchor_in_url="no" class=""]</span>
+<table style="width: 99.5992%; height: 231px;">
+<tbody>
+<tr style="height: 24px;">
+<td style="width: 31.6919%; text-align: center; height: 45px;"><span style="font-size: 8pt;">Office</span></td>
+<td style="width: 18.4343%; text-align: center; height: 45px;"><span style="font-size: 8pt;">Contact Person</span></td>
+<td style="width: 30.9343%; text-align: center; height: 45px;"><span style="font-size: 8pt;">Position</span></td>
+<td style="width: 17.4242%; text-align: center; height: 45px;"><span style="font-size: 8pt;">Phone Number/s</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 10px; width: 31.6919%;"><span style="font-size: 8pt;"><strong>REGION VI - WESTERN VISAYAS</strong></span></td>
+<td style="height: 10px; width: 18.4343%;"><span style="font-size: 8pt;">RODOLFO W. CORPUZ</span></td>
+<td style="height: 10px; width: 30.9343%;"><span style="font-size: 8pt;">Regional Manager</span></td>
+<td style="height: 10px; width: 17.4242%;"><span style="font-size: 8pt;">(033) 320-6307</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">Bgy. Quintin Salas, Jaro, Iloilo City 5000</span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">OVELITO C. BARITUA</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Assistant Regional Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;">(033) 329-6246</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">region6@nfa.gov.ph</span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;"><strong>ILOILO BRANCH</strong></span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">JAY MARK M. MALVAR</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Branch Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;">(033) 329-2635</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">Quintin Salas, Jaro, Iloilo City 5000</span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">HAROLD RYAN F. ESPIRITU</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Acting Assistant Branch Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;">(033) 329-7535</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">iloilo@nfa.gov.ph </span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;"><strong>NEGROS OCCIDENTAL BRANCH </strong></span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">CHERRYBETH B. GEVERO</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Branch Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;">(034) 433-2754</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">Gatuslao Street, Brgy. 8, Bacolod City</span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">JOHN D. ALVAREZ</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Acting Assistant Branch Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;">(034) 434-4954</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">negrosoccidental@nfa.gov.ph</span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;">(034) 706-5396</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><strong><span style="font-size: 8pt;">CAPIZ BRANCH </span></strong></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">JEOMAR G. FAJARTIN</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Acting Branch Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;">(036) 522-1549</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">Brgy. Bolo, Rozas City</span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">ANDY P. OSTAN</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Assistant Branch Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;">(036) 267-6614</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">capiz@nfa.gov.ph</span></td>
+<td style="height: 16px; width: 18.4343%;"></td>
+<td style="height: 16px; width: 30.9343%;"></td>
+<td style="height: 16px; width: 17.4242%;"></td>
+</tr>
+</tbody>
+</table>
+<span style="font-size: 8pt;">[/su_spoiler]</span>
+
+<span style="font-size: 8pt;">[su_spoiler title="Region VII: Central Visayas" open="yes" style="modern-dark" icon="plus-circle" anchor="" anchor_in_url="no" class=""]</span>
+<table style="width: 100%; height: 315px;">
+<tbody>
+<tr style="height: 24px;">
+<td style="width: 31.6919%; text-align: center; height: 24px;"><span style="font-size: 8pt;">Office</span></td>
+<td style="width: 18.4343%; text-align: center; height: 24px;"><span style="font-size: 8pt;">Contact Person</span></td>
+<td style="width: 30.9343%; text-align: center; height: 24px;"><span style="font-size: 8pt;">Position</span></td>
+<td style="width: 17.4242%; text-align: center; height: 24px;"><span style="font-size: 8pt;">Phone Number/s</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;"><strong>REGION VII - CENTRAL VISAYAS</strong></span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">LIZA R. BALAGOT</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Acting Regional Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">Governor Mariano Cuenco Avenue, Brgy. Banilad, Cebu City</span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 10.6667px;">HERRIELLE V. JUMAGBAS</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Assistant Regional Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">region7@nfa.gov.ph</span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 30.9343%;"></td>
+<td style="height: 16px; width: 17.4242%;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 30.9343%;"></td>
+<td style="height: 16px; width: 17.4242%;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;"><strong>CEBU BRANCH</strong></span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">ANNIE DL. DELA CERNA</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Branch Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;">(032) 232-5592</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;"> Gov. M. Cuenco Ave., Banilad, Cebu City</span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">KHRISTINE T. VINCOY</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Acting Assistant Branch Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;">(032) 231-2323</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;"> cebu@nfa.gov.ph</span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 30.9343%;"></td>
+<td style="height: 16px; width: 17.4242%;"></td>
+</tr>
+<tr style="height: 33px;">
+<td style="height: 33px; width: 31.6919%;"><span style="font-size: 8pt;"><strong>BOHOL BRANCH</strong></span></td>
+<td style="height: 33px; width: 18.4343%;"><span style="font-size: 8pt;">PILITA P. BARAJAN</span></td>
+<td style="height: 33px; width: 30.9343%;"><span style="font-size: 8pt;">Branch Manager</span></td>
+<td style="height: 33px; width: 17.4242%;"><span style="font-size: 8pt;">(038) 412-2613</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">P. Burgos St. Mansasa District, Tagbiliran City, Bohol</span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">ELISA G. MOJICA</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Acting Assistant Branch Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;"> (038) 412-3366</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">bohol@nfa.gov.ph</span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 30.9343%;"></td>
+<td style="height: 16px; width: 17.4242%;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 30.9343%;"></td>
+<td style="height: 16px; width: 17.4242%;"></td>
+</tr>
+<tr style="height: 33px;">
+<td style="height: 33px; width: 31.6919%;"><strong><span style="font-size: 8pt;">NEGROS ORIENTAL BRANCH</span></strong></td>
+<td style="height: 33px; width: 18.4343%;"><span style="font-size: 8pt;">BENILDA T. FIDEL</span></td>
+<td style="height: 33px; width: 30.9343%;"><span style="font-size: 8pt;">Branch Manager</span></td>
+<td style="height: 33px; width: 17.4242%;"><span style="font-size: 8pt;">(035) 422-1723</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">Rovira Road, Brgy. Pulantubig, Dumaguete City, Negros Oriental</span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">PHILIP CESAR B. RUMBAOA</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Assistant Branch Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;">(035) 225-6522</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">negrosoriental@nfa.gov.ph</span></td>
+<td style="height: 16px; width: 18.4343%;"></td>
+<td style="height: 16px; width: 30.9343%;"></td>
+<td style="height: 16px; width: 17.4242%;"></td>
+</tr>
+<tr style="height: 33px;">
+<td style="height: 33px; width: 31.6919%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 33px; width: 18.4343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 33px; width: 30.9343%;"></td>
+<td style="height: 33px; width: 17.4242%;"></td>
+</tr>
+</tbody>
+</table>
+<span style="font-size: 8pt;">[/su_spoiler]</span>
+
+<span style="font-size: 8pt;">[su_spoiler title="Region VIII: Eastern Visayas" open="yes" style="modern-dark" icon="plus-circle" anchor="" anchor_in_url="no" class=""]</span>
+<table style="width: 100%;">
+<tbody>
+<tr>
+<td style="width: 31.6919%; text-align: center;"><span style="font-size: 8pt;">Office</span></td>
+<td style="width: 18.4343%; text-align: center;"><span style="font-size: 8pt;">Contact Person</span></td>
+<td style="width: 30.9343%; text-align: center;"><span style="font-size: 8pt;">Position</span></td>
+<td style="width: 17.4242%; text-align: center;"><span style="font-size: 8pt;">Phone Number/s</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;"><strong>REGION III - EASTERN VISAYAS</strong></span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">JASMINE C. LINTAG</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">Regional Manager</span></td>
+<td style="height: 16px;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;">Government Center, Pawing, Palo, Leyte</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">FLOREENA R. LORAINA</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">Assistant Regional Manager</span></td>
+<td style="height: 16px;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;">region8@nfa.gov.ph </span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px;"></td>
+<td style="height: 16px;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px;"></td>
+<td style="height: 16px;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;"><strong>LEYTE BRANCH</strong></span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> HILLET B. DIAZ</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">Branch Manager</span></td>
+<td style="height: 16px;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;"> Government Center, Pawing, Palo, Leyte</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">TALITHA THEA B. ARPON</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">Acting Assistant Branch Manager</span></td>
+<td style="height: 16px;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;">leyte@nfa.gov.ph</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px;"></td>
+<td style="height: 16px;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px;"></td>
+<td style="height: 16px;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;"><strong>NORTHERN SAMAR BRANCH</strong></span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">ZALDY C. TAN</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">Branch Manager</span></td>
+<td style="height: 16px;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;">Brgy. Dancalan, Bobon, Northern Samar</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">MARBIN C. MALABANAN</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">Acting Assistant Branch Manager</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;">northernsamar@nfa.gov.ph</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+</tbody>
+</table>
+<span style="font-size: 8pt;">[/su_spoiler]</span>
+
+<span style="font-size: 8pt;">[su_spoiler title="Region IX: Western Mindanao" open="yes" style="modern-dark" icon="plus-circle" anchor="" anchor_in_url="no" class=""]</span>
+<table style="width: 100%; height: 184px;">
+<tbody>
+<tr style="height: 24px;">
+<td style="width: 31.6919%; text-align: center; height: 24px;"><span style="font-size: 8pt;">Office</span></td>
+<td style="width: 18.4343%; text-align: center; height: 24px;"><span style="font-size: 8pt;">Contact Person</span></td>
+<td style="width: 30.9343%; text-align: center; height: 24px;"><span style="font-size: 8pt;">Position</span></td>
+<td style="width: 17.4242%; text-align: center; height: 24px;"><span style="font-size: 8pt;">Phone Number/s</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 10.6667px;"><b>REGION IX - WESTERN MINDANAO</b></span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">OLIVER L. CAMBAS</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">Regional Manager</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">(062) 991-1828</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;">Gov. Ramos Ave., San Roque, Zamboanga City</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">JESS M. CASIMIRO</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">Acting Assistant Regional Manager</span></td>
+<td style="height: 16px;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;">region9@nfa.gov.ph</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;"><strong>ZAMBOANGA CITY BRANCH</strong></span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">EMILY L. DIPUTADO</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">Branch Manager</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">(062) 991-1789 </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;">Brgy. San Roque, 7000, Zamboanga del Sur,
+Gov. Ramos Ave., Zamboanga</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">JOANN B. BERNARDO</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">Acting Assistant Branch Manager</span></td>
+<td style="height: 16px;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;">zamboanga@nfa.gov.ph</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;"><strong>ZAMBOANGA DEL SUR BRANCH</strong></span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">RIXON T. VELASQUEZ</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">Acting Branch Manager</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">(062) 215-2021</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;">Tiguma, Pagadian City</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">ROGELIO ANTONIO B. LUMO</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">Acting Assistant Branch Manager</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;">zamboangadelsur@nfa.gov.ph</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px;"></td>
+<td style="height: 16px;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+</tbody>
+</table>
+<span style="font-size: 8pt;">[/su_spoiler]</span>
+
+<span style="font-size: 8pt;">[su_spoiler title="Region X: Northern Mindanao" open="yes" style="modern-dark" icon="plus-circle" anchor="" anchor_in_url="no" class=""]</span>
+<table style="width: 100%;">
+<tbody>
+<tr>
+<td style="width: 31.6919%; text-align: center;"><span style="font-size: 8pt;">Office</span></td>
+<td style="width: 18.4343%; text-align: center;"><span style="font-size: 8pt;">Contact Person</span></td>
+<td style="width: 30.9343%; text-align: center;"><span style="font-size: 8pt;">Position</span></td>
+<td style="width: 17.4242%; text-align: center;"><span style="font-size: 8pt;">Phone Number/s</span></td>
+</tr>
+<tr style="height: 33px;">
+<td style="height: 33px;"><span style="font-size: 8pt;"><strong>REGION X - NORTHERN MINDANAO</strong></span></td>
+<td style="height: 33px;"><span style="font-size: 8pt;">MIGUEL S. TECSON</span></td>
+<td style="height: 33px;"><span style="font-size: 8pt;">Regional Manager</span></td>
+<td style="height: 33px;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;">Baloy, Cagayan de Oro City</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">REJORIE R. ONDE</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">Acting Assistant Regional Manager </span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;">region10@nfa.gov.ph</span></td>
+<td style="height: 16px;"></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;"><strong>BUKIDNON BRANCH</strong></span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">HAZEL S. HOKE</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">Acting Branch Manager</span></td>
+<td style="height: 16px;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;">Vicente Neri St., Brgy. 9, Malaybalay City, Bukidnon</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">MELLANY M. VENTO</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">Acting Assistant Branch Manager</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;">bukidnon@nfa.gov.ph</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 33px;">
+<td style="height: 33px;"><span style="font-size: 8pt;"><strong>MISAMIS ORIENTAL BRANCH </strong></span></td>
+<td style="height: 33px;"><span style="font-size: 8pt;">MA. CHERE M. BUYANTE</span></td>
+<td style="height: 33px;"><span style="font-size: 8pt;">Acting Branch Manager</span></td>
+<td style="height: 33px;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;">Brgy. Tablon, Baloy, Cagayan de Oro City</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">KATHERINE E. MAROHOMBSAR</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">Acting Assistant Branch Manager</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;">misamisoriental@nfa.gov.ph</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;"><strong>LANAO DEL NORTE BRANCH </strong></span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">KHARREN A. RETIZA</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">Acting Branch Manager</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">(063) 228-2400</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;">Bara-as, Brgy. Tubod, Iligan City</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">ARDY M. DASMARINAS</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">Acting Assistant Branch Manager</span></td>
+<td style="height: 16px;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;">lanaodelnorte@nfa.gov.ph</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px;"></td>
+<td style="height: 16px;"></td>
+</tr>
+</tbody>
+</table>
+<span style="font-size: 8pt;">[/su_spoiler]</span>
+
+<span style="font-size: 8pt;">[su_spoiler title="Region XI: Southern Mindanao" open="yes" style="modern-dark" icon="plus-circle" anchor="" anchor_in_url="no" class=""]</span>
+<table style="width: 100%; height: 249px;">
+<tbody>
+<tr style="height: 24px;">
+<td style="width: 31.6919%; text-align: center; height: 24px;"><span style="font-size: 8pt;">Office</span></td>
+<td style="width: 18.4343%; text-align: center; height: 24px;"><span style="font-size: 8pt;">Contact Person</span></td>
+<td style="width: 30.9343%; text-align: center; height: 24px;"><span style="font-size: 8pt;">Position</span></td>
+<td style="width: 17.4242%; text-align: center; height: 24px;"><span style="font-size: 8pt;">Phone Number/s</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;"><strong>REGION XI - SOUTHERN MINDANAO</strong></span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">JORDAN L. VALENTE</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">Acting Regional Manager</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">(082) 297-0100</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;">Brgy. San Jose, Digos City, Davao del Sur</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">JANETTE M. LINAO</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">Acting Assistant Regional Manager</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;"> region11@nfa.gov.ph</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px;"></td>
+<td style="height: 16px;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;"><strong>DAVAO DEL SUR BRANCH </strong></span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">HATTA D. CANDONG</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">Acting Branch Manager</span></td>
+<td style="height: 16px;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;">Brgy. San Jose, Digos City</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">LYNLEE J. LANAJA</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">Acting Assistant Branch Manager</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;">davaodelsur@nfa.gov.ph </span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;"><strong>DAVAO ORIENTAL BRANCH</strong></span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">JONATHAN R. CABRILLAS</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">Acting Branch Manager</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">(087) 388-3562 </span></td>
+</tr>
+<tr style="height: 33px;">
+<td style="height: 33px;"><span style="font-size: 8pt;">Government Center, Brgy. Dahican, City of Mati,
+Davao Oriental 8200</span></td>
+<td style="height: 33px;"><span style="font-size: 8pt;">JEANNE ELIVER D. REBALDE</span></td>
+<td style="height: 33px;"><span style="font-size: 8pt;">Acting Assistant Branch Manager</span></td>
+<td style="height: 33px;"><span style="font-size: 8pt;">(087) 811-3743</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;">davaooriental@nfa.gov.ph </span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;"><strong>DAVAO DEL NORTE BRANCH </strong></span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">ANDRE BONN M. SUMALPONG</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">Branch Manager</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> (084) 216-6474</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;"> Brgy. Magdum, Tagum City, Davao Del Norte</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">IRENE P. ORDISTA</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">Acting Assistant Branch Manager</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;">davaodelnorte@nfa.gov.ph</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px;"></td>
+<td style="height: 16px;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px;"></td>
+<td style="height: 16px;"></td>
+</tr>
+</tbody>
+</table>
+<span style="font-size: 8pt;">[/su_spoiler]</span>
+
+<span style="font-size: 8pt;">[su_spoiler title="Region XII: Central Mindanao" open="yes" style="modern-dark" icon="plus-circle" anchor="" anchor_in_url="no" class=""]</span>
+<table style="width: 100%; height: 249px;">
+<tbody>
+<tr style="height: 24px;">
+<td style="width: 31.6919%; text-align: center; height: 24px;"><span style="font-size: 8pt;">Office</span></td>
+<td style="width: 18.4343%; text-align: center; height: 24px;"><span style="font-size: 8pt;">Contact Person</span></td>
+<td style="width: 30.9343%; text-align: center; height: 24px;"><span style="font-size: 8pt;">Position</span></td>
+<td style="width: 17.4242%; text-align: center; height: 24px;"><span style="font-size: 8pt;">Phone Number/s</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;"><strong>REGION XII -CENTRAL MINDANAO</strong></span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">ANGELICA M. PELLIEN</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Acting Regional Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">SPGC Compound, Tacurong, Sultan Kudarat</span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">ANTONIO ROSARIO U. LAGRIMAS II</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Assistant Regional Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">region12@nfa.gov.ph </span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><strong><span style="font-size: 8pt;">SULTAN KUDARAT BRANCH </span></strong></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">VIRGIL P. CALASAGSAG</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Acting Branch Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;">(064) 471-7785</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">Brgy. Dansuli, Isulan, Sultan Kudarat</span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">JOSE M. AGUDA</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Assistant Branch Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">sultankudarat@nfa.gov.ph</span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;"><strong>NORTH COTABATO BRANCH </strong></span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">RICHARD L. BALBIN</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Branch Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;">(064) 577-1743</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">Quezon Blvd., Poblacion, Kidapawan City</span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">REGIDOR S. ABING</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Assistant Branch Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;">(064) 521-0213</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">northcotabato@nfa.gov.ph</span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 33px;">
+<td style="height: 33px; width: 31.6919%;"><span style="font-size: 8pt;"><strong>SOUTH COTABATO BRANCH </strong></span></td>
+<td style="height: 33px; width: 18.4343%;"><span style="font-size: 8pt;">ATTY. JOSEPH RAYMUND C. CORPUZ</span></td>
+<td style="height: 33px; width: 30.9343%;"><span style="font-size: 8pt;">Branch Manager</span></td>
+<td style="height: 33px; width: 17.4242%;"><span style="font-size: 8pt;">(083) 520-2614</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">Gen. Paulino Santos Drive, Brgy. Sto. Nino, Koronadal City</span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">JOEL A. CELDA</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Acting Assistant Branch Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">marbel@nfa.gov.ph</span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+</tbody>
+</table>
+<span style="font-size: 8pt;">[/su_spoiler]</span>
+
+<span style="font-size: 8pt;">[su_spoiler title="National Capital Region" open="yes" style="modern-dark" icon="plus-circle" anchor="" anchor_in_url="no" class=""]</span>
+<table style="width: 100%; height: 239px;">
+<tbody>
+<tr style="height: 24px;">
+<td style="width: 31.6919%; text-align: center; height: 24px;"><span style="font-size: 8pt;">Office</span></td>
+<td style="width: 18.4343%; text-align: center; height: 24px;"><span style="font-size: 8pt;">Contact Person</span></td>
+<td style="width: 30.9343%; text-align: center; height: 24px;"><span style="font-size: 8pt;">Position</span></td>
+<td style="width: 17.4242%; text-align: center; height: 24px;"><span style="font-size: 8pt;">Phone Number/s</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;"><strong>REGION XIII - NATIONAL CAPITAL REGION</strong></span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">ALWIN M. UY</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">Regional Manager (Acting)</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">(028) 563-9451</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;">U.N. Avenue, Paco, Manila</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">JOSEPHINE M. HUGO </span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">Assistant Regional Manager </span></td>
+<td style="height: 16px;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;">ncr@nfa.gov.ph</span></td>
+<td style="height: 16px;"></td>
+<td style="height: 16px;"></td>
+<td style="height: 16px;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px;"></td>
+</tr>
+<tr style="height: 33px;">
+<td style="height: 33px;"><span style="font-size: 8pt;"><strong>CENTRAL DISTRICT BRANCH</strong></span></td>
+<td style="height: 33px;"><span style="font-size: 8pt;">GLENDA G. PAZ</span></td>
+<td style="height: 33px;"><span style="font-size: 8pt;">Branch Manager</span></td>
+<td style="height: 33px;"><span style="font-size: 10.6667px;">(02) 8561-8936</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;">United Nations Avenue, Paco, Manila</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">JOEWELL A. MONREAL </span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">Assistant Branch Manager </span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;">centraldistrict@nfa.gov.ph</span></td>
+<td style="height: 16px;"></td>
+<td style="height: 16px;"></td>
+<td style="height: 16px;"></td>
+</tr>
+<tr style="height: 38px;">
+<td style="height: 38px;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 38px;"></td>
+<td style="height: 38px;"></td>
+<td style="height: 38px;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;"><strong>EAST DISTRICT BRANCH </strong></span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">ATTY. MARKO C. CALLANTA</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">Branch Manager</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">(02) 7001-5452</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;">M.L. Quezon Ext., Brgy. San Roque, Antipolo City</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">ZALDY C. CALUYONG </span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">Assistant Branch Manager</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> (02) 8696-1820</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px;"><span style="font-size: 8pt;">eastdistrict@nfa.gov.ph</span></td>
+<td style="height: 16px;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px;"></td>
+<td style="height: 16px;"><span style="font-size: 8pt;">(02) 7001-9793</span></td>
+</tr>
+</tbody>
+</table>
+<span style="font-size: 8pt;">[/su_spoiler]</span>
+
+<span style="font-size: 8pt;">[su_spoiler title="Autonomous Region of Muslim Mindanao (ARMM)" open="yes" style="modern-dark" icon="plus-circle" anchor="" anchor_in_url="no" class=""]</span>
+<table style="width: 100%; height: 233px;">
+<tbody>
+<tr style="height: 24px;">
+<td style="width: 31.6919%; text-align: center; height: 24px;"><span style="font-size: 8pt;">Office</span></td>
+<td style="width: 18.4343%; text-align: center; height: 24px;"><span style="font-size: 8pt;">Contact Person</span></td>
+<td style="width: 30.9343%; text-align: center; height: 24px;"><span style="font-size: 8pt;">Position</span></td>
+<td style="width: 17.4242%; text-align: center; height: 24px;"><span style="font-size: 8pt;">Phone Number/s</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;"><strong>REGION XIV - ARMM</strong></span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">LILIBETTE P. IGNACIO</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Regional Manager II</span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;">0908-230-1658</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">ORC Govt. Center, Cotabato City </span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">LYDIA I. ARSAD</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Acting Assistant Regional Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">armm@nfa.gov.ph</span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 17.4242%;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;"><strong>MAGUINDANAO BRANCH</strong></span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">ERLYN MARIE SOCORRO A. OLILA</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Branch Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;">0956-238-4198</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">ORC Govt. Center, Cotabato City </span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;"> SAMERAH V. DADAL</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;"> Acting Assistant Branch Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">maguindanao@nfa.gov.ph</span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;"><strong>LANAO DEL SUR BRANCH</strong></span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">ALIAH JEHAN M. LAO</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Acting Branch Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;">0917-772-4155</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">Brgy. Green, Marawi City 9700</span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">KHAYAMERA HY. DIALEM</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Acting Assistant Branch Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">lanaodelsur@nfa.gov.ph</span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 33px;">
+<td style="height: 33px; width: 31.6919%;"><span style="font-size: 8pt;"><strong>BASILAN BRANCH </strong></span></td>
+<td style="height: 33px; width: 18.4343%;"><span style="font-size: 8pt;">CLEOFE S. YU</span></td>
+<td style="height: 33px; width: 30.9343%;"><span style="font-size: 8pt;">Acting Branch Manager</span></td>
+<td style="height: 33px; width: 17.4242%;"><span style="font-size: 8pt;"> 0977-474-6912</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">Sunrise Village, Isabela, Basilan</span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">RAZEL A. TUPAY</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Assistant Branch Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">basilan@nfa.gov.ph</span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+</tbody>
+</table>
+<span style="font-size: 8pt;">[/su_spoiler]</span>
+
+<span style="font-size: 8pt;">[su_spoiler title="Caraga Administrative Region" open="yes" style="modern-dark" icon="plus-circle" anchor="" anchor_in_url="no" class=""]</span>
+<table style="width: 100%; height: 184px;">
+<tbody>
+<tr style="height: 24px;">
+<td style="width: 31.6919%; text-align: center; height: 24px;"><span style="font-size: 8pt;">Office</span></td>
+<td style="width: 18.4343%; text-align: center; height: 24px;"><span style="font-size: 8pt;">Contact Person</span></td>
+<td style="width: 30.9343%; text-align: center; height: 24px;"><span style="font-size: 8pt;">Position</span></td>
+<td style="width: 17.4242%; text-align: center; height: 24px;"><span style="font-size: 8pt;">Phone Number/s</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;"><strong>REGION XV - CARAGA</strong></span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">LEO V. DAMOLE</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Regional Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;">(085) 817-9233</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">J. Rosales Ave., Imadejas, Butuan City 8600</span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;"> GERALYN G. BLANCAFLOR</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Assistant Regional Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">caraga@nfa.gov.ph </span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 30.9343%;"></td>
+<td style="height: 16px; width: 17.4242%;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 30.9343%;"></td>
+<td style="height: 16px; width: 17.4242%;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;"><strong>AGUSAN DEL SUR BRANCH </strong></span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">DENNIS L. PADURA</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Branch Manager </span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;">(085) 242-1982</span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">Brgy. Alegria, San Francisco, Agusan del Sur, 8501</span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">ERIC L. BONILLA</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Officer-In-Charge, Assistant Branch Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">agusandelsur@nfa.gov.ph</span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;"><strong>SURIIGAO DEL SUR BRANCH</strong></span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">MAY SARA A. SABARRE</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Concurrent Branch Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">Mabua, Tandag City</span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;">DENNIS T. HIBAYA</span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;">Assistant Branch Manager</span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+<tr style="height: 16px;">
+<td style="height: 16px; width: 31.6919%;"><span style="font-size: 8pt;">surigaodelsur@nfa.gov.ph</span></td>
+<td style="height: 16px; width: 18.4343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 30.9343%;"><span style="font-size: 8pt;"> </span></td>
+<td style="height: 16px; width: 17.4242%;"><span style="font-size: 8pt;"> </span></td>
+</tr>
+</tbody>
+</table>
+<span style="font-size: 8pt;">[/su_spoiler]</span>
+
+<span style="font-size: 8pt;">[/su_accordion]</span>

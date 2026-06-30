@@ -1,5 +1,125 @@
 const loader = document.getElementById("loaderScreen");
 
+document.querySelectorAll("[data-signatory-add-form]").forEach((form) => {
+    const rows = form.querySelector("[data-signatory-form-rows]");
+    const template = rows?.querySelector("[data-signatory-form-row]");
+    const updateRemoveButtons = () => {
+        const allRows = [...(rows?.querySelectorAll("[data-signatory-form-row]") ?? [])];
+        allRows.forEach((row) => {
+            const button = row.querySelector("[data-remove-signatory-row]");
+            if (button) button.hidden = allRows.length === 1;
+        });
+    };
+
+    form.querySelector("[data-add-signatory-row]")?.addEventListener("click", () => {
+        if (!rows || !template) return;
+        const newRow = template.cloneNode(true);
+        newRow.querySelectorAll("input").forEach((input) => { input.value = ""; });
+        rows.append(newRow);
+        updateRemoveButtons();
+        newRow.querySelector("input")?.focus();
+    });
+
+    rows?.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-remove-signatory-row]");
+        if (!button) return;
+        button.closest("[data-signatory-form-row]")?.remove();
+        updateRemoveButtons();
+    });
+    updateRemoveButtons();
+});
+
+document.querySelectorAll("[data-report-signatory-selector]").forEach((selector) => {
+    const optionsContainer = selector.querySelector(".report-signatory-options");
+    const orderKey = selector.dataset.orderKey || "fwsp-report-signatory-order";
+    const getOptions = () => [...selector.querySelectorAll("[data-signatory-option]")];
+    let savedOrder = [];
+    try {
+        savedOrder = JSON.parse(localStorage.getItem(orderKey) || "[]");
+    } catch (error) {
+        localStorage.removeItem(orderKey);
+    }
+    if (optionsContainer && Array.isArray(savedOrder)) {
+        const currentOptions = getOptions();
+        const optionMap = new Map(currentOptions.map((option) => [option.dataset.signatoryId, option]));
+        const orderedOptions = savedOrder.map((id) => optionMap.get(String(id))).filter(Boolean);
+        const rememberedIds = new Set(orderedOptions.map((option) => option.dataset.signatoryId));
+        currentOptions.filter((option) => !rememberedIds.has(option.dataset.signatoryId)).forEach((option) => orderedOptions.push(option));
+        orderedOptions.forEach((option) => optionsContainer.append(option));
+    }
+
+    const saveOrder = () => {
+        localStorage.setItem(orderKey, JSON.stringify(getOptions().map((option) => option.dataset.signatoryId)));
+    };
+
+    const syncPrintedSignatories = () => {
+        const selected = getOptions().filter((option) => option.querySelector("[data-signatory-toggle]")?.getAttribute("aria-pressed") === "true");
+        document.querySelectorAll(".report-signatory-footer").forEach((footer) => footer.remove());
+        if (selected.length === 0) return;
+
+        document.querySelectorAll(".report-sheet").forEach((sheet) => {
+            const footer = document.createElement("footer");
+            footer.className = "report-signatory-footer";
+            selected.forEach((option) => {
+                const block = document.createElement("div");
+                block.className = "report-signatory-block";
+                const role = option.querySelector("[data-signatory-role]")?.value || "";
+                block.innerHTML = `<span class="report-signatory-role"></span><span class="report-signature-space" aria-hidden="true"></span><strong></strong><small></small>`;
+                block.querySelector(".report-signatory-role").textContent = role;
+                block.querySelector("strong").textContent = option.dataset.name || "";
+                block.querySelector("small").textContent = option.dataset.designation || "";
+                footer.append(block);
+            });
+            sheet.append(footer);
+        });
+    };
+
+    let draggedOption = null;
+    getOptions().forEach((option) => {
+        const toggle = option.querySelector("[data-signatory-toggle]");
+        toggle?.addEventListener("click", () => {
+            toggle.setAttribute("aria-pressed", toggle.getAttribute("aria-pressed") === "true" ? "false" : "true");
+            syncPrintedSignatories();
+        });
+        option.querySelector("[data-signatory-role]")?.addEventListener("change", syncPrintedSignatories);
+
+        toggle?.addEventListener("dragstart", (event) => {
+            draggedOption = option;
+            option.classList.add("is-dragging");
+            event.dataTransfer.effectAllowed = "move";
+            event.dataTransfer.setData("text/plain", option.dataset.signatoryId || "");
+        });
+        toggle?.addEventListener("dragend", () => {
+            option.classList.remove("is-dragging");
+            draggedOption = null;
+            saveOrder();
+            syncPrintedSignatories();
+        });
+    });
+
+    optionsContainer?.addEventListener("dragover", (event) => {
+        if (!draggedOption) return;
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "move";
+        const target = event.target.closest("[data-signatory-option]");
+        if (!target || target === draggedOption) return;
+        const bounds = target.getBoundingClientRect();
+        const sameRow = event.clientY >= bounds.top && event.clientY <= bounds.bottom;
+        const insertBefore = sameRow
+            ? event.clientX < bounds.left + bounds.width / 2
+            : event.clientY < bounds.top + bounds.height / 2;
+        optionsContainer.insertBefore(draggedOption, insertBefore ? target : target.nextSibling);
+    });
+
+    optionsContainer?.addEventListener("drop", (event) => {
+        event.preventDefault();
+        saveOrder();
+        syncPrintedSignatories();
+    });
+    window.addEventListener("beforeprint", syncPrintedSignatories);
+    syncPrintedSignatories();
+});
+
 window.addEventListener("load", () => {
     setTimeout(() => loader?.classList.add("is-hidden"), 350);
 });
@@ -21,6 +141,28 @@ document.querySelectorAll(".tracked-form").forEach((form) => {
     updateProgress();
 });
 
+document.querySelectorAll("[data-delivery-total-cost]").forEach((output) => {
+    const form = output.closest("form");
+    const price = form?.querySelector("[data-delivery-price]");
+    const netKilogram = form?.querySelector("[data-delivery-net-kg]");
+
+    if (!price || !netKilogram) return;
+
+    const updateTotalCost = () => {
+        const priceValue = Number.parseFloat(price.value) || 0;
+        const netKilogramValue = Number.parseFloat(netKilogram.value) || 0;
+        const totalCost = Math.round((priceValue * netKilogramValue + Number.EPSILON) * 100) / 100;
+        output.textContent = `Total Cost: ${totalCost.toLocaleString("en-PH", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        })}`;
+    };
+
+    price.addEventListener("input", updateTotalCost);
+    netKilogram.addEventListener("input", updateTotalCost);
+    updateTotalCost();
+});
+
 const themeToggle = document.getElementById("themeToggle");
 const savedTheme = localStorage.getItem("fwsp-theme");
 
@@ -32,6 +174,51 @@ themeToggle?.addEventListener("click", () => {
     const nextTheme = document.documentElement.getAttribute("data-bs-theme") === "dark" ? "light" : "dark";
     document.documentElement.setAttribute("data-bs-theme", nextTheme);
     localStorage.setItem("fwsp-theme", nextTheme);
+});
+
+const desktopMenuHover = window.matchMedia("(min-width: 1200px) and (hover: hover)");
+const mainMenuDropdowns = [...document.querySelectorAll(".app-nav .main-menu > .dropdown")];
+
+mainMenuDropdowns.forEach((dropdown) => {
+    const toggle = dropdown.querySelector(":scope > .dropdown-toggle");
+    const menu = dropdown.querySelector(":scope > .dropdown-menu");
+    let closeTimer = null;
+
+    if (!toggle || !menu) return;
+
+    const openMenu = () => {
+        if (!desktopMenuHover.matches) return;
+        window.clearTimeout(closeTimer);
+        mainMenuDropdowns.forEach((otherDropdown) => {
+            if (otherDropdown === dropdown) return;
+            otherDropdown.classList.remove("is-hover-open");
+            const otherToggle = otherDropdown.querySelector(":scope > .dropdown-toggle");
+            const otherMenu = otherDropdown.querySelector(":scope > .dropdown-menu");
+            if (!otherMenu?.classList.contains("show")) {
+                otherToggle?.setAttribute("aria-expanded", "false");
+            }
+        });
+        dropdown.classList.add("is-hover-open");
+        toggle.setAttribute("aria-expanded", "true");
+    };
+
+    const scheduleClose = () => {
+        if (!desktopMenuHover.matches) return;
+        window.clearTimeout(closeTimer);
+        closeTimer = window.setTimeout(() => {
+            dropdown.classList.remove("is-hover-open");
+            if (!menu.classList.contains("show")) {
+                toggle.setAttribute("aria-expanded", "false");
+            }
+        }, 600);
+    };
+
+    dropdown.addEventListener("pointerenter", openMenu);
+    dropdown.addEventListener("pointerleave", scheduleClose);
+    desktopMenuHover.addEventListener("change", () => {
+        window.clearTimeout(closeTimer);
+        dropdown.classList.remove("is-hover-open");
+    });
 });
 
 document.querySelectorAll("[data-password-toggle]").forEach((button) => {
@@ -97,9 +284,14 @@ document.getElementById("forgotPasswordModal")?.addEventListener("show.bs.modal"
     }
 });
 
-if (window.bootstrap && window.FWSP_AUTH_MODAL) {
+const showRequestedAuthModal = () => {
+    if (!window.bootstrap || !window.FWSP_AUTH_MODAL) return;
+
     if (window.FWSP_AUTH_MODAL.showChangePassword) {
         const modal = document.getElementById("changePasswordModal");
+        if (modal) bootstrap.Modal.getOrCreateInstance(modal).show();
+    } else if (window.FWSP_AUTH_MODAL.showRegister) {
+        const modal = document.getElementById("registerModal");
         if (modal) bootstrap.Modal.getOrCreateInstance(modal).show();
     } else if (window.FWSP_AUTH_MODAL.showForgotPassword) {
         const modal = document.getElementById("forgotPasswordModal");
@@ -107,6 +299,78 @@ if (window.bootstrap && window.FWSP_AUTH_MODAL) {
     } else if (window.FWSP_AUTH_MODAL.showLogin) {
         if (loginModal) bootstrap.Modal.getOrCreateInstance(loginModal).show();
     }
+};
+
+const flashMessageModal = document.querySelector("[data-flash-message-modal]");
+if (flashMessageModal && window.bootstrap) {
+    flashMessageModal.addEventListener("hidden.bs.modal", showRequestedAuthModal, { once: true });
+    bootstrap.Modal.getOrCreateInstance(flashMessageModal).show();
+} else {
+    showRequestedAuthModal();
+}
+
+const confirmActionModal = document.querySelector("[data-confirm-action-modal]");
+if (confirmActionModal && window.bootstrap) {
+    const confirmModal = bootstrap.Modal.getOrCreateInstance(confirmActionModal);
+    const message = confirmActionModal.querySelector("[data-confirm-message]");
+    const title = confirmActionModal.querySelector("[data-confirm-title]");
+    const accept = confirmActionModal.querySelector("[data-confirm-accept]");
+    let pendingButton = null;
+
+    const openConfirm = (button) => {
+        pendingButton = button;
+        if (title) title.textContent = button.dataset.confirmTitle || "Confirm Action";
+        if (message) message.textContent = button.dataset.confirmMessage || "Are you sure?";
+        if (accept) accept.textContent = button.dataset.confirmAccept || "Delete";
+        confirmModal.show();
+    };
+
+    document.addEventListener("click", (event) => {
+        const button = event.target.closest?.("button[data-confirm-message]");
+        if (!button) return;
+
+        if (button.dataset.confirmed === "true") {
+            return;
+        }
+
+        event.preventDefault();
+        openConfirm(button);
+    }, true);
+
+    document.addEventListener("submit", (event) => {
+        const button = event.submitter;
+        if (!button?.matches?.("button[data-confirm-message]")) return;
+
+        if (button.dataset.confirmed === "true") {
+            delete button.dataset.confirmed;
+            return;
+        }
+
+        event.preventDefault();
+        openConfirm(button);
+    }, true);
+
+    accept?.addEventListener("click", () => {
+        if (!pendingButton) return;
+
+        const button = pendingButton;
+        pendingButton = null;
+        button.dataset.confirmed = "true";
+        confirmModal.hide();
+
+        const form = button.form || button.closest("form");
+        if (form?.requestSubmit) {
+            form.requestSubmit(button);
+        } else if (form) {
+            form.submit();
+        } else {
+            button.click();
+        }
+    });
+
+    confirmActionModal.addEventListener("hidden.bs.modal", () => {
+        pendingButton = null;
+    });
 }
 
 document.querySelectorAll("[data-notifications-clear-form]").forEach((form) => {

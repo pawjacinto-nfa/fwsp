@@ -13,6 +13,14 @@ final class View
         require BASE_PATH . '/app/Views/' . $view . '.php';
         $content = ob_get_clean();
 
+        ob_start();
         require BASE_PATH . '/app/Views/layout.php';
+        $html = ob_get_clean();
+
+        echo preg_replace_callback(
+            '/<form\b(?=[^>]*\bmethod\s*=\s*(["\']?)post\1)[^>]*>/i',
+            static fn (array $match): string => $match[0] . csrf_field(),
+            $html
+        ) ?? $html;
     }
 }

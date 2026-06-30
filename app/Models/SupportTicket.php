@@ -75,7 +75,7 @@ final class SupportTicket
     {
         self::ensureSchema();
 
-        $where = $role === 'Super Admin' ? 't.id = :id' : 't.id = :id AND t.reporter_id = :user_id';
+        $where = $role === 'System Admin' ? 't.id = :id' : 't.id = :id AND t.reporter_id = :user_id';
         $stmt = Database::connection()->prepare("
             SELECT t.*, u.full_name AS reporter_name
             FROM support_tickets t
@@ -84,7 +84,7 @@ final class SupportTicket
             LIMIT 1
         ");
         $params = ['id' => $ticketId];
-        if ($role !== 'Super Admin') {
+        if ($role !== 'System Admin') {
             $params['user_id'] = $userId;
         }
         $stmt->execute($params);
@@ -126,7 +126,7 @@ final class SupportTicket
     {
         self::ensureSchema();
 
-        $column = $role === 'Super Admin' ? 'admin_archived' : 'reporter_archived';
+        $column = $role === 'System Admin' ? 'admin_archived' : 'reporter_archived';
         $stmt = Database::connection()->prepare("UPDATE support_tickets SET {$column} = 1, updated_at = CURRENT_TIMESTAMP WHERE id = :id");
         $stmt->execute(['id' => $ticketId]);
     }
@@ -136,7 +136,7 @@ final class SupportTicket
         $stmt = Database::connection()->query("
             SELECT id
             FROM users
-            WHERE role = 'Super Admin' AND is_active = 1
+            WHERE role = 'System Admin' AND is_active = 1
         ");
 
         return array_map('intval', array_column($stmt->fetchAll(), 'id'));

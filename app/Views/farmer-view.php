@@ -37,6 +37,7 @@
                 </div>
                 <div>
                     <h4><?= e(trim($farmer['first_name'] . ' ' . $farmer['middle_name'] . ' ' . $farmer['last_name'])) ?></h4>
+                    <p class="farmer-key-label"><?= e($farmer['farmer_key'] ?? '') ?></p>
                     <p><?= e($farmer['region_name'] . ' / ' . $farmer['branch_name'] . ' / ' . $farmer['province_name'] . ' / ' . $farmer['warehouse_name']) ?></p>
                 </div>
             </div>
@@ -44,6 +45,7 @@
             <fieldset disabled data-farmer-profile-fields>
                 <div class="form-section-title">Personal Details</div>
                 <div class="row g-3">
+                    <div class="col-md-3"><label class="form-label">Farmer Key</label><input value="<?= e($farmer['farmer_key'] ?? '') ?>" class="form-control" disabled></div>
                     <div class="col-md-3"><label class="form-label">RSBSA Number</label><input required name="rsbsa" value="<?= e($farmer['rsbsa']) ?>" class="form-control"></div>
                     <div class="col-md-3"><label class="form-label">First Name</label><input required name="first_name" value="<?= e($farmer['first_name']) ?>" class="form-control"></div>
                     <div class="col-md-3"><label class="form-label">Middle Name</label><input name="middle_name" value="<?= e($farmer['middle_name']) ?>" class="form-control"></div>
@@ -118,6 +120,7 @@
                             <?php foreach (['Persons with Disability', 'Indigenous People', 'Senior Citizen', 'Muslim', 'Youth', 'Adult'] as $item): ?>
                                 <label><input type="checkbox" name="sector[]" value="<?= e($item) ?>" <?= in_array($item, $currentSectors, true) ? 'checked' : '' ?>> <?= e($item) ?></label>
                             <?php endforeach; ?>
+                            <label class="ip-group-member-choice"><input type="checkbox" name="is_ip_group_member" value="1" <?= !empty($farmer['is_ip_group_member']) ? 'checked' : '' ?>> Indigenous Sector Group Delivery Member</label>
                         </div>
                     </section>
                 </div>

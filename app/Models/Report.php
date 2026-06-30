@@ -9,6 +9,7 @@ final class Report
 {
     public static function summary(string $scope = 'region', array $filters = []): array
     {
+        FarmerOrganization::ensureSchema();
         if ($scope !== 'branch' && !self::hasLocationFilters($filters)) {
             return self::nationalSummaryAllRegions($filters);
         }
@@ -40,24 +41,14 @@ final class Report
         $orderSql = $scope === 'branch'
             ? $groupField
             : self::regionOrderSql($groupField) . ', ' . self::regionVariantOrderSql($groupField) . ', ' . $groupField;
+        $metricSql = self::summaryMetricSql();
         $sql = "
             SELECT
                 {$groupField} AS {$label},
-                SUM(CASE WHEN t.seller_type = 'Individual' AND t.procurement_type = 'In-Warehouse' THEN 1 ELSE 0 END) AS individual_farmers,
-                SUM(CASE WHEN t.seller_type = 'Individual' AND t.procurement_type = 'In-Warehouse' THEN t.bags_50kg ELSE 0 END) AS individual_qty,
-                SUM(CASE WHEN t.seller_type = 'Individual' AND t.procurement_type = 'In-Warehouse' THEN t.net_kilogram * t.price_per_kilogram ELSE 0 END) AS individual_amount,
-                SUM(CASE WHEN t.seller_type = 'Individual' AND t.procurement_type = 'Mobile Procurement' THEN 1 ELSE 0 END) AS walkin_farmers,
-                SUM(CASE WHEN t.seller_type = 'Individual' AND t.procurement_type = 'Mobile Procurement' THEN t.bags_50kg ELSE 0 END) AS walkin_qty,
-                SUM(CASE WHEN t.seller_type = 'Individual' AND t.procurement_type = 'Mobile Procurement' THEN t.net_kilogram * t.price_per_kilogram ELSE 0 END) AS walkin_amount,
-                SUM(CASE WHEN t.seller_type = 'Farmer Organization' THEN 1 ELSE 0 END) AS fo_count,
-                SUM(CASE WHEN t.seller_type = 'Farmer Organization' THEN COALESCE(t.total_members, 0) ELSE 0 END) AS fo_members,
-                SUM(CASE WHEN t.seller_type = 'Farmer Organization' THEN t.bags_50kg ELSE 0 END) AS fo_qty,
-                SUM(CASE WHEN t.seller_type = 'Farmer Organization' THEN t.net_kilogram * t.price_per_kilogram ELSE 0 END) AS fo_amount,
-                COUNT(t.id) AS total_farmers,
-                SUM(t.bags_50kg) AS total_qty,
-                SUM(t.net_kilogram * t.price_per_kilogram) AS total_amount
+                {$metricSql}
             FROM transactions t
             LEFT JOIN farmers f ON f.id = t.farmer_id
+            LEFT JOIN farmer_organizations fo ON fo.id = t.farmer_organization_id
             LEFT JOIN warehouse_offices w ON w.id = COALESCE(f.warehouse_id, t.warehouse_id)
             LEFT JOIN province_offices p ON p.id = w.province_id
             LEFT JOIN branch_offices b ON b.id = COALESCE(p.branch_id, w.branch_id)
@@ -97,10 +88,13 @@ final class Report
                 {$metricSql}
             FROM regions r
             LEFT JOIN branch_offices b ON b.region_id = r.id
-            LEFT JOIN province_offices p ON p.branch_id = b.id
-            LEFT JOIN warehouse_offices w ON w.province_id = p.id OR w.branch_id = b.id
+            LEFT JOIN warehouse_offices w ON COALESCE(
+                (SELECT wp.branch_id FROM province_offices wp WHERE wp.id = w.province_id LIMIT 1),
+                w.branch_id
+            ) = b.id
             LEFT JOIN transactions t ON {$transactionJoin}
             LEFT JOIN farmers f ON f.id = t.farmer_id
+            LEFT JOIN farmer_organizations fo ON fo.id = t.farmer_organization_id
             GROUP BY region
             ORDER BY " . self::regionOrderSql('region') . ', region';
 
@@ -112,6 +106,7 @@ final class Report
 
     public static function summaryByBranchRegion(array $filters = []): array
     {
+        FarmerOrganization::ensureSchema();
         $where = [];
         $params = [];
 
@@ -141,6 +136,7 @@ final class Report
                 {$metricSql}
             FROM transactions t
             LEFT JOIN farmers f ON f.id = t.farmer_id
+            LEFT JOIN farmer_organizations fo ON fo.id = t.farmer_organization_id
             LEFT JOIN warehouse_offices w ON w.id = COALESCE(f.warehouse_id, t.warehouse_id)
             LEFT JOIN province_offices p ON p.id = w.province_id
             LEFT JOIN branch_offices b ON b.id = COALESCE(p.branch_id, w.branch_id)
@@ -157,22 +153,372 @@ final class Report
         return self::withRegionTotalRows($branchRows);
     }
 
+    public static function sddSummary(array $filters = []): array
+    {
+        FarmerOrganization::ensureSchema();
+        if (!self::hasLocationFilters($filters)) {
+            return self::nationalSddSummaryAllRegions($filters);
+        }
+
+        $where = [];
+        $params = [];
+
+        foreach (['region_id' => 'r.id', 'branch_id' => 'b.id', 'province_id' => 'p.id', 'warehouse_id' => 'w.id'] as $key => $column) {
+            if (!empty($filters[$key])) {
+                $where[] = "{$column} = :{$key}";
+                $params[$key] = $filters[$key];
+            }
+        }
+
+        if (!empty($filters['date_from'])) {
+            $where[] = 't.delivery_date >= :date_from';
+            $params['date_from'] = $filters['date_from'];
+        }
+
+        if (!empty($filters['date_to'])) {
+            $where[] = 't.delivery_date <= :date_to';
+            $params['date_to'] = $filters['date_to'];
+        }
+
+        $whereSql = $where ? 'WHERE ' . implode(' AND ', $where) : '';
+        $metricSql = self::sddSummaryMetricSql();
+        $sql = "
+            SELECT
+                COALESCE(r.name, 'Unassigned') AS region,
+                {$metricSql}
+            FROM transactions t
+            LEFT JOIN farmers f ON f.id = t.farmer_id
+            LEFT JOIN farmer_organizations fo ON fo.id = t.farmer_organization_id
+            LEFT JOIN warehouse_offices w ON w.id = COALESCE(f.warehouse_id, t.warehouse_id)
+            LEFT JOIN province_offices p ON p.id = w.province_id
+            LEFT JOIN branch_offices b ON b.id = COALESCE(p.branch_id, w.branch_id)
+            LEFT JOIN regions r ON r.id = b.region_id
+            {$whereSql}
+            GROUP BY COALESCE(r.name, 'Unassigned')
+            ORDER BY " . self::regionOrderSql('region') . ', ' . self::regionVariantOrderSql('region') . ', region';
+
+        $stmt = Database::connection()->prepare($sql);
+        $stmt->execute($params);
+
+        return $stmt->fetchAll();
+    }
+
+    public static function fullListIndividual(array $filters = []): array
+    {
+        $where = ["t.seller_type = 'Individual'"];
+        $params = [];
+
+        self::applyTransactionFilters($where, $params, $filters);
+
+        $whereSql = 'WHERE ' . implode(' AND ', $where);
+        $stmt = Database::connection()->prepare("
+            SELECT
+                t.id,
+                t.procurement_type,
+                t.delivery_date,
+                t.warehouse_stock_receipt_number AS wsr,
+                t.price_per_kilogram,
+                t.net_kilogram,
+                t.bags_50kg,
+                t.verified_farm_area,
+                f.rsbsa_number AS rsbsa,
+                f.sex,
+                CONCAT(COALESCE(f.last_name, ''), ', ', COALESCE(f.first_name, ''), ' ', COALESCE(f.middle_name, '')) AS farmer_name,
+                COALESCE(r.name, '') AS region_name,
+                COALESCE(b.name, '') AS branch_name,
+                COALESCE(p.name, '') AS province_name,
+                COALESCE(w.name, '') AS warehouse_name
+            FROM transactions t
+            LEFT JOIN farmers f ON f.id = t.farmer_id
+            LEFT JOIN warehouse_offices w ON w.id = COALESCE(f.warehouse_id, t.warehouse_id)
+            LEFT JOIN province_offices p ON p.id = w.province_id
+            LEFT JOIN branch_offices b ON b.id = COALESCE(p.branch_id, w.branch_id)
+            LEFT JOIN regions r ON r.id = b.region_id
+            {$whereSql}
+            ORDER BY t.procurement_type, t.delivery_date, f.last_name, f.first_name, t.id
+        ");
+        $stmt->execute($params);
+
+        return $stmt->fetchAll();
+    }
+
+    public static function ipGroupDeliveries(array $filters = []): array
+    {
+        self::ensureTransactionFarmerMembersSchema();
+        FarmerOrganization::ensureSchema();
+        $db = Database::connection();
+        $db->exec('ALTER TABLE transactions ADD COLUMN IF NOT EXISTS is_ip_group_delivery TINYINT(1) NOT NULL DEFAULT 0');
+        $db->exec('ALTER TABLE farmers ADD COLUMN IF NOT EXISTS is_ip_group_member TINYINT(1) NOT NULL DEFAULT 0');
+        $db->exec('ALTER TABLE farmer_organizations ADD COLUMN IF NOT EXISTS is_indigenous_sector_group TINYINT(1) NOT NULL DEFAULT 0');
+
+        $where = ["fo.classification_type = 'Indigenous People Group'"];
+        $params = [];
+        self::applyTransactionFilters($where, $params, $filters);
+        $whereSql = 'WHERE ' . implode(' AND ', $where);
+
+        $stmt = $db->prepare("
+            SELECT
+                t.id AS transaction_id,
+                t.delivery_date,
+                t.warehouse_stock_receipt_number AS wsr,
+                t.procurement_type,
+                f.farmer_key,
+                f.rsbsa_number AS rsbsa,
+                f.sex,
+                f.is_ip_group_member,
+                CONCAT(COALESCE(f.last_name, ''), ', ', COALESCE(f.first_name, ''), ' ', COALESCE(f.middle_name, '')) AS farmer_name,
+                COALESCE(fo.name, '') AS organization_name,
+                COALESCE(r.name, '') AS region_name,
+                COALESCE(b.name, '') AS branch_name,
+                COALESCE(p.name, '') AS province_name,
+                COALESCE(w.name, '') AS warehouse_name
+            FROM transactions t
+            INNER JOIN transaction_farmer_members tfm ON tfm.transaction_id = t.id
+            INNER JOIN farmers f ON f.id = tfm.farmer_id
+            LEFT JOIN farmer_organizations fo ON fo.id = t.farmer_organization_id
+            LEFT JOIN warehouse_offices w ON w.id = t.warehouse_id
+            LEFT JOIN province_offices p ON p.id = w.province_id
+            LEFT JOIN branch_offices b ON b.id = COALESCE(p.branch_id, w.branch_id)
+            LEFT JOIN regions r ON r.id = b.region_id
+            {$whereSql}
+            ORDER BY t.delivery_date, fo.name, f.last_name, f.first_name, f.rsbsa_number
+        ");
+        $stmt->execute($params);
+
+        return $stmt->fetchAll();
+    }
+
+    public static function fullListFarmerOrganizations(array $filters = []): array
+    {
+        self::ensureTransactionFarmerMembersSchema();
+        FarmerOrganization::ensureSchema();
+
+        $where = ["t.seller_type = 'Farmer Organization'"];
+        $params = [];
+
+        self::applyTransactionFilters($where, $params, $filters);
+
+        $whereSql = 'WHERE ' . implode(' AND ', $where);
+        $stmt = Database::connection()->prepare("
+            SELECT
+                t.id,
+                t.farmer_organization_id,
+                t.procurement_type,
+                t.representative_name,
+                t.total_members,
+                t.delivery_date,
+                t.warehouse_stock_receipt_number AS wsr,
+                t.price_per_kilogram,
+                t.net_kilogram,
+                t.bags_50kg,
+                t.verified_farm_area,
+                COALESCE(fo.name, '') AS organization_name,
+                COALESCE(fo.classification_type, 'Farmer Organization') AS classification_type,
+                COALESCE(r.name, '') AS region_name,
+                COALESCE(b.name, '') AS branch_name,
+                COALESCE(p.name, '') AS province_name,
+                COALESCE(w.name, '') AS warehouse_name
+            FROM transactions t
+            LEFT JOIN farmer_organizations fo ON fo.id = t.farmer_organization_id
+            LEFT JOIN warehouse_offices w ON w.id = t.warehouse_id
+            LEFT JOIN province_offices p ON p.id = w.province_id
+            LEFT JOIN branch_offices b ON b.id = COALESCE(p.branch_id, w.branch_id)
+            LEFT JOIN regions r ON r.id = b.region_id
+            {$whereSql}
+            ORDER BY t.procurement_type, fo.name, t.delivery_date, t.id
+        ");
+        $stmt->execute($params);
+        $transactions = $stmt->fetchAll();
+
+        $rows = [];
+        foreach ($transactions as $transaction) {
+            $members = self::deliveredMembersForReport((int) $transaction['id']);
+            if ($members === []) {
+                $members = self::legacyOrganizationMembersForReport(
+                    (int) ($transaction['farmer_organization_id'] ?? 0),
+                    (int) ($transaction['total_members'] ?? 0)
+                );
+            }
+
+            if ($members === []) {
+                $rows[] = $transaction + [
+                    'member_name' => '',
+                    'member_rsbsa' => '',
+                    'member_sex' => '',
+                ];
+                continue;
+            }
+
+            foreach ($members as $member) {
+                $rows[] = $transaction + [
+                    'member_name' => $member['member_name'] ?? '',
+                    'member_rsbsa' => $member['member_rsbsa'] ?? '',
+                    'member_sex' => $member['member_sex'] ?? '',
+                ];
+            }
+        }
+
+        return $rows;
+    }
+
+    private static function applyTransactionFilters(array &$where, array &$params, array $filters): void
+    {
+        foreach (['region_id' => 'r.id', 'branch_id' => 'b.id', 'province_id' => 'p.id', 'warehouse_id' => 'w.id'] as $key => $column) {
+            if (!empty($filters[$key])) {
+                $where[] = "{$column} = :{$key}";
+                $params[$key] = $filters[$key];
+            }
+        }
+
+        if (!empty($filters['date_from'])) {
+            $where[] = 't.delivery_date >= :date_from';
+            $params['date_from'] = $filters['date_from'];
+        }
+
+        if (!empty($filters['date_to'])) {
+            $where[] = 't.delivery_date <= :date_to';
+            $params['date_to'] = $filters['date_to'];
+        }
+    }
+
+    private static function deliveredMembersForReport(int $transactionId): array
+    {
+        $stmt = Database::connection()->prepare("
+            SELECT
+                CONCAT(COALESCE(f.last_name, ''), ', ', COALESCE(f.first_name, ''), ' ', COALESCE(f.middle_name, '')) AS member_name,
+                f.rsbsa_number AS member_rsbsa,
+                f.sex AS member_sex
+            FROM transaction_farmer_members tfm
+            INNER JOIN farmers f ON f.id = tfm.farmer_id
+            WHERE tfm.transaction_id = :transaction_id
+            ORDER BY f.last_name, f.first_name, f.rsbsa_number
+        ");
+        $stmt->execute(['transaction_id' => $transactionId]);
+
+        return $stmt->fetchAll();
+    }
+
+    private static function legacyOrganizationMembersForReport(int $organizationId, int $limit): array
+    {
+        if ($organizationId <= 0) {
+            return [];
+        }
+
+        $sql = "
+            SELECT
+                CONCAT(COALESCE(f.last_name, ''), ', ', COALESCE(f.first_name, ''), ' ', COALESCE(f.middle_name, '')) AS member_name,
+                f.rsbsa_number AS member_rsbsa,
+                f.sex AS member_sex
+            FROM farmers f
+            WHERE f.farmer_organization_id = :farmer_organization_id
+            ORDER BY f.last_name, f.first_name, f.rsbsa_number
+        ";
+        if ($limit > 0) {
+            $sql .= ' LIMIT ' . $limit;
+        }
+
+        $stmt = Database::connection()->prepare($sql);
+        $stmt->execute(['farmer_organization_id' => $organizationId]);
+
+        return $stmt->fetchAll();
+    }
+
+    private static function ensureTransactionFarmerMembersSchema(): void
+    {
+        Database::connection()->exec("
+            CREATE TABLE IF NOT EXISTS transaction_farmer_members (
+                id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                transaction_id BIGINT UNSIGNED NOT NULL,
+                farmer_id BIGINT UNSIGNED NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE KEY transaction_farmer_unique (transaction_id, farmer_id),
+                KEY transaction_farmer_members_farmer_id_index (farmer_id),
+                CONSTRAINT transaction_farmer_members_transaction_fk
+                    FOREIGN KEY (transaction_id) REFERENCES transactions(id)
+                    ON DELETE CASCADE,
+                CONSTRAINT transaction_farmer_members_farmer_fk
+                    FOREIGN KEY (farmer_id) REFERENCES farmers(id)
+                    ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        ");
+    }
+
+    private static function nationalSddSummaryAllRegions(array $filters = []): array
+    {
+        $transactionConditions = ['t.warehouse_id = w.id'];
+        $params = [];
+
+        if (!empty($filters['date_from'])) {
+            $transactionConditions[] = 't.delivery_date >= :date_from';
+            $params['date_from'] = $filters['date_from'];
+        }
+
+        if (!empty($filters['date_to'])) {
+            $transactionConditions[] = 't.delivery_date <= :date_to';
+            $params['date_to'] = $filters['date_to'];
+        }
+
+        $metricSql = self::sddSummaryMetricSql();
+        $transactionJoin = implode(' AND ', $transactionConditions);
+        $regionNameSql = self::romanRegionNameSql('r.name');
+        $sql = "
+            SELECT
+                {$regionNameSql} AS region,
+                {$metricSql}
+            FROM regions r
+            LEFT JOIN branch_offices b ON b.region_id = r.id
+            LEFT JOIN warehouse_offices w ON COALESCE(
+                (SELECT wp.branch_id FROM province_offices wp WHERE wp.id = w.province_id LIMIT 1),
+                w.branch_id
+            ) = b.id
+            LEFT JOIN transactions t ON {$transactionJoin}
+            LEFT JOIN farmers f ON f.id = t.farmer_id
+            LEFT JOIN farmer_organizations fo ON fo.id = t.farmer_organization_id
+            GROUP BY region
+            ORDER BY " . self::regionOrderSql('region') . ', region';
+
+        $stmt = Database::connection()->prepare($sql);
+        $stmt->execute($params);
+
+        return $stmt->fetchAll();
+    }
+
     private static function summaryMetricSql(): string
     {
         return "
-            SUM(CASE WHEN t.seller_type = 'Individual' AND t.procurement_type = 'In-Warehouse' THEN 1 ELSE 0 END) AS individual_farmers,
-            SUM(CASE WHEN t.seller_type = 'Individual' AND t.procurement_type = 'In-Warehouse' THEN t.bags_50kg ELSE 0 END) AS individual_qty,
-            SUM(CASE WHEN t.seller_type = 'Individual' AND t.procurement_type = 'In-Warehouse' THEN t.net_kilogram * t.price_per_kilogram ELSE 0 END) AS individual_amount,
-            SUM(CASE WHEN t.seller_type = 'Individual' AND t.procurement_type = 'Mobile Procurement' THEN 1 ELSE 0 END) AS walkin_farmers,
-            SUM(CASE WHEN t.seller_type = 'Individual' AND t.procurement_type = 'Mobile Procurement' THEN t.bags_50kg ELSE 0 END) AS walkin_qty,
-            SUM(CASE WHEN t.seller_type = 'Individual' AND t.procurement_type = 'Mobile Procurement' THEN t.net_kilogram * t.price_per_kilogram ELSE 0 END) AS walkin_amount,
-            SUM(CASE WHEN t.seller_type = 'Farmer Organization' THEN 1 ELSE 0 END) AS fo_count,
-            SUM(CASE WHEN t.seller_type = 'Farmer Organization' THEN COALESCE(t.total_members, 0) ELSE 0 END) AS fo_members,
-            SUM(CASE WHEN t.seller_type = 'Farmer Organization' THEN t.bags_50kg ELSE 0 END) AS fo_qty,
-            SUM(CASE WHEN t.seller_type = 'Farmer Organization' THEN t.net_kilogram * t.price_per_kilogram ELSE 0 END) AS fo_amount,
+            SUM(CASE WHEN t.seller_type = 'Individual' THEN 1 ELSE 0 END) AS individual_farmers,
+            SUM(CASE WHEN t.seller_type = 'Individual' THEN t.bags_50kg ELSE 0 END) AS individual_qty,
+            SUM(CASE WHEN t.seller_type = 'Individual' THEN t.net_kilogram * t.price_per_kilogram ELSE 0 END) AS individual_amount,
+            SUM(CASE WHEN t.seller_type = 'Farmer Organization' AND COALESCE(fo.classification_type, 'Farmer Organization') = 'Farmer Organization' THEN 1 ELSE 0 END) AS farmer_organization_count,
+            SUM(CASE WHEN t.seller_type = 'Farmer Organization' AND COALESCE(fo.classification_type, 'Farmer Organization') = 'Farmer Organization' THEN COALESCE(t.total_members, 0) ELSE 0 END) AS farmer_organization_members,
+            SUM(CASE WHEN t.seller_type = 'Farmer Organization' AND COALESCE(fo.classification_type, 'Farmer Organization') = 'Farmer Organization' THEN t.bags_50kg ELSE 0 END) AS farmer_organization_qty,
+            SUM(CASE WHEN t.seller_type = 'Farmer Organization' AND COALESCE(fo.classification_type, 'Farmer Organization') = 'Farmer Organization' THEN t.net_kilogram * t.price_per_kilogram ELSE 0 END) AS farmer_organization_amount,
+            SUM(CASE WHEN t.seller_type = 'Farmer Organization' AND fo.classification_type = 'Indigenous People Group' THEN 1 ELSE 0 END) AS ip_group_count,
+            SUM(CASE WHEN t.seller_type = 'Farmer Organization' AND fo.classification_type = 'Indigenous People Group' THEN COALESCE(t.total_members, 0) ELSE 0 END) AS ip_group_members,
+            SUM(CASE WHEN t.seller_type = 'Farmer Organization' AND fo.classification_type = 'Indigenous People Group' THEN t.bags_50kg ELSE 0 END) AS ip_group_qty,
+            SUM(CASE WHEN t.seller_type = 'Farmer Organization' AND fo.classification_type = 'Indigenous People Group' THEN t.net_kilogram * t.price_per_kilogram ELSE 0 END) AS ip_group_amount,
             COUNT(t.id) AS total_farmers,
             SUM(t.bags_50kg) AS total_qty,
             SUM(t.net_kilogram * t.price_per_kilogram) AS total_amount
+        ";
+    }
+
+    private static function sddSummaryMetricSql(): string
+    {
+        return "
+            SUM(CASE WHEN t.seller_type = 'Individual' AND f.sex = 'Male' THEN 1 ELSE 0 END) AS male_count,
+            SUM(CASE WHEN t.seller_type = 'Individual' AND f.sex = 'Male' THEN t.bags_50kg ELSE 0 END) AS male_qty,
+            SUM(CASE WHEN t.seller_type = 'Individual' AND f.sex = 'Male' THEN t.net_kilogram * t.price_per_kilogram ELSE 0 END) AS male_amount,
+            SUM(CASE WHEN t.seller_type = 'Individual' AND f.sex = 'Female' THEN 1 ELSE 0 END) AS female_count,
+            SUM(CASE WHEN t.seller_type = 'Individual' AND f.sex = 'Female' THEN t.bags_50kg ELSE 0 END) AS female_qty,
+            SUM(CASE WHEN t.seller_type = 'Individual' AND f.sex = 'Female' THEN t.net_kilogram * t.price_per_kilogram ELSE 0 END) AS female_amount,
+            SUM(CASE WHEN t.seller_type = 'Individual' AND f.sex IN ('Male', 'Female') THEN 1 ELSE 0 END) AS total_farmers,
+            COALESCE(SUM(t.bags_50kg), 0) AS total_qty,
+            COALESCE(SUM(t.net_kilogram * t.price_per_kilogram), 0) AS total_amount,
+            SUM(CASE WHEN t.seller_type = 'Farmer Organization' AND COALESCE(fo.classification_type, 'Farmer Organization') = 'Farmer Organization' THEN 1 ELSE 0 END) AS farmer_organization_count,
+            SUM(CASE WHEN t.seller_type = 'Farmer Organization' AND COALESCE(fo.classification_type, 'Farmer Organization') = 'Farmer Organization' THEN COALESCE(t.total_members, 0) ELSE 0 END) AS farmer_organization_members,
+            SUM(CASE WHEN t.seller_type = 'Farmer Organization' AND fo.classification_type = 'Indigenous People Group' THEN 1 ELSE 0 END) AS ip_group_count,
+            SUM(CASE WHEN t.seller_type = 'Farmer Organization' AND fo.classification_type = 'Indigenous People Group' THEN COALESCE(t.total_members, 0) ELSE 0 END) AS ip_group_members
         ";
     }
 
@@ -221,16 +567,36 @@ final class Report
             'individual_farmers',
             'individual_qty',
             'individual_amount',
-            'walkin_farmers',
-            'walkin_qty',
-            'walkin_amount',
-            'fo_count',
-            'fo_members',
-            'fo_qty',
-            'fo_amount',
+            'farmer_organization_count',
+            'farmer_organization_members',
+            'farmer_organization_qty',
+            'farmer_organization_amount',
+            'ip_group_count',
+            'ip_group_members',
+            'ip_group_qty',
+            'ip_group_amount',
             'total_farmers',
             'total_qty',
             'total_amount',
+        ];
+    }
+
+    public static function sddSummaryMetricKeys(): array
+    {
+        return [
+            'male_count',
+            'male_qty',
+            'male_amount',
+            'female_count',
+            'female_qty',
+            'female_amount',
+            'total_farmers',
+            'total_qty',
+            'total_amount',
+            'farmer_organization_count',
+            'farmer_organization_members',
+            'ip_group_count',
+            'ip_group_members',
         ];
     }
 

@@ -55,7 +55,7 @@ $archiveKey = $isSuperAdmin ? 'admin_archived' : 'reporter_archived';
     <div class="panel support-ticket-panel">
         <div class="panel-head">
             <div>
-                <p class="eyebrow"><?= $isSuperAdmin ? 'Super Admin Queue' : 'My Reports' ?></p>
+                <p class="eyebrow"><?= $isSuperAdmin ? 'System Admin Queue' : 'My Reports' ?></p>
                 <h2><?= $isSuperAdmin ? 'Submitted Tickets' : 'Submitted Concerns' ?></h2>
             </div>
             <span class="support-count"><?= number_format(count($ticketRows)) ?> ticket<?= count($ticketRows) === 1 ? '' : 's' ?></span>
@@ -123,7 +123,7 @@ $archiveKey = $isSuperAdmin ? 'admin_archived' : 'reporter_archived';
                                         <div class="support-thread">
                                             <strong>Conversation</strong>
                                             <?php foreach (($ticket['messages'] ?? []) as $message): ?>
-                                                <div class="support-message <?= ($message['sender_role'] ?? '') === 'Super Admin' ? 'from-admin' : 'from-user' ?>">
+                                                <div class="support-message <?= ($message['sender_role'] ?? '') === 'System Admin' ? 'from-admin' : 'from-user' ?>">
                                                     <div><b><?= e($message['sender_name']) ?></b> <span><?= e($message['sent_at']) ?></span></div>
                                                     <p><?= nl2br(e($message['message'])) ?></p>
                                                 </div>

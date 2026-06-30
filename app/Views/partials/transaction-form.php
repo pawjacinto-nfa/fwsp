@@ -32,7 +32,13 @@
                 </div>
             </div>
         <?php else: ?>
-            <div class="col-md-4"><label class="form-label">Farmer Organization</label><input required name="fo_name" class="form-control" data-fo-name-input></div>
+            <div class="col-md-4">
+                <label class="form-label" for="foDeliveryName">Farmer Classification</label>
+                <div class="autocomplete-field" data-autocomplete-field>
+                    <input required id="foDeliveryName" name="fo_name" class="form-control" autocomplete="off" placeholder="Search farmer organization or IP group" data-fo-name-input data-autocomplete-input data-autocomplete-source='<?= e(json_encode(array_column($farmerOrganizations ?? [], 'name'), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT)) ?>'>
+                    <div class="autocomplete-menu" data-autocomplete-menu></div>
+                </div>
+            </div>
             <div class="col-md-4"><label class="form-label">Authorized Representative</label><input required name="representative" class="form-control"></div>
             <div class="col-md-4"><label class="form-label">Total Farmer-Members</label><input type="number" min="0" name="members" class="form-control"></div>
         <?php endif; ?>
@@ -49,9 +55,15 @@
         <div class="col-md-3"><label class="form-label">Verified Farm Area (ha)</label><input type="number" step="0.01" name="farm_area" class="form-control"></div>
         <div class="col-md-3"><label class="form-label">Delivery Date</label><input type="date" name="delivery_date" value="<?= date('Y-m-d') ?>" class="form-control"></div>
         <div class="col-md-3"><label class="form-label">WSR Number</label><input required name="wsr" class="form-control"></div>
-        <div class="col-md-3"><label class="form-label">Price/Kg</label><input type="number" step="0.01" name="price" class="form-control"></div>
-        <div class="col-md-3"><label class="form-label">Net Kilogram</label><input type="number" step="0.01" name="net_kg" class="form-control"></div>
-        <div class="col-md-3"><label class="form-label">Bags Delivered (50kg)</label><input type="number" name="bags" class="form-control"></div>
+        <div class="col-md-3"><label class="form-label">Price/Kg</label><input type="number" step="0.01" name="price" class="form-control" data-delivery-price></div>
+        <div class="col-md-3"><label class="form-label">Net Kilogram</label><input type="number" step="0.01" name="net_kg" class="form-control" data-delivery-net-kg></div>
+        <div class="col-md-3"><label class="form-label">Bags Delivered (50kg)</label><input type="number" min="0" name="bags" class="form-control"></div>
+        <?php if ($sellerType === 'Individual'): ?>
+            <div class="col-md-3 delivery-total-field">
+                <span class="form-label">Calculated Amount</span>
+                <output class="delivery-total-cost" data-delivery-total-cost>Total Cost: 0.00</output>
+            </div>
+        <?php endif; ?>
         <?php if ($sellerType === 'Farmer Organization'): ?>
             <div class="col-12">
                 <div class="fo-member-selector" data-fo-member-picker>

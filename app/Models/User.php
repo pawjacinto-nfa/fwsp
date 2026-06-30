@@ -7,6 +7,21 @@ use App\Core\Database;
 
 final class User
 {
+    public static function migrateLegacyRoles(): void
+    {
+        Database::connection()->exec("
+            UPDATE users
+            SET role = CASE role
+                WHEN 'Super Admin' THEN 'System Admin'
+                WHEN 'Regional/Branch Manager' THEN 'Manager'
+                WHEN 'Warehouse Supervisor' THEN 'Warehouse Personnel'
+                WHEN 'Viewer' THEN 'Read-Only User'
+                ELSE role
+            END
+            WHERE role IN ('Super Admin', 'Regional/Branch Manager', 'Warehouse Supervisor', 'Viewer')
+        ");
+    }
+
     public static function authenticate(string $username, string $password): ?array
     {
         self::ensurePasswordResetSchema();
@@ -41,7 +56,7 @@ final class User
                 central_department_id, central_division_id, central_unit_id,
                 designation, contact_number
             ) VALUES (
-                :full_name, :username, :email, :password_hash, 'Viewer', 0, 'Pending',
+                :full_name, :username, :email, :password_hash, 'Read-Only User', 0, 'Pending',
                 :office_scope, :region_id, :branch_id, :province_id, :warehouse_id,
                 :central_department_id, :central_division_id, :central_unit_id,
                 :designation, :contact_number

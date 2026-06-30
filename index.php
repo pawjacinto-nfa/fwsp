@@ -5,8 +5,26 @@ require __DIR__ . '/app/bootstrap.php';
 
 use App\Controllers\DashboardController;
 
-$controller = new DashboardController();
 $action = $_POST['action'] ?? 'dashboard';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!csrf_is_valid($_POST['csrf_token'] ?? null)) {
+        http_response_code(419);
+        if (strtolower((string) ($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '')) === 'fetch') {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'Your session expired. Refresh the page and try again.']);
+        } else {
+            $_SESSION['flash'] = [
+                'type' => 'danger',
+                'message' => 'Your session expired. Refresh the page and try again.',
+            ];
+            header('Location: index.php');
+        }
+        exit;
+    }
+}
+
+$controller = new DashboardController();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     match ($action) {
@@ -35,6 +53,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'support-ticket-complete' => $controller->completeSupportTicket($_POST),
         'support-ticket-archive' => $controller->archiveSupportTicket($_POST),
         'notifications-clear' => $controller->clearNotifications($_POST),
+        'signatory-add' => $controller->storeSignatories($_POST),
+        'signatory-update' => $controller->updateSignatory($_POST),
+        'signatory-delete' => $controller->deleteSignatory($_POST),
         default => $controller->redirect(),
     };
 
@@ -56,9 +77,12 @@ match ($_GET['page'] ?? 'dashboard') {
     'organization-delivery' => $controller->organizationDelivery(),
     'reports' => $controller->reports($_GET),
     'sectoral-report' => $controller->sectoralReport($_GET),
+    'report-settings' => $controller->reportSettings(),
     'account' => $controller->account(),
     'users' => $controller->users(),
+    'database-management' => $controller->databaseManagement($_GET),
     'tech-support' => $controller->techSupport(),
+    'user-manual' => $controller->userManual(),
     'locations' => $controller->locationLibrary(),
     'central-office-directory' => $controller->centralOfficeLibrary(),
     'farmer-organization-library' => $controller->farmerOrganizationLibrary($_GET),

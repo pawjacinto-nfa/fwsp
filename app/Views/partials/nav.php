@@ -3,7 +3,7 @@ $currentUserId = !empty($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : nul
 $notifications = $currentUserId ? \App\Models\Notification::all($currentUserId) : [];
 $unreadNotifications = $currentUserId ? \App\Models\Notification::unreadCount($currentUserId) : 0;
 ?>
-<nav class="navbar navbar-expand-lg sticky-top app-nav">
+<nav class="navbar navbar-expand-xl sticky-top app-nav">
     <div class="container-fluid px-3 px-lg-4">
         <a class="navbar-brand app-logo" href="index.php">
             <img src="assets/images/nfa-website-banner.png" alt="National Food Authority Farmer-Seller Registry">
@@ -13,8 +13,10 @@ $unreadNotifications = $currentUserId ? \App\Models\Notification::unreadCount($c
         </button>
         <div class="collapse navbar-collapse" id="mainNav">
             <ul class="navbar-nav main-menu ms-lg-auto me-lg-3 mb-2 mb-lg-0">
-                <li class="nav-item"><a class="nav-link home-link" href="index.php">Home</a></li>
-                <?php if (in_array($_SESSION['role'] ?? '', ['Warehouse Supervisor', 'Regional/Branch Manager', 'Super Admin'], true)): ?>
+                <?php if (in_array($_SESSION['role'] ?? '', ['Warehouse Personnel', 'System Admin'], true) || empty($_SESSION['user_id'])): ?>
+                    <li class="nav-item"><a class="nav-link home-link" href="index.php">Home</a></li>
+                <?php endif; ?>
+                <?php if (in_array($_SESSION['role'] ?? '', ['Warehouse Personnel', 'System Admin'], true)): ?>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="index.php?page=encode-farmer" role="button" data-bs-toggle="dropdown" aria-expanded="false">Encode</a>
                         <ul class="dropdown-menu">
@@ -24,17 +26,17 @@ $unreadNotifications = $currentUserId ? \App\Models\Notification::unreadCount($c
                         </ul>
                     </li>
                 <?php endif; ?>
-                <?php if (!empty($_SESSION['user_id']) && ($_SESSION['role'] ?? '') !== 'Viewer'): ?>
+                <?php if (!empty($_SESSION['user_id']) && in_array($_SESSION['role'] ?? '', ['Manager', 'Warehouse Personnel', 'System Admin'], true)): ?>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="index.php?page=records" role="button" data-bs-toggle="dropdown" aria-expanded="false">Records</a>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="index.php?page=farmers">Farmers</a></li>
-                            <li><a class="dropdown-item" href="index.php?page=farmer-organization-library">Farmer Organizations</a></li>
+                            <li><a class="dropdown-item" href="index.php?page=farmer-organization-library">Farmer Classifications</a></li>
                             <li><a class="dropdown-item" href="index.php?page=transactions">Transactions</a></li>
                         </ul>
                     </li>
                 <?php endif; ?>
-                <?php if (in_array($_SESSION['role'] ?? '', ['Warehouse Supervisor', 'Regional/Branch Manager', 'Super Admin'], true)): ?>
+                <?php if (in_array($_SESSION['role'] ?? '', ['Warehouse Personnel', 'System Admin'], true)): ?>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="index.php?page=locations" role="button" data-bs-toggle="dropdown" aria-expanded="false">Library</a>
                         <ul class="dropdown-menu">
@@ -49,16 +51,23 @@ $unreadNotifications = $currentUserId ? \App\Models\Notification::unreadCount($c
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="index.php?page=reports">Summary Report</a></li>
                             <li><a class="dropdown-item" href="index.php?page=sectoral-report">SDD Analytics</a></li>
+                            <li><a class="dropdown-item" href="index.php?page=reports&amp;report_format=ip_group_delivery">IP Group Delivery</a></li>
+                            <?php if (($_SESSION['role'] ?? '') !== 'Read-Only User'): ?>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="index.php?page=report-settings">Report Settings</a></li>
+                            <?php endif; ?>
                         </ul>
                     </li>
                 <?php endif; ?>
-                <?php if (!empty($_SESSION['user_id'])): ?>
+                <?php if (!empty($_SESSION['user_id']) && ($_SESSION['role'] ?? '') !== 'Read-Only User'): ?>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="index.php?page=tech-support" role="button" data-bs-toggle="dropdown" aria-expanded="false">Support</a>
+                        <a class="nav-link dropdown-toggle" href="index.php?page=tech-support" role="button" data-bs-toggle="dropdown" aria-expanded="false">Help</a>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="index.php?page=tech-support">Tech Support</a></li>
-                            <?php if (($_SESSION['role'] ?? '') === 'Super Admin'): ?>
+                            <li><a class="dropdown-item" href="index.php?page=user-manual">System Guide</a></li>
+                            <?php if (($_SESSION['role'] ?? '') === 'System Admin'): ?>
                                 <li><a class="dropdown-item" href="index.php?page=users">User Control</a></li>
+                                <li><a class="dropdown-item" href="index.php?page=database-management">Database Management</a></li>
                             <?php endif; ?>
                         </ul>
                     </li>
@@ -110,9 +119,11 @@ $unreadNotifications = $currentUserId ? \App\Models\Notification::unreadCount($c
                                     <div class="notification-empty">No notifications yet.</div>
                                 <?php endif; ?>
                             </div>
-                            <div class="notification-menu-footer">
-                                <a href="index.php?page=account">Edit Profile Settings</a>
-                            </div>
+                            <?php if (($_SESSION['role'] ?? '') !== 'Read-Only User'): ?>
+                                <div class="notification-menu-footer">
+                                    <a href="index.php?page=account">Edit Profile Settings</a>
+                                </div>
+                            <?php endif; ?>
                         </div>
                     </div>
                     <form method="post">

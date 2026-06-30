@@ -7,7 +7,7 @@ use App\Core\Database;
 
 final class Transaction
 {
-    public const MAX_INDIVIDUAL_DAILY_BAGS = 100;
+    public const MAX_INDIVIDUAL_ANNUAL_BAGS = 400;
 
     public static function all(): array
     {
@@ -27,7 +27,9 @@ final class Transaction
                 t.warehouse_stock_receipt_number AS wsr,
                 t.price_per_kilogram AS price,
                 t.net_kilogram AS net_kg,
+                t.total_cost,
                 t.bags_50kg AS bags
+                , CASE WHEN fo.classification_type = 'Indigenous People Group' THEN 1 ELSE 0 END AS is_ip_group_delivery
                 , COALESCE(r.name, '') AS region_name
                 , COALESCE(b.name, '') AS branch_name
                 , COALESCE(p.name, '') AS province_name
@@ -62,7 +64,9 @@ final class Transaction
                 t.warehouse_stock_receipt_number AS wsr,
                 t.price_per_kilogram AS price,
                 t.net_kilogram AS net_kg,
+                t.total_cost,
                 t.bags_50kg AS bags,
+                CASE WHEN fo.classification_type = 'Indigenous People Group' THEN 1 ELSE 0 END AS is_ip_group_delivery,
                 COALESCE(r.name, '') AS region_name,
                 COALESCE(b.name, '') AS branch_name,
                 COALESCE(p.name, '') AS province_name,
@@ -79,8 +83,21 @@ final class Transaction
         $params = [];
 
         if (($filters['q'] ?? '') !== '') {
-            $sql .= " AND (t.warehouse_stock_receipt_number LIKE :q OR f.rsbsa_number LIKE :q OR f.first_name LIKE :q OR f.last_name LIKE :q OR fo.name LIKE :q)";
-            $params['q'] = '%' . $filters['q'] . '%';
+            $sql .= " AND (
+                t.warehouse_stock_receipt_number LIKE :q_wsr
+                OR f.rsbsa_number LIKE :q_rsbsa
+                OR f.first_name LIKE :q_first_name
+                OR f.last_name LIKE :q_last_name
+                OR fo.name LIKE :q_organization
+            )";
+            $query = '%' . $filters['q'] . '%';
+            $params += [
+                'q_wsr' => $query,
+                'q_rsbsa' => $query,
+                'q_first_name' => $query,
+                'q_last_name' => $query,
+                'q_organization' => $query,
+            ];
         }
 
         foreach (['region_id' => 'r.id', 'branch_id' => 'b.id', 'province_id' => 'p.id', 'warehouse_id' => 'w.id'] as $key => $column) {
@@ -132,6 +149,7 @@ final class Transaction
                 COALESCE(f.rsbsa_number, '') AS rsbsa,
                 CONCAT(COALESCE(f.first_name, ''), ' ', COALESCE(f.last_name, '')) AS farmer_name,
                 COALESCE(fo.name, '') AS fo_name,
+                CASE WHEN fo.classification_type = 'Indigenous People Group' THEN 1 ELSE 0 END AS is_ip_group_delivery,
                 COALESCE(r.name, '') AS region_name,
                 COALESCE(b.name, '') AS branch_name,
                 COALESCE(p.name, '') AS province_name,
@@ -161,7 +179,7 @@ final class Transaction
         return $transaction;
     }
 
-    public static function create(array $transaction): void
+    public static function create(array $transaction): array
     {
         self::ensureSchema();
 
@@ -175,19 +193,27 @@ final class Transaction
             ? (int) $transaction['members']
             : count($deliveredFarmerIds);
         $deliveryDate = self::nullable($transaction['delivery_date']) ?? date('Y-m-d');
+        $deliveryYear = (int) substr((string) $deliveryDate, 0, 4);
         $bags = (int) ($transaction['bags'] ?: 0);
+        $annualBagsAfterDelivery = 0;
+        $reachedAnnualLimit = false;
+        $isIpGroupDelivery = ($transaction['type'] ?? '') === 'Farmer Organization'
+            && FarmerOrganization::isIndigenousSectorGroup($transaction['fo_name'] ?? '');
 
         if (($transaction['type'] ?? '') === 'Individual' && $farmerId !== null) {
-            $existingBags = self::individualDailyBags($farmerId, (string) $deliveryDate);
-            if ($existingBags + $bags > self::MAX_INDIVIDUAL_DAILY_BAGS) {
+            $existingBags = self::individualAnnualBags($farmerId, $deliveryYear);
+            $annualBagsAfterDelivery = $existingBags + $bags;
+            if ($annualBagsAfterDelivery > self::MAX_INDIVIDUAL_ANNUAL_BAGS) {
                 throw new \DomainException(sprintf(
-                    'This farmer already has %d bags delivered on %s. The daily maximum is %d bags, so only %d more bag(s) can be accepted.',
+                    'This farmer has already delivered %d bags in %d. The annual maximum is %d bags, so only %d more bag(s) can be accepted.',
                     $existingBags,
-                    $deliveryDate,
-                    self::MAX_INDIVIDUAL_DAILY_BAGS,
-                    max(0, self::MAX_INDIVIDUAL_DAILY_BAGS - $existingBags)
+                    $deliveryYear,
+                    self::MAX_INDIVIDUAL_ANNUAL_BAGS,
+                    max(0, self::MAX_INDIVIDUAL_ANNUAL_BAGS - $existingBags)
                 ));
             }
+            $reachedAnnualLimit = $existingBags < self::MAX_INDIVIDUAL_ANNUAL_BAGS
+                && $annualBagsAfterDelivery === self::MAX_INDIVIDUAL_ANNUAL_BAGS;
         }
 
         $db = Database::connection();
@@ -197,11 +223,11 @@ final class Transaction
             $stmt = $db->prepare("
                 INSERT INTO transactions (
                     seller_type, procurement_type, farmer_id, farmer_organization_id, warehouse_id,
-                    representative_name, total_members, verified_farm_area, delivery_date,
+                    representative_name, total_members, is_ip_group_delivery, verified_farm_area, delivery_date,
                     warehouse_stock_receipt_number, price_per_kilogram, net_kilogram, bags_50kg
                 ) VALUES (
                     :seller_type, :procurement_type, :farmer_id, :farmer_organization_id, :warehouse_id,
-                    :representative, :members, :farm_area, :delivery_date,
+                    :representative, :members, :is_ip_group_delivery, :farm_area, :delivery_date,
                     :wsr, :price, :net_kg, :bags
                 )
             ");
@@ -213,6 +239,7 @@ final class Transaction
                 'warehouse_id' => $transaction['warehouse_id'] ?: Location::defaultWarehouseId(),
                 'representative' => $transaction['representative'],
                 'members' => $members,
+                'is_ip_group_delivery' => $isIpGroupDelivery ? 1 : 0,
                 'farm_area' => self::nullable($transaction['farm_area']),
                 'delivery_date' => $deliveryDate,
                 'wsr' => $transaction['wsr'],
@@ -241,30 +268,37 @@ final class Transaction
             $db->rollBack();
             throw $exception;
         }
+
+        return [
+            'farmer_id' => $farmerId,
+            'delivery_year' => $deliveryYear,
+            'annual_bags' => $annualBagsAfterDelivery,
+            'reached_annual_limit' => $reachedAnnualLimit,
+        ];
     }
 
-    public static function individualDailyBags(int $farmerId, string $deliveryDate): int
+    public static function individualAnnualBags(int $farmerId, int $deliveryYear): int
     {
         $stmt = Database::connection()->prepare("
             SELECT COALESCE(SUM(bags_50kg), 0)
             FROM transactions
             WHERE seller_type = 'Individual'
                 AND farmer_id = :farmer_id
-                AND delivery_date = :delivery_date
+                AND YEAR(delivery_date) = :delivery_year
         ");
         $stmt->execute([
             'farmer_id' => $farmerId,
-            'delivery_date' => $deliveryDate,
+            'delivery_year' => $deliveryYear,
         ]);
 
         return (int) $stmt->fetchColumn();
     }
 
-    public static function individualDailyBagsForRsbsa(string $rsbsa, string $deliveryDate): int
+    public static function individualAnnualBagsForRsbsa(string $rsbsa, int $deliveryYear): int
     {
         $farmerId = Farmer::idFromRsbsa($rsbsa);
 
-        return $farmerId ? self::individualDailyBags($farmerId, $deliveryDate) : 0;
+        return $farmerId ? self::individualAnnualBags($farmerId, $deliveryYear) : 0;
     }
 
     public static function deliveredMembers(int $transactionId): array
@@ -319,6 +353,13 @@ final class Transaction
 
     private static function ensureSchema(): void
     {
+        FarmerOrganization::ensureSchema();
+        Database::connection()->exec('ALTER TABLE transactions ADD COLUMN IF NOT EXISTS is_ip_group_delivery TINYINT(1) NOT NULL DEFAULT 0');
+        Database::connection()->exec('
+            ALTER TABLE transactions
+            ADD COLUMN IF NOT EXISTS total_cost DECIMAL(20,2)
+            GENERATED ALWAYS AS (ROUND(price_per_kilogram * net_kilogram, 2)) STORED
+        ');
         Database::connection()->exec("
             CREATE TABLE IF NOT EXISTS transaction_farmer_members (
                 id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
