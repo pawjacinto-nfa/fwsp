@@ -20,6 +20,7 @@ $allManualSections = [
     'administration' => 'System Administration',
     'about-us' => 'About Us',
     'troubleshooting' => 'Troubleshooting',
+    'versions' => 'Versions',
 ];
 $manualSections = [];
 foreach ($allManualSections as $sectionId => $sectionLabel) {
@@ -301,6 +302,70 @@ $roleDescriptions = [
                     <h3>Still need assistance?</h3>
                     <p>Send the developer team a detailed ticket and include the affected page and steps to reproduce the issue.</p>
                     <a class="btn btn-success" href="index.php?page=tech-support">Go to Tech Support</a>
+                </div>
+            </section>
+
+            <section class="manual-section manual-versions-section" id="versions">
+                <p class="manual-kicker"><?= e($manualSectionNumbers['versions']) ?></p>
+                <h2>Versions</h2>
+                <p>This history records the major system releases and feature updates completed for the Farmer-Seller Registry.</p>
+                <div class="manual-version-timeline" aria-label="System version history">
+                    <article class="manual-version-entry">
+                        <div class="manual-version-date"><time datetime="2026-06-25">June 25, 2026</time><span>Initial release</span></div>
+                        <div><h3>Farmer-Seller Registry launched</h3><ul class="manual-list">
+                            <li>Created the application foundation: database connection, page layout, navigation, login, registration, logout, and password-reset request screens.</li>
+                            <li>Added four account roles: System Admin, Manager, Warehouse Personnel, and Read-Only User.</li>
+                            <li>Added a dashboard with shortcuts for farmer registration, individual delivery, and farmer-organization delivery.</li>
+                            <li>Added farmer profile encoding with RSBSA number, personal details, address, civil status, contact details, sex, SOGIE, sector, landholding, production data, organization, facility, and photo upload.</li>
+                            <li>Added farmer-organization records with organization name, membership count, office location, and member listings.</li>
+                            <li>Added individual and farmer-organization delivery forms for procurement method, delivery date, WSR number, price, net kilograms, 50 kg bags, receiving facility, representative, member count, and farm area.</li>
+                            <li>Added farmer and transaction record lists with search, filtering, record viewing, and location-based scope.</li>
+                            <li>Added Region, Branch, Province, Facility, and Central Office directory libraries for maintaining reference data.</li>
+                            <li>Added summary reports, regional reports, the initial sex-disaggregated analytics view, report filters, and printing.</li>
+                            <li>Added account profile editing, profile images, notifications, and activity tracking.</li>
+                            <li>Added a tech-support ticket queue with categories, status tracking, replies, attachments, completion, and archiving.</li>
+                            <li>Added initial database schema and location-data seed files for deployment and test data preparation.</li>
+                        </ul></div>
+                    </article>
+                    <article class="manual-version-entry">
+                        <div class="manual-version-date"><time datetime="2026-06-30">June 30, 2026</time><span>Major feature update</span></div>
+                        <div><h3>Reporting and administration expanded</h3><ul class="manual-list">
+                            <li>Added the full FWSP report, including separate individual-farmer and farmer-organization lists and their delivery details.</li>
+                            <li>Added the IP Group Delivery report and marked IP-group deliveries separately from regular farmer-organization deliveries.</li>
+                            <li>Added the SDD Summary Report with national and location-filtered results, including farmer organizations and Indigenous People Groups as separate classifications.</li>
+                            <li>Added report signatory settings: authorized users can add, edit, and remove their own signatory names and designations.</li>
+                            <li>Added a Report Settings page and prevented Read-Only Users from accessing signatory controls.</li>
+                            <li>Added a Database Management page for System Admins and a database-schema inspection model.</li>
+                            <li>Added role migration for legacy accounts, mapping Super Admin, Warehouse Supervisor, Regional/Branch Manager, and Viewer to the current role names.</li>
+                            <li>Restricted Read-Only Users to reports and restricted user control, database management, and access approvals to System Admins.</li>
+                            <li>Added password-reset approval handling for System Admins and updated registration to collect username/employee number, designation, password confirmation, and required office scope.</li>
+                            <li>Added a generated Farmer Key, displayed it in farmer forms and records, and added an Indigenous Sector Group Delivery Member flag to farmer profiles.</li>
+                            <li>Added Farmer Organization and Indigenous People Group tabs, classification type, assigned facility, editing, and location filters.</li>
+                            <li>Added selectable delivery members for organization deliveries, stored the members per transaction, and used them in reports.</li>
+                            <li>Added automatic delivery total-cost calculation, Amount Paid, metric-ton conversion, and transaction-table columns for these values.</li>
+                            <li>Added the 400-bag annual individual-delivery limit, a warning marker in farmer lists, and notifications when the limit is reached.</li>
+                            <li>Added delete controls with confirmation prompts for regions, branches, provinces, and facilities.</li>
+                            <li>Added configurable required levels to the reusable location selector and improved Central Office, farmer, record, support, and user-management views.</li>
+                            <li>Added the role-aware User's Manual, including printable contents and a print-to-PDF control.</li>
+                        </ul></div>
+                    </article>
+                    <article class="manual-version-entry is-current">
+                        <div class="manual-version-date"><time datetime="2026-07-17">July 17, 2026</time><span>Current release</span></div>
+                        <div><h3>Reporting dashboard and offline readiness improved</h3><ul class="manual-list">
+                            <li>Added the <strong>Summary Report with SDD</strong>, organized by region, seller classification, sex, and month.</li>
+                            <li>Added monthly People Count, Quantity Sold in 50 kg bags and metric tons, Amount Paid, and cumulative totals to that report.</li>
+                            <li>Added the new report to the report-format selector and preserved the selected report type when resetting filters.</li>
+                            <li>Improved print preparation for report sheets, including repeating report-title rows in printed output.</li>
+                            <li>Added optional offline mode for Warehouse Personnel and System Admin accounts from Account Settings.</li>
+                            <li>Added a service worker that caches the application shell and individual and organization delivery pages for offline use.</li>
+                            <li>Made delivery forms available while offline; records, libraries, reports, Help, and other unavailable menus are hidden until the connection returns.</li>
+                            <li>Added local offline delivery storage, a pending-input badge, connection-status messages, a guided offline-workspace setup, and an upload progress dialog.</li>
+                            <li>Added a unique offline control number to every queued delivery and server-side duplicate protection, so a retried upload does not create another transaction.</li>
+                            <li>Added the transaction creator ID and client control number to the transaction data structure.</li>
+                            <li>Refined the sign-in modal with the Farmer Seller Registry logo, branded title, and full-width Login button.</li>
+                            <li>Added Farmer Seller Registry logo assets and updated visual styling for reports, dashboard elements, forms, navigation, account screens, and offline status messages.</li>
+                        </ul></div>
+                    </article>
                 </div>
             </section>
         </article>

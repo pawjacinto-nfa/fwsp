@@ -1522,6 +1522,15 @@ body.route-fade::before {
 .manual-section h3 { margin: 26px 0 10px; color: var(--green-800); font-size: 1.05rem; font-weight: 700; }
 .manual-section > p { line-height: 1.75; }
 .manual-section > p:last-child { margin-bottom: 0; }
+.manual-version-timeline { display: grid; gap: 0; margin-top: 24px; }
+.manual-version-entry { position: relative; display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 22px; padding: 0 0 26px; }
+.manual-version-entry:not(:last-child)::before { content: ''; position: absolute; top: 30px; bottom: 0; left: 7px; width: 2px; background: color-mix(in srgb, var(--mustard), var(--border) 55%); }
+.manual-version-entry::after { content: ''; position: absolute; top: 7px; left: 0; width: 16px; height: 16px; border: 4px solid var(--panel); border-radius: 50%; background: var(--green-700); box-shadow: 0 0 0 2px var(--green-700); }
+.manual-version-entry.is-current::after { background: var(--mustard); box-shadow: 0 0 0 2px var(--mustard); }
+.manual-version-date { display: grid; gap: 5px; padding-left: 30px; color: var(--green-950); font-weight: 800; }
+.manual-version-date span { color: color-mix(in srgb, var(--ink), transparent 35%); font-size: .75rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
+.manual-version-entry h3 { margin: 0 0 8px; }
+.manual-version-entry .manual-list { margin: 0; }
 
 .manual-callout { margin: 20px 0; padding: 16px 18px; border-left: 4px solid var(--green-600); border-radius: 0 9px 9px 0; background: color-mix(in srgb, var(--green-100), transparent 35%); }
 .manual-callout.is-warning { border-left-color: var(--mustard); background: color-mix(in srgb, var(--mustard-soft), transparent 45%); }
@@ -1560,6 +1569,8 @@ body.route-fade::before {
     .manual-layout { grid-template-columns: 1fr; }
     .manual-sidebar { position: static; }
     .manual-nav-card nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .manual-version-entry { grid-template-columns: 1fr; gap: 10px; }
+    .manual-version-date { padding-left: 30px; }
     .manual-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
