@@ -89,6 +89,13 @@
 window.FWSP_LOCATIONS = <?= json_encode(\App\Models\Location::hierarchy(), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;
 window.FWSP_CENTRAL_OFFICE = <?= json_encode(\App\Models\CentralOffice::hierarchy(), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;
 window.FWSP_IS_AUTHENTICATED = <?= !empty($_SESSION['user_id']) ? 'true' : 'false' ?>;
+<?php $offlineUser = !empty($_SESSION['user_id']) ? \App\Models\User::find((int) $_SESSION['user_id']) : null; ?>
+window.FWSP_OFFLINE = <?= json_encode([
+    'enabled' => !empty($offlineUser['offline_enabled']),
+    'userId' => (int) ($_SESSION['user_id'] ?? 0),
+    'csrfToken' => csrf_token(),
+    'syncUrl' => 'index.php',
+], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;
 window.FWSP_AUTH_MODAL = <?= json_encode([
     'showLogin' => isset($_GET['show_login']),
     'showRegister' => isset($_GET['show_register']),

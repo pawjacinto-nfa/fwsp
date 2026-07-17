@@ -1,5 +1,6 @@
 <form method="post" class="panel form-panel tracked-form">
     <input type="hidden" name="action" value="transaction">
+    <input type="hidden" name="client_control_number" value="">
     <input type="hidden" name="type" value="<?= e($sellerType) ?>">
     <div class="progress form-progress" role="progressbar" aria-label="Transaction form progress">
         <div class="progress-bar" style="width: 0%">0%</div>

@@ -1,5 +1,47 @@
 const loader = document.getElementById("loaderScreen");
 
+/* Offline delivery queue. Records are stored locally only until this user approves upload. */
+(() => {
+    const config = window.FWSP_OFFLINE || {};
+    const key = `fwsp-offline-deliveries-${config.userId || 'guest'}`;
+    const enabled = () => Boolean(config.enabled && config.userId);
+    const read = () => { try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch { return []; } };
+    const write = (items) => localStorage.setItem(key, JSON.stringify(items));
+    const controlNumber = () => `OFF-${config.userId}-${Date.now().toString(36)}-${crypto.getRandomValues(new Uint32Array(1))[0].toString(36)}`.toUpperCase();
+    const modal = (title, body, footer = '') => `<div class="modal fade auth-modal" id="offlineSystemModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h2 class="modal-title fs-5">${title}</h2><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body">${body}</div><div class="modal-footer">${footer || '<button class="btn btn-success" data-bs-dismiss="modal">OK</button>'}</div></div></div></div>`;
+    const show = (title, body, footer) => { document.getElementById('offlineSystemModal')?.remove(); document.body.insertAdjacentHTML('beforeend', modal(title, body, footer)); const node = document.getElementById('offlineSystemModal'); const instance = new bootstrap.Modal(node); instance.show(); return node; };
+    const banner = (message, buttons = '', error = false) => { document.getElementById('offlineConnectionBanner')?.remove(); document.body.insertAdjacentHTML('beforeend', `<aside class="offline-banner${error ? ' is-error' : ''}" id="offlineConnectionBanner"><p>${message}</p>${buttons}</aside>`); };
+    const clearBanner = () => document.getElementById('offlineConnectionBanner')?.remove();
+    const refreshBadge = () => document.querySelectorAll('[data-offline-queue-count]').forEach(el => { const count = read().length; el.textContent = count ? count : ''; el.hidden = !count; });
+    const install = async () => {
+        const node = show('Preparing offline workspace', `<p class="text-muted">Setting up secure local delivery capture for this device.</p><div data-install-steps><div class="offline-step is-active"><i>1</i><span>Registering offline workspace</span></div><div class="offline-step"><i>2</i><span>Downloading delivery forms and resources</span></div><div class="offline-step"><i>3</i><span>Verifying local storage</span></div></div>`, '');
+        try { if (!('serviceWorker' in navigator)) throw new Error('This browser does not support offline workspaces.'); await navigator.serviceWorker.register('service-worker.js'); await navigator.serviceWorker.ready; const steps = node.querySelectorAll('.offline-step'); for (const step of steps) { step.classList.remove('is-active'); step.classList.add('is-done'); await new Promise(resolve => setTimeout(resolve, 350)); } node.querySelector('.modal-footer').innerHTML = '<button class="btn btn-success" data-bs-dismiss="modal">Offline workspace ready</button>'; }
+        catch (error) { node.querySelector('.modal-body').insertAdjacentHTML('beforeend', `<div class="alert alert-danger mt-3 mb-0">${error.message} Keep your connection on and try again.</div>`); node.querySelector('.modal-footer').innerHTML = '<button class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>'; }
+    };
+    const queueForm = (form) => {
+        const data = Object.fromEntries(new FormData(form).entries());
+        data.delivered_farmer_ids = [...new FormData(form).getAll('delivered_farmer_ids[]')];
+        delete data['delivered_farmer_ids[]'];
+        delete data.csrf_token; data.action = 'offline-sync-transaction'; data.client_control_number = controlNumber();
+        const items = read(); items.push({ control: data.client_control_number, data, createdAt: new Date().toISOString() }); write(items); form.reset(); refreshBadge();
+        show('Delivery saved offline', `<p>Your delivery input has been saved securely on this device.</p><p class="mb-0"><strong>Control number:</strong> ${data.client_control_number}</p>`);
+    };
+    const sync = async () => {
+        const items = read(); if (!items.length) { clearBanner(); return; }
+        const node = show('Uploading offline inputs', `<p class="text-muted">Do not close this window while your saved delivery inputs are being validated.</p><div class="progress"><div class="progress-bar progress-bar-striped progress-bar-animated" style="width:0%">0%</div></div><p class="small mt-2 mb-0" data-sync-status>Preparing upload…</p>`, '');
+        const bar = node.querySelector('.progress-bar'), status = node.querySelector('[data-sync-status]'), remaining = [];
+        for (let i = 0; i < items.length; i++) { const item = items[i]; status.textContent = `Uploading ${i + 1} of ${items.length} (${item.control})…`; try { const body = new URLSearchParams({ ...item.data, csrf_token: config.csrfToken }); body.delete('delivered_farmer_ids'); item.data.delivered_farmer_ids.forEach(id => body.append('delivered_farmer_ids[]', id)); const response = await fetch(config.syncUrl, { method: 'POST', headers: { 'X-Requested-With': 'fetch', 'Content-Type': 'application/x-www-form-urlencoded' }, body, credentials: 'same-origin' }); const result = await response.json(); if (!response.ok || !result.success) throw new Error(result.message || 'The server rejected this input.'); } catch (error) { remaining.push(item); } bar.style.width = `${Math.round(((i + 1) / items.length) * 100)}%`; bar.textContent = bar.style.width; }
+        write(remaining); refreshBadge(); node.querySelector('.modal-footer').innerHTML = remaining.length ? `<button class="btn btn-warning" data-bs-dismiss="modal">${remaining.length} input(s) need attention</button>` : '<button class="btn btn-success" data-bs-dismiss="modal">Upload complete</button>'; status.textContent = remaining.length ? `${remaining.length} input(s) were kept safely on this device. Check your connection or correct the record before retrying.` : 'All offline inputs were uploaded successfully. You are back online.'; if (!remaining.length) setTimeout(() => location.reload(), 900); }
+    document.querySelector('[data-offline-enable]')?.addEventListener('change', event => { if (event.target.checked) install(); });
+    document.querySelectorAll('form.tracked-form').forEach(form => form.addEventListener('submit', event => { if (enabled() && !navigator.onLine) { event.preventDefault(); if (!form.reportValidity()) return; queueForm(form); } }));
+    document.querySelectorAll('[data-offline-unavailable]').forEach(el => { if (enabled() && !navigator.onLine) el.hidden = true; });
+    window.addEventListener('offline', () => { if (enabled()) banner('You are offline. Delivery forms remain available; reports and support are unavailable.'); else banner('You are offline — turn on offline mode?', '<a class="btn btn-sm btn-warning" href="index.php?page=account">Enable offline mode</a>'); });
+    window.addEventListener('online', () => { if (enabled() && read().length) banner(`Connection available. ${read().length} offline input(s) are waiting to upload.`, '<button class="btn btn-sm btn-warning" data-upload-offline>Upload offline inputs?</button>'); else clearBanner(); });
+    document.addEventListener('click', event => { if (event.target.closest('[data-upload-offline]')) sync(); });
+    if (enabled() && !navigator.onLine) window.dispatchEvent(new Event('offline')); else if (enabled() && read().length) window.dispatchEvent(new Event('online'));
+    refreshBadge();
+})();
+
 document.querySelectorAll("[data-signatory-add-form]").forEach((form) => {
     const rows = form.querySelector("[data-signatory-form-rows]");
     const template = rows?.querySelector("[data-signatory-form-row]");
@@ -825,6 +867,50 @@ document.querySelectorAll("table").forEach((table) => {
     render();
 });
 
+const addRepeatingPrintTitleRows = (root, title, subtitle = "") => {
+    const tables = root.matches?.("table") ? [root] : Array.from(root.querySelectorAll("table"));
+
+    tables.forEach((table) => {
+        const thead = table.tHead || table.createTHead();
+        if (thead.querySelector(".print-document-title-row")) return;
+
+        const headerRow = thead.querySelector("tr");
+        const columnCount = headerRow
+            ? Array.from(headerRow.cells).reduce((total, cell) => total + Math.max(1, cell.colSpan || 1), 0)
+            : 1;
+        const sectionTitle = table.closest(".full-list-report-section")?.querySelector(":scope > h3")?.textContent.trim() || "";
+        const titleRow = document.createElement("tr");
+        const titleCell = document.createElement("th");
+        const titleText = document.createElement("strong");
+
+        titleRow.className = "print-document-title-row";
+        titleCell.colSpan = columnCount;
+        titleText.textContent = title;
+        titleCell.appendChild(titleText);
+
+        if (sectionTitle) {
+            const sectionText = document.createElement("span");
+            sectionText.textContent = sectionTitle;
+            titleCell.appendChild(sectionText);
+        }
+
+        if (subtitle) {
+            const subtitleText = document.createElement("small");
+            subtitleText.textContent = subtitle;
+            titleCell.appendChild(subtitleText);
+        }
+
+        titleRow.appendChild(titleCell);
+        thead.prepend(titleRow);
+    });
+};
+
+document.querySelectorAll(".report-sheet").forEach((sheet) => {
+    const title = sheet.querySelector(".report-title h2")?.textContent.trim() || document.title;
+    const subtitle = sheet.querySelector(".report-title p")?.textContent.trim() || "";
+    addRepeatingPrintTitleRows(sheet, title, subtitle);
+});
+
 document.querySelectorAll("[data-print-target]").forEach((button) => {
     button.addEventListener("click", () => {
         const target = document.getElementById(button.dataset.printTarget);
@@ -842,6 +928,8 @@ document.querySelectorAll("[data-print-target]").forEach((button) => {
         });
         const reportTitle = button.dataset.reportTitle || "Records Report";
         const isPdf = button.dataset.printMode === "pdf";
+        const generatedLabel = `Generated ${new Date().toLocaleString()}`;
+        addRepeatingPrintTitleRows(printable, reportTitle.toUpperCase(), generatedLabel);
 
         const preview = window.open("", "_blank", "width=1200,height=800");
         if (!preview) return;
@@ -852,25 +940,38 @@ document.querySelectorAll("[data-print-target]").forEach((button) => {
             <head>
                 <title>${reportTitle}</title>
                 <style>
-                    @page { size: legal landscape; margin: 0.35in; }
+                    @page { size: legal landscape; margin: 0.4in 0.35in; }
                     * { box-sizing: border-box; }
                     body { font-family: Arial, sans-serif; padding: 18px; color: #222; }
                     h1 { font-size: 16px; text-align: center; margin: 0 0 4px; }
                     p { text-align: center; margin: 0 0 14px; font-size: 11px; }
-                    table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 8.5px; line-height: 1.15; }
-                    th, td { border: 1px solid #444; padding: 4px; text-align: left; white-space: normal; overflow-wrap: anywhere; }
+                    table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 9.5px; line-height: 1.2; }
+                    th, td { height: 0.24in; border: 1px solid #444; padding: 4px; text-align: left; white-space: normal; overflow-wrap: anywhere; }
                     th { background: #ffe94a; }
+                    thead { display: table-header-group; }
+                    .print-document-title-row { display: none; }
+                    tfoot { display: table-row-group; }
+                    tbody tr, tfoot tr { break-inside: avoid; page-break-inside: avoid; }
                     tfoot th, tfoot td { background: #eef8ef; font-weight: 700; }
                     .table-responsive { overflow: visible; }
                     .actions { margin: 18px 0; text-align: right; }
                     button { padding: 8px 12px; border: 1px solid #146b3a; background: #146b3a; color: white; border-radius: 6px; }
                     .table-location-cell { font-size: 8px; line-height: 1.25; }
-                    @media print { .actions { display: none; } body { padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+                    @media print {
+                        .actions { display: none; }
+                        body { padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                        body > h1, body > .print-generated-at { display: none; }
+                        .print-document-title-row { display: table-row; }
+                        .print-document-title-row th { height: auto; padding: 0 3px 5px; border: 0; background: #fff; text-align: center; }
+                        .print-document-title-row strong, .print-document-title-row span, .print-document-title-row small { display: block; }
+                        .print-document-title-row strong { font-size: 14px; }
+                        .print-document-title-row span, .print-document-title-row small { margin-top: 2px; font-size: 10px; }
+                    }
                 </style>
             </head>
             <body>
                 <h1>${reportTitle.toUpperCase()}</h1>
-                <p>Generated ${new Date().toLocaleString()}</p>
+                <p class="print-generated-at">${generatedLabel}</p>
                 <div class="actions"><button onclick="window.print()">Print / Save PDF</button></div>
                 ${printable.outerHTML}
             </body>

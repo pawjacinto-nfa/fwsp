@@ -165,6 +165,7 @@ final class User
     public static function updateAccount(int $id, array $data): void
     {
         CentralOffice::ensureSchema();
+        Database::connection()->exec('ALTER TABLE users ADD COLUMN IF NOT EXISTS offline_enabled TINYINT(1) NOT NULL DEFAULT 0');
         $sets = [
             'full_name = :full_name',
             'email = :email',
@@ -195,6 +196,11 @@ final class User
         if (!empty($data['password'])) {
             $sets[] = 'password_hash = :password_hash';
             $params['password_hash'] = password_hash($data['password'], PASSWORD_DEFAULT);
+        }
+
+        if (array_key_exists('offline_enabled', $data)) {
+            $sets[] = 'offline_enabled = :offline_enabled';
+            $params['offline_enabled'] = $data['offline_enabled'] ? 1 : 0;
         }
 
         $stmt = Database::connection()->prepare('UPDATE users SET ' . implode(', ', $sets) . ' WHERE id = :id');

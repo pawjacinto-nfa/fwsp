@@ -1,6 +1,6 @@
 <?php
 $view = $view ?? 'summary';
-$allowedReportFormats = ['default', 'branch_region', 'sdd_summary', 'full_list_fwsp', 'ip_group_delivery'];
+$allowedReportFormats = ['default', 'branch_region', 'sdd_summary', 'monthly_sdd_summary', 'full_list_fwsp', 'ip_group_delivery'];
 $reportFormat = in_array(($reportFormat ?? ($filters['report_format'] ?? 'default')), $allowedReportFormats, true)
     ? ($reportFormat ?? ($filters['report_format'] ?? 'default'))
     : 'default';
@@ -13,14 +13,23 @@ foreach (['region_id', 'branch_id', 'province_id', 'warehouse_id', 'date_from', 
 $defaultReportUrl = 'index.php?' . http_build_query($reportSwitchParams);
 $branchRegionReportUrl = 'index.php?' . http_build_query($reportSwitchParams + ['report_format' => 'branch_region']);
 $sddSummaryReportUrl = 'index.php?' . http_build_query($reportSwitchParams + ['report_format' => 'sdd_summary']);
+$monthlySddSummaryReportUrl = 'index.php?' . http_build_query($reportSwitchParams + ['report_format' => 'monthly_sdd_summary']);
 $fullListReportUrl = 'index.php?' . http_build_query($reportSwitchParams + ['report_format' => 'full_list_fwsp']);
 $ipGroupReportUrl = 'index.php?' . http_build_query($reportSwitchParams + ['report_format' => 'ip_group_delivery']);
+$reportPageTitles = [
+    'default' => 'Summary Reports on Farmers Who Sold Palay',
+    'branch_region' => 'Summary Reports on Farmers Who Sold Palay',
+    'sdd_summary' => 'SDD Summary Report',
+    'monthly_sdd_summary' => 'Summary Report with SDD',
+    'full_list_fwsp' => 'Full List (FWSP)',
+    'ip_group_delivery' => 'IP Group Delivery',
+];
 ?>
 <section class="workspace-section report-page">
     <div class="section-head compact no-print">
         <div>
             <p class="eyebrow">Report Generation</p>
-            <h3><?= $view === 'sectoral' ? 'Sex Disaggregated Data Analytics' : ($reportFormat === 'sdd_summary' ? 'SDD Summary Report' : ($reportFormat === 'full_list_fwsp' ? 'Full List (FWSP)' : ($reportFormat === 'ip_group_delivery' ? 'IP Group Delivery' : 'Summary Reports on Farmers Who Sold Palay'))) ?></h3>
+            <h3><?= e($view === 'sectoral' ? 'Sex Disaggregated Data Analytics' : ($reportPageTitles[$reportFormat] ?? $reportPageTitles['default'])) ?></h3>
         </div>
         <?php if ($view === 'sectoral'): ?>
             <div class="quick-actions">
@@ -146,6 +155,7 @@ $ipGroupReportUrl = 'index.php?' . http_build_query($reportSwitchParams + ['repo
                 <a class="btn <?= $reportFormat === 'default' ? 'btn-success' : 'btn-outline-success' ?>" href="<?= e($defaultReportUrl) ?>">National Summary</a>
                 <a class="btn <?= $reportFormat === 'branch_region' ? 'btn-success' : 'btn-outline-success' ?>" href="<?= e($branchRegionReportUrl) ?>">Regional Summary</a>
                 <a class="btn <?= $reportFormat === 'sdd_summary' ? 'btn-success' : 'btn-outline-success' ?>" href="<?= e($sddSummaryReportUrl) ?>">SDD Summary Report</a>
+                <a class="btn <?= $reportFormat === 'monthly_sdd_summary' ? 'btn-success' : 'btn-outline-success' ?>" href="<?= e($monthlySddSummaryReportUrl) ?>">Summary Report with SDD</a>
                 <a class="btn <?= $reportFormat === 'full_list_fwsp' ? 'btn-success' : 'btn-outline-success' ?>" href="<?= e($fullListReportUrl) ?>">Full List (FWSP)</a>
                 <a class="btn <?= $reportFormat === 'ip_group_delivery' ? 'btn-success' : 'btn-outline-success' ?>" href="<?= e($ipGroupReportUrl) ?>">IP Group Delivery</a>
             </div>
@@ -176,11 +186,134 @@ $ipGroupReportUrl = 'index.php?' . http_build_query($reportSwitchParams + ['repo
                 <div class="col-md-2"><label class="form-label">From</label><input type="date" name="date_from" value="<?= e($filters['date_from'] ?? '') ?>" class="form-control"></div>
                 <div class="col-md-2"><label class="form-label">To</label><input type="date" name="date_to" value="<?= e($filters['date_to'] ?? '') ?>" class="form-control"></div>
                 <div class="col-md-1"><button class="btn btn-success w-100" type="submit">Apply</button></div>
-                <div class="col-md-1"><a class="btn btn-outline-success w-100" href="index.php?page=reports">Reset</a></div>
+                <div class="col-md-1"><a class="btn btn-outline-success w-100" href="index.php?page=reports&amp;report_format=<?= e($reportFormat) ?>">Reset</a></div>
             </div>
         </form>
 
-        <?php if ($reportFormat === 'ip_group_delivery'): ?>
+        <?php if ($reportFormat === 'monthly_sdd_summary'): ?>
+            <?php
+            $rangeStart = !empty($filters['date_from']) ? new DateTimeImmutable($filters['date_from']) : new DateTimeImmutable(date('Y-01-01'));
+            $rangeEnd = !empty($filters['date_to']) ? new DateTimeImmutable($filters['date_to']) : new DateTimeImmutable(date('Y-12-31'));
+            if ($rangeStart > $rangeEnd) {
+                [$rangeStart, $rangeEnd] = [$rangeEnd, $rangeStart];
+            }
+            $monthCursor = $rangeStart->modify('first day of this month');
+            $monthEnd = $rangeEnd->modify('first day of this month');
+            $reportMonths = [];
+            while ($monthCursor <= $monthEnd) {
+                $periodKey = $monthCursor->format('Y-m');
+                $reportMonths[$periodKey] = $rangeStart->format('Y') === $rangeEnd->format('Y')
+                    ? $monthCursor->format('M')
+                    : $monthCursor->format('M Y');
+                $monthCursor = $monthCursor->modify('+1 month');
+            }
+
+            $monthlyMatrix = [];
+            foreach ($rows as $row) {
+                $periodKey = (string) ($row['period'] ?? '');
+                if (!isset($reportMonths[$periodKey])) {
+                    continue;
+                }
+                $region = (string) ($row['region'] ?? 'Unassigned');
+                $seller = (string) ($row['seller_classification'] ?? 'Individual');
+                $sex = (string) ($row['sex'] ?? 'Male');
+                $values = [
+                    'people_count' => (float) ($row['people_count'] ?? 0),
+                    'qty_bags' => (float) ($row['qty_bags'] ?? 0),
+                    'amount_paid' => (float) ($row['amount_paid'] ?? 0),
+                ];
+                $monthlyMatrix[$region][$seller][$sex][$periodKey] = $values;
+            }
+            $reportRegions = array_keys($monthlyMatrix);
+            $sellerRows = ['Individual', 'Farmer Organization'];
+            $sexRows = ['Male', 'Female'];
+            $emptyMonthlyValues = ['people_count' => 0.0, 'qty_bags' => 0.0, 'amount_paid' => 0.0];
+            $formatMonthlyValue = static function (string $metric, array $values): string {
+                if ($metric === 'people_count') {
+                    return number_format((float) ($values['people_count'] ?? 0));
+                }
+                if ($metric === 'qty_bags') {
+                    $bags = (float) ($values['qty_bags'] ?? 0);
+                    return number_format($bags, 2) . ' / ' . number_format($bags / 20, 2);
+                }
+
+                return number_format((float) ($values['amount_paid'] ?? 0), 2);
+            };
+            ?>
+            <article class="report-sheet monthly-sdd-report-sheet">
+                <header class="report-title">
+                    <h2>SUMMARY REPORT WITH SDD</h2>
+                    <p><?= e(strtoupper($rangeStart->format('F d, Y') . ' - ' . $rangeEnd->format('F d, Y'))) ?></p>
+                </header>
+                <div class="table-responsive">
+                    <table class="report-table monthly-sdd-report" style="min-width: <?= e(370 + count($reportMonths) * 96) ?>px">
+                        <thead>
+                            <tr>
+                                <th>Particulars</th>
+                                <?php foreach ($reportMonths as $monthLabel): ?>
+                                    <th><?= e($monthLabel) ?></th>
+                                <?php endforeach; ?>
+                                <th>Cumulative Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($reportRegions as $region): ?>
+                                <tr class="monthly-sdd-region-row">
+                                    <th><?= e($region) ?></th>
+                                    <?php foreach ($reportMonths as $_periodKey => $_monthLabel): ?><td></td><?php endforeach; ?>
+                                    <td></td>
+                                </tr>
+                                <?php foreach ($sellerRows as $seller): ?>
+                                    <tr class="monthly-sdd-seller-row">
+                                        <th><?= e($seller === 'Individual' ? 'Individual Farmers' : 'Farmer Organization') ?></th>
+                                        <?php foreach ($reportMonths as $_periodKey => $_monthLabel): ?><td></td><?php endforeach; ?>
+                                        <td></td>
+                                    </tr>
+                                    <?php foreach ($sexRows as $sex): ?>
+                                        <?php
+                                        $rowCumulative = $emptyMonthlyValues;
+                                        foreach ($reportMonths as $periodKey => $_monthLabel) {
+                                            $monthValues = $monthlyMatrix[$region][$seller][$sex][$periodKey] ?? $emptyMonthlyValues;
+                                            foreach ($rowCumulative as $metric => $_value) {
+                                                $rowCumulative[$metric] += (float) ($monthValues[$metric] ?? 0);
+                                            }
+                                        }
+                                        ?>
+                                        <tr class="monthly-sdd-sex-row">
+                                            <th><?= e($sex) ?></th>
+                                            <?php foreach ($reportMonths as $periodKey => $_monthLabel): ?>
+                                                <?php $values = $monthlyMatrix[$region][$seller][$sex][$periodKey] ?? $emptyMonthlyValues; ?>
+                                                <td><?= $formatMonthlyValue('people_count', $values) ?></td>
+                                            <?php endforeach; ?>
+                                            <td class="monthly-sdd-cumulative-cell"><?= $formatMonthlyValue('people_count', $rowCumulative) ?></td>
+                                        </tr>
+                                        <tr class="monthly-sdd-metric-row">
+                                            <th>Qty Sold (50kg Bags / MT)</th>
+                                            <?php foreach ($reportMonths as $periodKey => $_monthLabel): ?>
+                                                <?php $values = $monthlyMatrix[$region][$seller][$sex][$periodKey] ?? $emptyMonthlyValues; ?>
+                                                <td><?= $formatMonthlyValue('qty_bags', $values) ?></td>
+                                            <?php endforeach; ?>
+                                            <td class="monthly-sdd-cumulative-cell"><?= $formatMonthlyValue('qty_bags', $rowCumulative) ?></td>
+                                        </tr>
+                                        <tr class="monthly-sdd-metric-row">
+                                            <th>Amount Paid</th>
+                                            <?php foreach ($reportMonths as $periodKey => $_monthLabel): ?>
+                                                <?php $values = $monthlyMatrix[$region][$seller][$sex][$periodKey] ?? $emptyMonthlyValues; ?>
+                                                <td><?= $formatMonthlyValue('amount_paid', $values) ?></td>
+                                            <?php endforeach; ?>
+                                            <td class="monthly-sdd-cumulative-cell"><?= $formatMonthlyValue('amount_paid', $rowCumulative) ?></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php endforeach; ?>
+                            <?php endforeach; ?>
+                            <?php if ($reportRegions === []): ?>
+                                <tr><td colspan="<?= e(2 + count($reportMonths)) ?>">No transactions found for the selected filters.</td></tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </article>
+        <?php elseif ($reportFormat === 'ip_group_delivery'): ?>
             <?php
             $dateLabel = 'AS OF ' . strtoupper(date('F Y'));
             if (!empty($filters['date_from']) || !empty($filters['date_to'])) {

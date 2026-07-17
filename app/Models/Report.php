@@ -203,6 +203,99 @@ final class Report
         return $stmt->fetchAll();
     }
 
+    public static function monthlySddSummary(array $filters = []): array
+    {
+        self::ensureTransactionFarmerMembersSchema();
+        $db = Database::connection();
+
+        $individualWhere = ["t.seller_type = 'Individual'", "f.sex IN ('Male', 'Female')"];
+        $individualParams = [];
+        self::applyTransactionFilters($individualWhere, $individualParams, $filters);
+        $individualStmt = $db->prepare("
+            SELECT
+                COALESCE(r.name, 'Unassigned') AS region,
+                'Individual' AS seller_classification,
+                f.sex,
+                DATE_FORMAT(t.delivery_date, '%Y-%m') AS period,
+                COUNT(t.id) AS people_count,
+                COALESCE(SUM(t.bags_50kg), 0) AS qty_bags,
+                COALESCE(SUM(t.net_kilogram * t.price_per_kilogram), 0) AS amount_paid
+            FROM transactions t
+            INNER JOIN farmers f ON f.id = t.farmer_id
+            LEFT JOIN warehouse_offices w ON w.id = COALESCE(f.warehouse_id, t.warehouse_id)
+            LEFT JOIN province_offices p ON p.id = w.province_id
+            LEFT JOIN branch_offices b ON b.id = COALESCE(p.branch_id, w.branch_id)
+            LEFT JOIN regions r ON r.id = b.region_id
+            WHERE " . implode(' AND ', $individualWhere) . "
+            GROUP BY COALESCE(r.name, 'Unassigned'), f.sex, DATE_FORMAT(t.delivery_date, '%Y-%m')
+        ");
+        $individualStmt->execute($individualParams);
+
+        $organizationWhere = ["t.seller_type = 'Farmer Organization'"];
+        $organizationParams = [];
+        self::applyTransactionFilters($organizationWhere, $organizationParams, $filters);
+        $organizationStmt = $db->prepare("
+            SELECT
+                COALESCE(r.name, 'Unassigned') AS region,
+                'Farmer Organization' AS seller_classification,
+                sexes.sex,
+                DATE_FORMAT(t.delivery_date, '%Y-%m') AS period,
+                SUM(CASE WHEN sexes.sex = 'Male' THEN COALESCE(member_sexes.male_count, 0) ELSE COALESCE(member_sexes.female_count, 0) END) AS people_count,
+                COALESCE(SUM(
+                    t.bags_50kg
+                    * (CASE WHEN sexes.sex = 'Male' THEN COALESCE(member_sexes.male_count, 0) ELSE COALESCE(member_sexes.female_count, 0) END)
+                    / NULLIF(COALESCE(member_sexes.male_count, 0) + COALESCE(member_sexes.female_count, 0), 0)
+                ), 0) AS qty_bags,
+                COALESCE(SUM(
+                    (t.net_kilogram * t.price_per_kilogram)
+                    * (CASE WHEN sexes.sex = 'Male' THEN COALESCE(member_sexes.male_count, 0) ELSE COALESCE(member_sexes.female_count, 0) END)
+                    / NULLIF(COALESCE(member_sexes.male_count, 0) + COALESCE(member_sexes.female_count, 0), 0)
+                ), 0) AS amount_paid
+            FROM transactions t
+            LEFT JOIN warehouse_offices w ON w.id = t.warehouse_id
+            LEFT JOIN province_offices p ON p.id = w.province_id
+            LEFT JOIN branch_offices b ON b.id = COALESCE(p.branch_id, w.branch_id)
+            LEFT JOIN regions r ON r.id = b.region_id
+            LEFT JOIN (
+                SELECT
+                    tfm.transaction_id,
+                    SUM(CASE WHEN member.sex = 'Male' THEN 1 ELSE 0 END) AS male_count,
+                    SUM(CASE WHEN member.sex = 'Female' THEN 1 ELSE 0 END) AS female_count
+                FROM transaction_farmer_members tfm
+                INNER JOIN farmers member ON member.id = tfm.farmer_id
+                GROUP BY tfm.transaction_id
+            ) member_sexes ON member_sexes.transaction_id = t.id
+            CROSS JOIN (
+                SELECT 'Male' AS sex
+                UNION ALL
+                SELECT 'Female' AS sex
+            ) sexes
+            WHERE " . implode(' AND ', $organizationWhere) . "
+            GROUP BY COALESCE(r.name, 'Unassigned'), sexes.sex, DATE_FORMAT(t.delivery_date, '%Y-%m')
+        ");
+        $organizationStmt->execute($organizationParams);
+
+        $rows = array_merge($individualStmt->fetchAll(), $organizationStmt->fetchAll());
+        usort($rows, static function (array $left, array $right): int {
+            $regionCompare = strnatcasecmp((string) ($left['region'] ?? ''), (string) ($right['region'] ?? ''));
+            if ($regionCompare !== 0) {
+                return $regionCompare;
+            }
+
+            return [
+                $left['seller_classification'] ?? '',
+                $left['sex'] ?? '',
+                $left['period'] ?? '',
+            ] <=> [
+                $right['seller_classification'] ?? '',
+                $right['sex'] ?? '',
+                $right['period'] ?? '',
+            ];
+        });
+
+        return $rows;
+    }
+
     public static function fullListIndividual(array $filters = []): array
     {
         $where = ["t.seller_type = 'Individual'"];

@@ -5,7 +5,7 @@
     <?php if (!$user): ?>
         <div class="panel"><p class="mb-0">Please log in to manage your account.</p></div>
     <?php else: ?>
-        <form method="post" enctype="multipart/form-data" class="panel form-panel">
+        <form method="post" enctype="multipart/form-data" class="panel form-panel" data-account-form>
             <input type="hidden" name="action" value="account">
             <div class="row g-3">
                 <div class="col-md-3">
@@ -36,6 +36,13 @@
                 require BASE_PATH . '/app/Views/partials/location-selects.php';
                 ?>
             </div>
+            <?php if (in_array($user['role'] ?? '', ['Warehouse Personnel', 'System Admin'], true)): ?>
+                <div class="form-section-title">Offline work</div>
+                <div class="offline-setting">
+                    <div><strong>Enable offline mode</strong><p>Install the delivery forms on this device. Pending delivery inputs remain encrypted in this browser until you upload them.</p></div>
+                    <div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" name="offline_enabled" value="1" id="offlineEnabled" data-offline-enable <?= !empty($user['offline_enabled']) ? 'checked' : '' ?>><label class="form-check-label" for="offlineEnabled">Available on this device</label></div>
+                </div>
+            <?php endif; ?>
             <div class="form-actions"><button class="btn btn-success" type="submit">Update Account</button></div>
         </form>
     <?php endif; ?>

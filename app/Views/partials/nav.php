@@ -27,7 +27,7 @@ $unreadNotifications = $currentUserId ? \App\Models\Notification::unreadCount($c
                     </li>
                 <?php endif; ?>
                 <?php if (!empty($_SESSION['user_id']) && in_array($_SESSION['role'] ?? '', ['Manager', 'Warehouse Personnel', 'System Admin'], true)): ?>
-                    <li class="nav-item dropdown">
+                    <li class="nav-item dropdown" data-offline-unavailable>
                         <a class="nav-link dropdown-toggle" href="index.php?page=records" role="button" data-bs-toggle="dropdown" aria-expanded="false">Records</a>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="index.php?page=farmers">Farmers</a></li>
@@ -37,7 +37,7 @@ $unreadNotifications = $currentUserId ? \App\Models\Notification::unreadCount($c
                     </li>
                 <?php endif; ?>
                 <?php if (in_array($_SESSION['role'] ?? '', ['Warehouse Personnel', 'System Admin'], true)): ?>
-                    <li class="nav-item dropdown">
+                    <li class="nav-item dropdown" data-offline-unavailable>
                         <a class="nav-link dropdown-toggle" href="index.php?page=locations" role="button" data-bs-toggle="dropdown" aria-expanded="false">Library</a>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="index.php?page=locations">Location Library</a></li>
@@ -46,7 +46,7 @@ $unreadNotifications = $currentUserId ? \App\Models\Notification::unreadCount($c
                     </li>
                 <?php endif; ?>
                 <?php if (!empty($_SESSION['user_id'])): ?>
-                    <li class="nav-item dropdown">
+                    <li class="nav-item dropdown" data-offline-unavailable>
                         <a class="nav-link dropdown-toggle" href="index.php?page=reports" role="button" data-bs-toggle="dropdown" aria-expanded="false">Reports</a>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="index.php?page=reports">Summary Report</a></li>
@@ -60,7 +60,7 @@ $unreadNotifications = $currentUserId ? \App\Models\Notification::unreadCount($c
                     </li>
                 <?php endif; ?>
                 <?php if (!empty($_SESSION['user_id']) && ($_SESSION['role'] ?? '') !== 'Read-Only User'): ?>
-                    <li class="nav-item dropdown">
+                    <li class="nav-item dropdown" data-offline-unavailable>
                         <a class="nav-link dropdown-toggle" href="index.php?page=tech-support" role="button" data-bs-toggle="dropdown" aria-expanded="false">Help</a>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="index.php?page=tech-support">Tech Support</a></li>

@@ -217,6 +217,13 @@ final class Transaction
         }
 
         $db = Database::connection();
+        $controlNumber = trim((string) ($transaction['client_control_number'] ?? ''));
+        if ($controlNumber !== '') {
+            $existing = $db->prepare('SELECT id FROM transactions WHERE client_control_number = :control_number LIMIT 1');
+            $existing->execute(['control_number' => $controlNumber]);
+            $existingId = $existing->fetchColumn();
+            if ($existingId) return ['transaction_id' => (int) $existingId, 'duplicate' => true, 'delivery_year' => $deliveryYear, 'annual_bags' => 0, 'reached_annual_limit' => false];
+        }
         $db->beginTransaction();
 
         try {
@@ -224,11 +231,11 @@ final class Transaction
                 INSERT INTO transactions (
                     seller_type, procurement_type, farmer_id, farmer_organization_id, warehouse_id,
                     representative_name, total_members, is_ip_group_delivery, verified_farm_area, delivery_date,
-                    warehouse_stock_receipt_number, price_per_kilogram, net_kilogram, bags_50kg
+                    warehouse_stock_receipt_number, price_per_kilogram, net_kilogram, bags_50kg, client_control_number, created_by
                 ) VALUES (
                     :seller_type, :procurement_type, :farmer_id, :farmer_organization_id, :warehouse_id,
                     :representative, :members, :is_ip_group_delivery, :farm_area, :delivery_date,
-                    :wsr, :price, :net_kg, :bags
+                    :wsr, :price, :net_kg, :bags, :client_control_number, :created_by
                 )
             ");
             $stmt->execute([
@@ -246,6 +253,8 @@ final class Transaction
                 'price' => (float) ($transaction['price'] ?: 0),
                 'net_kg' => (float) ($transaction['net_kg'] ?: 0),
                 'bags' => $bags,
+                'client_control_number' => $controlNumber ?: null,
+                'created_by' => $_SESSION['user_id'] ?? null,
             ]);
 
             $transactionId = (int) $db->lastInsertId();
@@ -270,6 +279,8 @@ final class Transaction
         }
 
         return [
+            'transaction_id' => $transactionId,
+            'duplicate' => false,
             'farmer_id' => $farmerId,
             'delivery_year' => $deliveryYear,
             'annual_bags' => $annualBagsAfterDelivery,
@@ -355,6 +366,8 @@ final class Transaction
     {
         FarmerOrganization::ensureSchema();
         Database::connection()->exec('ALTER TABLE transactions ADD COLUMN IF NOT EXISTS is_ip_group_delivery TINYINT(1) NOT NULL DEFAULT 0');
+        Database::connection()->exec('ALTER TABLE transactions ADD COLUMN IF NOT EXISTS client_control_number VARCHAR(96) NULL');
+        try { Database::connection()->exec('CREATE UNIQUE INDEX transactions_client_control_number_unique ON transactions (client_control_number)'); } catch (\Throwable) { }
         Database::connection()->exec('
             ALTER TABLE transactions
             ADD COLUMN IF NOT EXISTS total_cost DECIMAL(20,2)

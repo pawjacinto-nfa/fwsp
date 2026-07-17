@@ -7,10 +7,13 @@
                     <strong data-login-error-countdown>5</strong>
                 </div>
             <?php endif; ?>
-            <form method="post" class="modal-content">
+            <form method="post" class="modal-content login-modal-content">
                 <input type="hidden" name="action" value="login">
-                <div class="modal-header">
-                    <h2 class="modal-title fs-5">Sign in</h2>
+                <div class="modal-header login-modal-header">
+                    <div class="login-modal-brand">
+                        <img src="/fwsp/assets/images/farmer-seller-registry-logo-transparent.png" alt="Farmer Seller Registry logo">
+                        <h2 class="modal-title">Farmer Seller Registry</h2>
+                    </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -30,7 +33,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button class="btn btn-success" type="submit">Login</button>
+                    <button class="btn btn-success w-100" type="submit">Login</button>
                 </div>
             </form>
         </div>

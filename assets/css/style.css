@@ -1811,6 +1811,56 @@ body.route-fade::before {
     gap: 10px;
 }
 
+#loginModal .login-modal-content {
+    border: 1px solid rgba(255, 255, 255, 0.42);
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.68), rgba(255, 255, 255, 0.42));
+    box-shadow: 0 24px 70px rgba(15, 58, 34, 0.26);
+    backdrop-filter: blur(24px) saturate(160%);
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+}
+
+.login-modal-content .modal-body {
+    padding: 1.5rem 2rem 1.25rem;
+}
+
+.login-modal-content .modal-footer {
+    padding: 1rem 2rem 1.5rem;
+}
+
+.login-modal-header {
+    position: relative;
+    justify-content: center;
+    padding: 1.5rem 2rem 1rem;
+    border-bottom: 0;
+}
+
+.login-modal-header .btn-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+}
+
+.login-modal-brand {
+    display: grid;
+    justify-items: center;
+    gap: 0.65rem;
+    text-align: center;
+}
+
+.login-modal-brand img {
+    width: 96px;
+    height: 96px;
+    object-fit: contain;
+}
+
+.login-modal-brand .modal-title {
+    color: var(--green-950);
+    text-shadow: 0 1px 12px rgba(255, 255, 255, 0.56);
+    font-size: 1.35rem;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
 .login-credential-alert {
     display: flex;
     align-items: center;
@@ -1846,6 +1896,16 @@ body.route-fade::before {
 
 [data-bs-theme="dark"] .auth-modal .modal-content {
     background: rgba(12, 48, 30, 0.9);
+}
+
+[data-bs-theme="dark"] #loginModal .login-modal-content {
+    border-color: rgba(255, 255, 255, 0.2);
+    background: linear-gradient(145deg, rgba(12, 48, 30, 0.68), rgba(12, 48, 30, 0.42));
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.36);
+}
+
+[data-bs-theme="dark"] .login-modal-brand .modal-title {
+    color: #f5fff8;
 }
 
 .btn {
@@ -2389,6 +2449,57 @@ body.route-fade::before {
     min-width: 1650px;
 }
 
+.report-table.monthly-sdd-report {
+    table-layout: fixed;
+}
+
+.monthly-sdd-report th,
+.monthly-sdd-report td {
+    vertical-align: middle;
+}
+
+.monthly-sdd-report thead th:first-child,
+.monthly-sdd-report tbody th {
+    width: 190px;
+    text-align: left;
+}
+
+.monthly-sdd-report tbody td {
+    text-align: right;
+}
+
+.monthly-sdd-report thead th:last-child,
+.monthly-sdd-cumulative-cell {
+    background: #e4f2e8;
+    font-weight: 800;
+}
+
+.monthly-sdd-region-row th,
+.monthly-sdd-region-row td {
+    background: #dceee2;
+    font-weight: 800;
+}
+
+.monthly-sdd-seller-row th,
+.monthly-sdd-seller-row td {
+    background: #eef8ef;
+    font-weight: 800;
+}
+
+.monthly-sdd-seller-row th {
+    padding-left: 14px;
+}
+
+.monthly-sdd-sex-row th {
+    padding-left: 28px;
+    font-weight: 800;
+}
+
+.monthly-sdd-metric-row th {
+    padding-left: 42px;
+    font-weight: 600;
+}
+
 .report-table .report-group-row th {
     background: #f4f4f4;
     text-align: left;
@@ -2800,7 +2911,11 @@ body.route-fade::before {
 
 @page {
     size: legal landscape;
-    margin: 0.35in;
+    margin: 0.4in 0.35in;
+}
+
+.print-document-title-row {
+    display: none;
 }
 
 @media print {
@@ -2835,6 +2950,10 @@ body.route-fade::before {
         overflow: visible !important;
     }
 
+    .report-title {
+        display: none;
+    }
+
     .report-signatory-footer {
         display: flex !important;
         gap: .35in;
@@ -2853,17 +2972,62 @@ body.route-fade::before {
     .report-table {
         min-width: 0;
         table-layout: fixed;
-        font-size: 6.2pt;
-        line-height: 1.15;
+        font-size: 7pt;
+        line-height: 1.2;
     }
 
     .report-table th,
     .report-table td {
+        height: 0.24in;
         padding: 3px 4px;
         white-space: normal;
         overflow-wrap: break-word;
         word-break: normal;
         hyphens: auto;
+    }
+
+    .report-table thead {
+        display: table-header-group !important;
+    }
+
+    .print-document-title-row {
+        display: table-row !important;
+    }
+
+    .report-table .print-document-title-row th {
+        height: auto;
+        padding: 0 3px 5px;
+        border: 0;
+        background: #fff !important;
+        color: #111;
+        text-align: center;
+    }
+
+    .print-document-title-row strong,
+    .print-document-title-row span,
+    .print-document-title-row small {
+        display: block;
+    }
+
+    .print-document-title-row strong {
+        font-size: 10pt;
+    }
+
+    .print-document-title-row span,
+    .print-document-title-row small {
+        margin-top: 2px;
+        font-size: 7pt;
+        font-weight: 600;
+    }
+
+    .report-table tfoot {
+        display: table-row-group !important;
+    }
+
+    .report-table tbody tr,
+    .report-table tfoot tr {
+        break-inside: avoid;
+        page-break-inside: avoid;
     }
 
     .full-list-report-sheet {
@@ -2872,7 +3036,7 @@ body.route-fade::before {
     }
 
     .full-list-report-sheet .report-title {
-        margin-bottom: 6px;
+        margin: 0;
     }
 
     .full-list-report-section {
@@ -2888,14 +3052,14 @@ body.route-fade::before {
         width: 100% !important;
         min-width: 0 !important;
         max-width: 100% !important;
-        font-size: 5.2pt;
-        line-height: 1.05;
+        font-size: 6.2pt;
+        line-height: 1.12;
     }
 
     .report-table.expanded-weight-report {
         min-width: 0 !important;
-        font-size: 5.3pt;
-        line-height: 1.05;
+        font-size: 6.1pt;
+        line-height: 1.12;
     }
 
     .report-table.expanded-weight-report th,
@@ -2903,22 +3067,34 @@ body.route-fade::before {
         padding: 2px;
     }
 
+    .report-table.monthly-sdd-report {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        font-size: 5.9pt;
+        line-height: 1.12;
+    }
+
+    .report-table.monthly-sdd-report th,
+    .report-table.monthly-sdd-report td {
+        min-width: 0;
+        height: 0.24in;
+        padding: 2px;
+    }
+
+    .monthly-sdd-report tr {
+        break-inside: avoid;
+    }
+
+    .monthly-sdd-report thead th:first-child,
+    .monthly-sdd-report tbody th {
+        width: 110px;
+    }
+
     .report-table.full-list-report th,
     .report-table.full-list-report td {
         padding: 2px 2.5px;
         vertical-align: top;
-    }
-
-    .report-table.full-list-report thead {
-        display: table-header-group;
-    }
-
-    .report-table.full-list-report tfoot {
-        display: table-footer-group;
-    }
-
-    .report-table.full-list-report tr {
-        break-inside: avoid;
     }
 
     .report-table.full-list-report .report-address-cell {
@@ -2928,7 +3104,7 @@ body.route-fade::before {
     }
 
     .report-table.full-list-organization-table {
-        font-size: 4.7pt;
+        font-size: 5.9pt;
     }
 
     .report-table.full-list-organization-table th,
@@ -2937,7 +3113,7 @@ body.route-fade::before {
     }
 
     .ip-group-report-sheet .report-table {
-        font-size: 5.8pt;
+        font-size: 6.5pt;
     }
 
     .report-page,
@@ -3339,3 +3515,5 @@ body.route-fade::before {
     .schema-small-table { font-size: 7pt; }
     .schema-document-foot { margin-top: 6mm; font-size: 6.5pt; }
 }
+/* Offline installation, connection status, and upload experience */
+.offline-setting{display:flex;align-items:center;justify-content:space-between;gap:1.5rem;padding:1rem 1.15rem;border:1px solid rgba(25,135,84,.25);border-radius:.7rem;background:rgba(25,135,84,.05)}.offline-setting p{margin:.25rem 0 0;color:#667085;font-size:.9rem}.offline-banner{position:fixed;z-index:1080;right:1rem;bottom:1rem;max-width:390px;padding:1rem 1.15rem;border-radius:.75rem;background:#173d2b;color:#fff;box-shadow:0 12px 32px rgba(0,0,0,.24)}.offline-banner p{margin:0 0 .7rem}.offline-banner .btn{margin-right:.4rem}.offline-banner.is-error{background:#7f1d1d}.offline-step{display:flex;gap:.8rem;align-items:center;padding:.75rem 0;border-bottom:1px solid #edf0ed}.offline-step:last-child{border:0}.offline-step i{display:grid;place-items:center;width:1.6rem;height:1.6rem;border-radius:50%;background:#e9ecef;font-style:normal}.offline-step.is-done i{background:#198754;color:#fff}.offline-step.is-active i{background:#ffc107;color:#212529}.offline-upload-count{font-size:.8rem;background:#ffc107;color:#212529;padding:.14rem .4rem;border-radius:2rem;margin-left:.35rem}@media(max-width:576px){.offline-setting{align-items:flex-start;flex-direction:column}.offline-banner{left:1rem;right:1rem;max-width:none}}

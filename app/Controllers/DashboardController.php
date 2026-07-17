@@ -169,7 +169,7 @@ final class DashboardController
         $filters = $this->withUserLocationDefaults($filters);
         $filters = $this->withCurrentYearDateDefaults($filters);
         $scope = $filters['scope'] ?? 'region';
-        $allowedReportFormats = ['default', 'branch_region', 'sdd_summary', 'full_list_fwsp', 'ip_group_delivery'];
+        $allowedReportFormats = ['default', 'branch_region', 'sdd_summary', 'monthly_sdd_summary', 'full_list_fwsp', 'ip_group_delivery'];
         $requestedReportFormat = $filters['report_format'] ?? 'default';
         $reportFormat = in_array($requestedReportFormat, $allowedReportFormats, true)
             ? $requestedReportFormat
@@ -184,6 +184,7 @@ final class DashboardController
             'rows' => match ($reportFormat) {
                 'branch_region' => Report::summaryByBranchRegion($filters),
                 'sdd_summary' => Report::sddSummary($filters),
+                'monthly_sdd_summary' => Report::monthlySddSummary($filters),
                 'full_list_fwsp' => [
                     'individual' => Report::fullListIndividual($filters),
                     'organizations' => Report::fullListFarmerOrganizations($filters),
@@ -882,6 +883,7 @@ final class DashboardController
             'warehouse_id' => $this->clean($payload['warehouse_id'] ?? ''),
             'password' => (string) ($payload['password'] ?? ''),
             'profile_image' => $profileImage,
+            'offline_enabled' => !empty($payload['offline_enabled']),
         ]);
 
         $_SESSION['user'] = $this->clean($payload['full_name'] ?? $_SESSION['user']);
@@ -1227,6 +1229,7 @@ final class DashboardController
             'bags' => $this->clean($payload['bags'] ?? ''),
             'warehouse_id' => $this->clean($payload['warehouse_id'] ?? ''),
             'delivered_farmer_ids' => array_map('intval', (array) ($payload['delivered_farmer_ids'] ?? [])),
+            'client_control_number' => $this->clean($payload['client_control_number'] ?? ''),
         ];
 
         try {
@@ -1258,6 +1261,27 @@ final class DashboardController
         $this->notifyCrossLocationPalaySale($transaction);
         $this->flash('success', $flashMessage);
         $this->redirect(($transaction['type'] === 'Farmer Organization') ? '?page=organization-delivery' : '?page=individual-delivery');
+    }
+
+    /** Accepts a queued browser delivery. The database unique control number makes retries idempotent. */
+    public function syncOfflineTransaction(array $payload): void
+    {
+        header('Content-Type: application/json');
+        if (!$this->authorizeEncode()) { http_response_code(403); echo json_encode(['success' => false, 'message' => 'Your account is not permitted to upload delivery inputs.']); return; }
+        $payload['action'] = 'transaction';
+        $transaction = [
+            'type' => $this->clean($payload['type'] ?? ''), 'procurement' => $this->clean($payload['procurement'] ?? ''),
+            'rsbsa' => $this->clean($payload['rsbsa'] ?? ''), 'fo_name' => $this->clean($payload['fo_name'] ?? ''),
+            'representative' => $this->clean($payload['representative'] ?? ''), 'members' => $this->clean($payload['members'] ?? ''),
+            'farm_area' => $this->clean($payload['farm_area'] ?? ''), 'delivery_date' => $this->clean($payload['delivery_date'] ?? ''),
+            'wsr' => $this->clean($payload['wsr'] ?? ''), 'price' => $this->clean($payload['price'] ?? ''),
+            'net_kg' => $this->clean($payload['net_kg'] ?? ''), 'bags' => $this->clean($payload['bags'] ?? ''),
+            'warehouse_id' => $this->clean($payload['warehouse_id'] ?? ''), 'client_control_number' => $this->clean($payload['client_control_number'] ?? ''),
+            'delivered_farmer_ids' => array_map('intval', (array) ($payload['delivered_farmer_ids'] ?? [])),
+        ];
+        if ($transaction['client_control_number'] === '') { http_response_code(422); echo json_encode(['success' => false, 'message' => 'Offline control number is missing.']); return; }
+        try { $result = Transaction::create($transaction); Activity::add('Offline delivery uploaded: ' . $transaction['client_control_number'] . '.'); echo json_encode(['success' => true, 'duplicate' => $result['duplicate'] ?? false, 'id' => $result['transaction_id'] ?? null]); }
+        catch (\Throwable $e) { http_response_code(422); echo json_encode(['success' => false, 'message' => $e->getMessage()]); }
     }
 
     public function redirect(string $fragment = ''): void
