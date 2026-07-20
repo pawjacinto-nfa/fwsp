@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 30, 2026 at 09:37 AM
+-- Generation Time: Jul 20, 2026 at 09:34 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -89,7 +89,14 @@ INSERT INTO `audit_logs` (`id`, `user_id`, `action`, `details`, `created_at`) VA
 (47, 1, 'Paw Jacinto logged out.', '{}', '2026-06-30 06:25:20'),
 (48, 3, 'Danica Garcia logged in.', '{}', '2026-06-30 07:02:12'),
 (49, 3, 'Danica Garcia logged in.', '{}', '2026-06-30 07:04:26'),
-(50, 3, 'Danica Garcia logged in.', '{}', '2026-06-30 07:04:44');
+(50, 3, 'Danica Garcia logged in.', '{}', '2026-06-30 07:04:44'),
+(51, 1, 'Paw Jacinto logged in.', '{}', '2026-07-03 02:28:29'),
+(52, 1, 'Paw Jacinto logged in.', '{}', '2026-07-03 02:45:57'),
+(53, 1, 'Paw Jacinto logged out.', '{}', '2026-07-15 07:41:39'),
+(54, 1, 'Paw Jacinto logged in.', '{}', '2026-07-15 08:10:36'),
+(55, 1, 'Paw Jacinto logged out.', '{}', '2026-07-16 01:18:23'),
+(56, 1, 'Paw Jacinto logged in.', '{}', '2026-07-16 01:18:29'),
+(57, 1, 'Paw Jacinto logged in.', '{}', '2026-07-17 07:13:48');
 
 -- --------------------------------------------------------
 
@@ -1546,103 +1553,104 @@ CREATE TABLE `transactions` (
   `created_by` bigint(20) UNSIGNED DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `is_ip_group_delivery` tinyint(1) NOT NULL DEFAULT 0,
-  `total_cost` decimal(20,2) GENERATED ALWAYS AS (round(`price_per_kilogram` * `net_kilogram`,2)) STORED
+  `total_cost` decimal(20,2) GENERATED ALWAYS AS (round(`price_per_kilogram` * `net_kilogram`,2)) STORED,
+  `client_control_number` varchar(96) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `transactions`
 --
 
-INSERT INTO `transactions` (`id`, `seller_type`, `procurement_type`, `farmer_id`, `farmer_organization_id`, `representative_name`, `total_members`, `verified_farm_area`, `delivery_date`, `warehouse_stock_receipt_number`, `price_per_kilogram`, `net_kilogram`, `bags_50kg`, `warehouse_id`, `created_by`, `created_at`, `is_ip_group_delivery`) VALUES
-(1, 'Individual', 'In-Warehouse', 1, 1, NULL, NULL, 2.40, '2026-06-25', 'WSR-2026-0001', 23.00, 2400.00, 48, NULL, 2, '2026-06-25 13:45:17', 0),
-(2, 'Individual', 'Mobile Procurement', 2, 2, NULL, NULL, 1.70, '2026-06-25', 'WSR-2026-0002', 23.00, 1700.00, 34, NULL, 2, '2026-06-25 13:45:17', 0),
-(3, 'Farmer Organization', 'In-Warehouse', NULL, 1, 'Alma Reyes', 5, 7.50, '2026-01-16', 'FULLLIST-FO-01-Q1', 23.00, 6500.00, 130, 1, 1, '2026-06-25 13:49:51', 0),
-(4, 'Farmer Organization', 'Mobile Procurement', NULL, 1, 'Alma Reyes', 5, 7.85, '2026-04-18', 'FULLLIST-FO-01-Q2', 23.25, 6925.00, 139, 1, 1, '2026-06-25 13:49:51', 0),
-(5, 'Farmer Organization', 'In-Warehouse', NULL, 1, 'Alma Reyes', 5, 8.20, '2026-07-20', 'FULLLIST-FO-01-Q3', 23.50, 7350.00, 147, 1, 1, '2026-06-25 13:49:51', 0),
-(6, 'Farmer Organization', 'Mobile Procurement', NULL, 1, 'Alma Reyes', 5, 8.55, '2026-10-22', 'FULLLIST-FO-01-Q4', 23.75, 7775.00, 156, 1, 1, '2026-06-25 13:49:51', 0),
-(7, 'Farmer Organization', 'In-Warehouse', NULL, 2, 'Bernardo Cruz', 5, 8.50, '2026-01-16', 'FULLLIST-FO-02-Q1', 23.00, 7050.00, 141, 1, 1, '2026-06-25 13:49:51', 0),
-(8, 'Farmer Organization', 'Mobile Procurement', NULL, 2, 'Bernardo Cruz', 5, 8.85, '2026-04-18', 'FULLLIST-FO-02-Q2', 23.25, 7475.00, 150, 1, 1, '2026-06-25 13:49:51', 0),
-(9, 'Farmer Organization', 'In-Warehouse', NULL, 2, 'Bernardo Cruz', 5, 9.20, '2026-07-20', 'FULLLIST-FO-02-Q3', 23.50, 7900.00, 158, 1, 1, '2026-06-25 13:49:51', 0),
-(10, 'Farmer Organization', 'Mobile Procurement', NULL, 2, 'Bernardo Cruz', 5, 9.55, '2026-10-22', 'FULLLIST-FO-02-Q4', 23.75, 8325.00, 167, 1, 1, '2026-06-25 13:49:51', 0),
-(11, 'Farmer Organization', 'In-Warehouse', NULL, 5, 'Carina Santos', 5, 9.50, '2026-01-16', 'FULLLIST-FO-03-Q1', 23.00, 7600.00, 152, 1, 1, '2026-06-25 13:49:51', 0),
-(12, 'Farmer Organization', 'Mobile Procurement', NULL, 5, 'Carina Santos', 5, 9.85, '2026-04-18', 'FULLLIST-FO-03-Q2', 23.25, 8025.00, 161, 1, 1, '2026-06-25 13:49:51', 0),
-(13, 'Farmer Organization', 'In-Warehouse', NULL, 5, 'Carina Santos', 5, 10.20, '2026-07-20', 'FULLLIST-FO-03-Q3', 23.50, 8450.00, 169, 1, 1, '2026-06-25 13:49:51', 0),
-(14, 'Farmer Organization', 'Mobile Procurement', NULL, 5, 'Carina Santos', 5, 10.55, '2026-10-22', 'FULLLIST-FO-03-Q4', 23.75, 8875.00, 178, 1, 1, '2026-06-25 13:49:51', 0),
-(15, 'Farmer Organization', 'In-Warehouse', NULL, 6, 'Danilo Garcia', 5, 10.50, '2026-01-16', 'FULLLIST-FO-04-Q1', 23.00, 8150.00, 163, 1, 1, '2026-06-25 13:49:51', 0),
-(16, 'Farmer Organization', 'Mobile Procurement', NULL, 6, 'Danilo Garcia', 5, 10.85, '2026-04-18', 'FULLLIST-FO-04-Q2', 23.25, 8575.00, 172, 1, 1, '2026-06-25 13:49:51', 0),
-(17, 'Farmer Organization', 'In-Warehouse', NULL, 6, 'Danilo Garcia', 5, 11.20, '2026-07-20', 'FULLLIST-FO-04-Q3', 23.50, 9000.00, 180, 1, 1, '2026-06-25 13:49:51', 0),
-(18, 'Farmer Organization', 'Mobile Procurement', NULL, 6, 'Danilo Garcia', 5, 11.55, '2026-10-22', 'FULLLIST-FO-04-Q4', 23.75, 9425.00, 189, 1, 1, '2026-06-25 13:49:51', 0),
-(35, 'Individual', 'In-Warehouse', 43, NULL, NULL, NULL, 1.60, '2026-01-05', 'SEED-IND-2026-001', 23.25, 1285.00, 26, 2, 3, '2026-06-25 13:52:29', 0),
-(36, 'Individual', 'Mobile Procurement', 44, NULL, NULL, NULL, 1.70, '2026-01-06', 'SEED-IND-2026-002', 23.50, 1370.00, 27, 21, 3, '2026-06-25 13:52:29', 0),
-(37, 'Individual', 'In-Warehouse', 45, NULL, NULL, NULL, 1.80, '2026-01-07', 'SEED-IND-2026-003', 23.00, 1455.00, 29, 41, 3, '2026-06-25 13:52:29', 0),
-(38, 'Individual', 'Mobile Procurement', 46, NULL, NULL, NULL, 1.90, '2026-01-08', 'SEED-IND-2026-004', 23.25, 1540.00, 31, 61, 3, '2026-06-25 13:52:29', 0),
-(39, 'Individual', 'In-Warehouse', 47, NULL, NULL, NULL, 2.00, '2026-01-09', 'SEED-IND-2026-005', 23.50, 1625.00, 33, 81, 3, '2026-06-25 13:52:29', 0),
-(40, 'Individual', 'Mobile Procurement', 48, NULL, NULL, NULL, 2.10, '2026-01-10', 'SEED-IND-2026-006', 23.00, 1710.00, 34, 101, 3, '2026-06-25 13:52:29', 0),
-(41, 'Individual', 'In-Warehouse', 49, NULL, NULL, NULL, 2.20, '2026-01-11', 'SEED-IND-2026-007', 23.25, 1795.00, 36, 121, 3, '2026-06-25 13:52:29', 0),
-(42, 'Individual', 'Mobile Procurement', 50, NULL, NULL, NULL, 2.30, '2026-01-12', 'SEED-IND-2026-008', 23.50, 1880.00, 38, 140, 3, '2026-06-25 13:52:29', 0),
-(43, 'Individual', 'In-Warehouse', 51, NULL, NULL, NULL, 2.40, '2026-01-13', 'SEED-IND-2026-009', 23.00, 1965.00, 39, 160, 3, '2026-06-25 13:52:29', 0),
-(44, 'Individual', 'Mobile Procurement', 52, NULL, NULL, NULL, 2.50, '2026-01-14', 'SEED-IND-2026-010', 23.25, 2050.00, 41, 180, 3, '2026-06-25 13:52:29', 0),
-(45, 'Individual', 'In-Warehouse', 53, NULL, NULL, NULL, 2.60, '2026-02-05', 'SEED-IND-2026-011', 23.50, 2135.00, 43, 200, 3, '2026-06-25 13:52:29', 0),
-(46, 'Individual', 'Mobile Procurement', 54, NULL, NULL, NULL, 2.70, '2026-02-06', 'SEED-IND-2026-012', 23.00, 2220.00, 44, 220, 3, '2026-06-25 13:52:29', 0),
-(47, 'Individual', 'In-Warehouse', 55, NULL, NULL, NULL, 2.80, '2026-02-07', 'SEED-IND-2026-013', 23.25, 2305.00, 46, 240, 3, '2026-06-25 13:52:29', 0),
-(48, 'Individual', 'Mobile Procurement', 56, NULL, NULL, NULL, 2.90, '2026-02-08', 'SEED-IND-2026-014', 23.50, 2390.00, 48, 259, 3, '2026-06-25 13:52:29', 0),
-(49, 'Individual', 'In-Warehouse', 57, NULL, NULL, NULL, 3.00, '2026-02-09', 'SEED-IND-2026-015', 23.00, 2475.00, 50, 279, 3, '2026-06-25 13:52:29', 0),
-(50, 'Individual', 'Mobile Procurement', 58, NULL, NULL, NULL, 3.10, '2026-02-10', 'SEED-IND-2026-016', 23.25, 2560.00, 51, 299, 3, '2026-06-25 13:52:29', 0),
-(51, 'Individual', 'In-Warehouse', 59, NULL, NULL, NULL, 3.20, '2026-02-11', 'SEED-IND-2026-017', 23.50, 2645.00, 53, 319, 3, '2026-06-25 13:52:29', 0),
-(52, 'Individual', 'Mobile Procurement', 60, NULL, NULL, NULL, 3.30, '2026-02-12', 'SEED-IND-2026-018', 23.00, 2730.00, 55, 339, 3, '2026-06-25 13:52:29', 0),
-(53, 'Individual', 'In-Warehouse', 61, NULL, NULL, NULL, 3.40, '2026-02-13', 'SEED-IND-2026-019', 23.25, 2815.00, 56, 359, 3, '2026-06-25 13:52:29', 0),
-(54, 'Individual', 'Mobile Procurement', 62, NULL, NULL, NULL, 3.50, '2026-02-14', 'SEED-IND-2026-020', 23.50, 2900.00, 58, 378, 3, '2026-06-25 13:52:29', 0),
-(55, 'Farmer Organization', 'In-Warehouse', NULL, 11, 'Seed FO Representative', 10, 18.75, '2026-03-15', 'SEED-FO-2026-001', 23.50, 15250.00, 305, 398, 3, '2026-06-25 13:52:29', 0),
-(72, 'Individual', 'Mobile Procurement', 123, NULL, NULL, NULL, 1.20, '2026-05-01', 'WSR-WM000222-2026-001', 23.00, 900.00, 18, 49, 3, '2026-06-25 13:52:56', 0),
-(73, 'Individual', 'In-Warehouse', 124, NULL, NULL, NULL, 1.48, '2026-05-02', 'WSR-WM000222-2026-002', 23.15, 1250.00, 25, 49, 3, '2026-06-25 13:52:56', 0),
-(74, 'Individual', 'In-Warehouse', 125, NULL, NULL, NULL, 1.76, '2026-05-03', 'WSR-WM000222-2026-003', 23.30, 1600.00, 32, 49, 3, '2026-06-25 13:52:56', 0),
-(75, 'Individual', 'Mobile Procurement', 126, NULL, NULL, NULL, 2.04, '2026-05-04', 'WSR-WM000222-2026-004', 23.45, 1950.00, 39, 49, 3, '2026-06-25 13:52:56', 0),
-(76, 'Individual', 'In-Warehouse', 127, NULL, NULL, NULL, 2.32, '2026-05-05', 'WSR-WM000222-2026-005', 23.60, 2300.00, 46, 49, 3, '2026-06-25 13:52:56', 0),
-(77, 'Individual', 'In-Warehouse', 128, NULL, NULL, NULL, 2.60, '2026-05-06', 'WSR-WM000222-2026-006', 23.00, 2650.00, 53, 49, 3, '2026-06-25 13:52:56', 0),
-(78, 'Individual', 'Mobile Procurement', 129, NULL, NULL, NULL, 2.88, '2026-05-07', 'WSR-WM000222-2026-007', 23.15, 3000.00, 60, 49, 3, '2026-06-25 13:52:56', 0),
-(79, 'Individual', 'In-Warehouse', 130, NULL, NULL, NULL, 3.16, '2026-05-08', 'WSR-WM000222-2026-008', 23.30, 3350.00, 67, 49, 3, '2026-06-25 13:52:56', 0),
-(80, 'Individual', 'In-Warehouse', 131, NULL, NULL, NULL, 3.44, '2026-05-09', 'WSR-WM000222-2026-009', 23.45, 950.00, 19, 49, 3, '2026-06-25 13:52:56', 0),
-(81, 'Individual', 'Mobile Procurement', 132, NULL, NULL, NULL, 3.72, '2026-05-10', 'WSR-WM000222-2026-010', 23.60, 1300.00, 26, 49, 3, '2026-06-25 13:52:56', 0),
-(82, 'Individual', 'In-Warehouse', 133, NULL, NULL, NULL, 4.00, '2026-05-11', 'WSR-WM000222-2026-011', 23.00, 1650.00, 33, 49, 3, '2026-06-25 13:52:56', 0),
-(83, 'Individual', 'In-Warehouse', 134, NULL, NULL, NULL, 4.28, '2026-05-12', 'WSR-WM000222-2026-012', 23.15, 2000.00, 40, 49, 3, '2026-06-25 13:52:56', 0),
-(84, 'Individual', 'Mobile Procurement', 135, NULL, NULL, NULL, 1.20, '2026-05-13', 'WSR-WM000222-2026-013', 23.30, 2350.00, 47, 49, 3, '2026-06-25 13:52:56', 0),
-(85, 'Individual', 'In-Warehouse', 136, NULL, NULL, NULL, 1.48, '2026-05-14', 'WSR-WM000222-2026-014', 23.45, 2700.00, 54, 49, 3, '2026-06-25 13:52:56', 0),
-(86, 'Individual', 'In-Warehouse', 137, NULL, NULL, NULL, 1.76, '2026-05-15', 'WSR-WM000222-2026-015', 23.60, 3050.00, 61, 49, 3, '2026-06-25 13:52:56', 0),
-(87, 'Individual', 'Mobile Procurement', 138, NULL, NULL, NULL, 2.04, '2026-05-16', 'WSR-WM000222-2026-016', 23.00, 3400.00, 68, 49, 3, '2026-06-25 13:52:56', 0),
-(88, 'Individual', 'In-Warehouse', 139, NULL, NULL, NULL, 2.32, '2026-05-17', 'WSR-WM000222-2026-017', 23.15, 1000.00, 20, 49, 3, '2026-06-25 13:52:56', 0),
-(89, 'Individual', 'In-Warehouse', 140, NULL, NULL, NULL, 2.60, '2026-05-18', 'WSR-WM000222-2026-018', 23.30, 1350.00, 27, 49, 3, '2026-06-25 13:52:56', 0),
-(90, 'Individual', 'Mobile Procurement', 141, NULL, NULL, NULL, 2.88, '2026-05-19', 'WSR-WM000222-2026-019', 23.45, 1700.00, 34, 49, 3, '2026-06-25 13:52:56', 0),
-(91, 'Individual', 'In-Warehouse', 142, NULL, NULL, NULL, 3.16, '2026-05-20', 'WSR-WM000222-2026-020', 23.60, 2050.00, 41, 49, 3, '2026-06-25 13:52:56', 0),
-(92, 'Individual', 'In-Warehouse', 143, NULL, NULL, NULL, 3.44, '2026-05-21', 'WSR-WM000222-2026-021', 23.00, 2400.00, 48, 49, 3, '2026-06-25 13:52:56', 0),
-(93, 'Individual', 'Mobile Procurement', 144, NULL, NULL, NULL, 3.72, '2026-05-22', 'WSR-WM000222-2026-022', 23.15, 2750.00, 55, 49, 3, '2026-06-25 13:52:56', 0),
-(94, 'Individual', 'In-Warehouse', 145, NULL, NULL, NULL, 4.00, '2026-05-23', 'WSR-WM000222-2026-023', 23.30, 3100.00, 62, 49, 3, '2026-06-25 13:52:56', 0),
-(95, 'Individual', 'In-Warehouse', 146, NULL, NULL, NULL, 4.28, '2026-05-24', 'WSR-WM000222-2026-024', 23.45, 3450.00, 69, 49, 3, '2026-06-25 13:52:56', 0),
-(96, 'Individual', 'Mobile Procurement', 147, NULL, NULL, NULL, 1.20, '2026-05-25', 'WSR-WM000222-2026-025', 23.60, 1050.00, 21, 49, 3, '2026-06-25 13:52:56', 0),
-(97, 'Individual', 'In-Warehouse', 148, NULL, NULL, NULL, 1.48, '2026-06-01', 'WSR-WM000222-2026-026', 23.00, 1400.00, 28, 49, 3, '2026-06-25 13:52:56', 0),
-(98, 'Individual', 'In-Warehouse', 149, NULL, NULL, NULL, 1.76, '2026-06-02', 'WSR-WM000222-2026-027', 23.15, 1750.00, 35, 49, 3, '2026-06-25 13:52:56', 0),
-(99, 'Individual', 'Mobile Procurement', 150, NULL, NULL, NULL, 2.04, '2026-06-03', 'WSR-WM000222-2026-028', 23.30, 2100.00, 42, 49, 3, '2026-06-25 13:52:56', 0),
-(100, 'Individual', 'In-Warehouse', 151, NULL, NULL, NULL, 2.32, '2026-06-04', 'WSR-WM000222-2026-029', 23.45, 2450.00, 49, 49, 3, '2026-06-25 13:52:56', 0),
-(101, 'Individual', 'In-Warehouse', 152, NULL, NULL, NULL, 2.60, '2026-06-05', 'WSR-WM000222-2026-030', 23.60, 2800.00, 56, 49, 3, '2026-06-25 13:52:56', 0),
-(102, 'Individual', 'Mobile Procurement', 123, NULL, NULL, NULL, 2.88, '2026-06-06', 'WSR-WM000222-2026-031', 23.00, 3150.00, 63, 49, 3, '2026-06-25 13:52:56', 0),
-(103, 'Individual', 'In-Warehouse', 124, NULL, NULL, NULL, 3.16, '2026-06-07', 'WSR-WM000222-2026-032', 23.15, 3500.00, 70, 49, 3, '2026-06-25 13:52:56', 0),
-(104, 'Individual', 'In-Warehouse', 125, NULL, NULL, NULL, 3.44, '2026-06-08', 'WSR-WM000222-2026-033', 23.30, 1100.00, 22, 49, 3, '2026-06-25 13:52:56', 0),
-(105, 'Individual', 'Mobile Procurement', 126, NULL, NULL, NULL, 3.72, '2026-06-09', 'WSR-WM000222-2026-034', 23.45, 1450.00, 29, 49, 3, '2026-06-25 13:52:56', 0),
-(106, 'Individual', 'In-Warehouse', 127, NULL, NULL, NULL, 4.00, '2026-06-10', 'WSR-WM000222-2026-035', 23.60, 1800.00, 36, 49, 3, '2026-06-25 13:52:56', 0),
-(107, 'Individual', 'In-Warehouse', 128, NULL, NULL, NULL, 4.28, '2026-06-11', 'WSR-WM000222-2026-036', 23.00, 2150.00, 43, 49, 3, '2026-06-25 13:52:56', 0),
-(108, 'Individual', 'Mobile Procurement', 129, NULL, NULL, NULL, 1.20, '2026-06-12', 'WSR-WM000222-2026-037', 23.15, 2500.00, 50, 49, 3, '2026-06-25 13:52:56', 0),
-(109, 'Individual', 'In-Warehouse', 130, NULL, NULL, NULL, 1.48, '2026-06-13', 'WSR-WM000222-2026-038', 23.30, 2850.00, 57, 49, 3, '2026-06-25 13:52:56', 0),
-(110, 'Individual', 'In-Warehouse', 131, NULL, NULL, NULL, 1.76, '2026-06-14', 'WSR-WM000222-2026-039', 23.45, 3200.00, 64, 49, 3, '2026-06-25 13:52:56', 0),
-(111, 'Individual', 'Mobile Procurement', 132, NULL, NULL, NULL, 2.04, '2026-06-15', 'WSR-WM000222-2026-040', 23.60, 3550.00, 71, 49, 3, '2026-06-25 13:52:56', 0),
-(112, 'Individual', 'In-Warehouse', 133, NULL, NULL, NULL, 2.32, '2026-06-16', 'WSR-WM000222-2026-041', 23.00, 1150.00, 23, 49, 3, '2026-06-25 13:52:56', 0),
-(113, 'Individual', 'In-Warehouse', 134, NULL, NULL, NULL, 2.60, '2026-06-17', 'WSR-WM000222-2026-042', 23.15, 1500.00, 30, 49, 3, '2026-06-25 13:52:56', 0),
-(114, 'Individual', 'Mobile Procurement', 135, NULL, NULL, NULL, 2.88, '2026-06-18', 'WSR-WM000222-2026-043', 23.30, 1850.00, 37, 49, 3, '2026-06-25 13:52:56', 0),
-(115, 'Individual', 'In-Warehouse', 136, NULL, NULL, NULL, 3.16, '2026-06-19', 'WSR-WM000222-2026-044', 23.45, 2200.00, 44, 49, 3, '2026-06-25 13:52:56', 0),
-(116, 'Individual', 'In-Warehouse', 137, NULL, NULL, NULL, 3.44, '2026-06-20', 'WSR-WM000222-2026-045', 23.60, 2550.00, 51, 49, 3, '2026-06-25 13:52:56', 0),
-(117, 'Individual', 'Mobile Procurement', 138, NULL, NULL, NULL, 3.72, '2026-06-21', 'WSR-WM000222-2026-046', 23.00, 2900.00, 58, 49, 3, '2026-06-25 13:52:56', 0),
-(118, 'Individual', 'In-Warehouse', 139, NULL, NULL, NULL, 4.00, '2026-06-22', 'WSR-WM000222-2026-047', 23.15, 3250.00, 65, 49, 3, '2026-06-25 13:52:56', 0),
-(119, 'Individual', 'In-Warehouse', 140, NULL, NULL, NULL, 4.28, '2026-06-23', 'WSR-WM000222-2026-048', 23.30, 3600.00, 72, 49, 3, '2026-06-25 13:52:56', 0),
-(120, 'Individual', 'Mobile Procurement', 141, NULL, NULL, NULL, 1.20, '2026-06-24', 'WSR-WM000222-2026-049', 23.45, 1200.00, 24, 49, 3, '2026-06-25 13:52:56', 0),
-(121, 'Individual', 'In-Warehouse', 142, NULL, NULL, NULL, 1.48, '2026-06-25', 'WSR-WM000222-2026-050', 23.60, 1550.00, 31, 49, 3, '2026-06-25 13:52:56', 0);
+INSERT INTO `transactions` (`id`, `seller_type`, `procurement_type`, `farmer_id`, `farmer_organization_id`, `representative_name`, `total_members`, `verified_farm_area`, `delivery_date`, `warehouse_stock_receipt_number`, `price_per_kilogram`, `net_kilogram`, `bags_50kg`, `warehouse_id`, `created_by`, `created_at`, `is_ip_group_delivery`, `client_control_number`) VALUES
+(1, 'Individual', 'In-Warehouse', 1, 1, NULL, NULL, 2.40, '2026-06-25', 'WSR-2026-0001', 23.00, 2400.00, 48, NULL, 2, '2026-06-25 13:45:17', 0, NULL),
+(2, 'Individual', 'Mobile Procurement', 2, 2, NULL, NULL, 1.70, '2026-06-25', 'WSR-2026-0002', 23.00, 1700.00, 34, NULL, 2, '2026-06-25 13:45:17', 0, NULL),
+(3, 'Farmer Organization', 'In-Warehouse', NULL, 1, 'Alma Reyes', 5, 7.50, '2026-01-16', 'FULLLIST-FO-01-Q1', 23.00, 6500.00, 130, 1, 1, '2026-06-25 13:49:51', 0, NULL),
+(4, 'Farmer Organization', 'Mobile Procurement', NULL, 1, 'Alma Reyes', 5, 7.85, '2026-04-18', 'FULLLIST-FO-01-Q2', 23.25, 6925.00, 139, 1, 1, '2026-06-25 13:49:51', 0, NULL),
+(5, 'Farmer Organization', 'In-Warehouse', NULL, 1, 'Alma Reyes', 5, 8.20, '2026-07-20', 'FULLLIST-FO-01-Q3', 23.50, 7350.00, 147, 1, 1, '2026-06-25 13:49:51', 0, NULL),
+(6, 'Farmer Organization', 'Mobile Procurement', NULL, 1, 'Alma Reyes', 5, 8.55, '2026-10-22', 'FULLLIST-FO-01-Q4', 23.75, 7775.00, 156, 1, 1, '2026-06-25 13:49:51', 0, NULL),
+(7, 'Farmer Organization', 'In-Warehouse', NULL, 2, 'Bernardo Cruz', 5, 8.50, '2026-01-16', 'FULLLIST-FO-02-Q1', 23.00, 7050.00, 141, 1, 1, '2026-06-25 13:49:51', 0, NULL),
+(8, 'Farmer Organization', 'Mobile Procurement', NULL, 2, 'Bernardo Cruz', 5, 8.85, '2026-04-18', 'FULLLIST-FO-02-Q2', 23.25, 7475.00, 150, 1, 1, '2026-06-25 13:49:51', 0, NULL),
+(9, 'Farmer Organization', 'In-Warehouse', NULL, 2, 'Bernardo Cruz', 5, 9.20, '2026-07-20', 'FULLLIST-FO-02-Q3', 23.50, 7900.00, 158, 1, 1, '2026-06-25 13:49:51', 0, NULL),
+(10, 'Farmer Organization', 'Mobile Procurement', NULL, 2, 'Bernardo Cruz', 5, 9.55, '2026-10-22', 'FULLLIST-FO-02-Q4', 23.75, 8325.00, 167, 1, 1, '2026-06-25 13:49:51', 0, NULL),
+(11, 'Farmer Organization', 'In-Warehouse', NULL, 5, 'Carina Santos', 5, 9.50, '2026-01-16', 'FULLLIST-FO-03-Q1', 23.00, 7600.00, 152, 1, 1, '2026-06-25 13:49:51', 0, NULL),
+(12, 'Farmer Organization', 'Mobile Procurement', NULL, 5, 'Carina Santos', 5, 9.85, '2026-04-18', 'FULLLIST-FO-03-Q2', 23.25, 8025.00, 161, 1, 1, '2026-06-25 13:49:51', 0, NULL),
+(13, 'Farmer Organization', 'In-Warehouse', NULL, 5, 'Carina Santos', 5, 10.20, '2026-07-20', 'FULLLIST-FO-03-Q3', 23.50, 8450.00, 169, 1, 1, '2026-06-25 13:49:51', 0, NULL),
+(14, 'Farmer Organization', 'Mobile Procurement', NULL, 5, 'Carina Santos', 5, 10.55, '2026-10-22', 'FULLLIST-FO-03-Q4', 23.75, 8875.00, 178, 1, 1, '2026-06-25 13:49:51', 0, NULL),
+(15, 'Farmer Organization', 'In-Warehouse', NULL, 6, 'Danilo Garcia', 5, 10.50, '2026-01-16', 'FULLLIST-FO-04-Q1', 23.00, 8150.00, 163, 1, 1, '2026-06-25 13:49:51', 0, NULL),
+(16, 'Farmer Organization', 'Mobile Procurement', NULL, 6, 'Danilo Garcia', 5, 10.85, '2026-04-18', 'FULLLIST-FO-04-Q2', 23.25, 8575.00, 172, 1, 1, '2026-06-25 13:49:51', 0, NULL),
+(17, 'Farmer Organization', 'In-Warehouse', NULL, 6, 'Danilo Garcia', 5, 11.20, '2026-07-20', 'FULLLIST-FO-04-Q3', 23.50, 9000.00, 180, 1, 1, '2026-06-25 13:49:51', 0, NULL),
+(18, 'Farmer Organization', 'Mobile Procurement', NULL, 6, 'Danilo Garcia', 5, 11.55, '2026-10-22', 'FULLLIST-FO-04-Q4', 23.75, 9425.00, 189, 1, 1, '2026-06-25 13:49:51', 0, NULL),
+(35, 'Individual', 'In-Warehouse', 43, NULL, NULL, NULL, 1.60, '2026-01-05', 'SEED-IND-2026-001', 23.25, 1285.00, 26, 2, 3, '2026-06-25 13:52:29', 0, NULL),
+(36, 'Individual', 'Mobile Procurement', 44, NULL, NULL, NULL, 1.70, '2026-01-06', 'SEED-IND-2026-002', 23.50, 1370.00, 27, 21, 3, '2026-06-25 13:52:29', 0, NULL),
+(37, 'Individual', 'In-Warehouse', 45, NULL, NULL, NULL, 1.80, '2026-01-07', 'SEED-IND-2026-003', 23.00, 1455.00, 29, 41, 3, '2026-06-25 13:52:29', 0, NULL),
+(38, 'Individual', 'Mobile Procurement', 46, NULL, NULL, NULL, 1.90, '2026-01-08', 'SEED-IND-2026-004', 23.25, 1540.00, 31, 61, 3, '2026-06-25 13:52:29', 0, NULL),
+(39, 'Individual', 'In-Warehouse', 47, NULL, NULL, NULL, 2.00, '2026-01-09', 'SEED-IND-2026-005', 23.50, 1625.00, 33, 81, 3, '2026-06-25 13:52:29', 0, NULL),
+(40, 'Individual', 'Mobile Procurement', 48, NULL, NULL, NULL, 2.10, '2026-01-10', 'SEED-IND-2026-006', 23.00, 1710.00, 34, 101, 3, '2026-06-25 13:52:29', 0, NULL),
+(41, 'Individual', 'In-Warehouse', 49, NULL, NULL, NULL, 2.20, '2026-01-11', 'SEED-IND-2026-007', 23.25, 1795.00, 36, 121, 3, '2026-06-25 13:52:29', 0, NULL),
+(42, 'Individual', 'Mobile Procurement', 50, NULL, NULL, NULL, 2.30, '2026-01-12', 'SEED-IND-2026-008', 23.50, 1880.00, 38, 140, 3, '2026-06-25 13:52:29', 0, NULL),
+(43, 'Individual', 'In-Warehouse', 51, NULL, NULL, NULL, 2.40, '2026-01-13', 'SEED-IND-2026-009', 23.00, 1965.00, 39, 160, 3, '2026-06-25 13:52:29', 0, NULL),
+(44, 'Individual', 'Mobile Procurement', 52, NULL, NULL, NULL, 2.50, '2026-01-14', 'SEED-IND-2026-010', 23.25, 2050.00, 41, 180, 3, '2026-06-25 13:52:29', 0, NULL),
+(45, 'Individual', 'In-Warehouse', 53, NULL, NULL, NULL, 2.60, '2026-02-05', 'SEED-IND-2026-011', 23.50, 2135.00, 43, 200, 3, '2026-06-25 13:52:29', 0, NULL),
+(46, 'Individual', 'Mobile Procurement', 54, NULL, NULL, NULL, 2.70, '2026-02-06', 'SEED-IND-2026-012', 23.00, 2220.00, 44, 220, 3, '2026-06-25 13:52:29', 0, NULL),
+(47, 'Individual', 'In-Warehouse', 55, NULL, NULL, NULL, 2.80, '2026-02-07', 'SEED-IND-2026-013', 23.25, 2305.00, 46, 240, 3, '2026-06-25 13:52:29', 0, NULL),
+(48, 'Individual', 'Mobile Procurement', 56, NULL, NULL, NULL, 2.90, '2026-02-08', 'SEED-IND-2026-014', 23.50, 2390.00, 48, 259, 3, '2026-06-25 13:52:29', 0, NULL),
+(49, 'Individual', 'In-Warehouse', 57, NULL, NULL, NULL, 3.00, '2026-02-09', 'SEED-IND-2026-015', 23.00, 2475.00, 50, 279, 3, '2026-06-25 13:52:29', 0, NULL),
+(50, 'Individual', 'Mobile Procurement', 58, NULL, NULL, NULL, 3.10, '2026-02-10', 'SEED-IND-2026-016', 23.25, 2560.00, 51, 299, 3, '2026-06-25 13:52:29', 0, NULL),
+(51, 'Individual', 'In-Warehouse', 59, NULL, NULL, NULL, 3.20, '2026-02-11', 'SEED-IND-2026-017', 23.50, 2645.00, 53, 319, 3, '2026-06-25 13:52:29', 0, NULL),
+(52, 'Individual', 'Mobile Procurement', 60, NULL, NULL, NULL, 3.30, '2026-02-12', 'SEED-IND-2026-018', 23.00, 2730.00, 55, 339, 3, '2026-06-25 13:52:29', 0, NULL),
+(53, 'Individual', 'In-Warehouse', 61, NULL, NULL, NULL, 3.40, '2026-02-13', 'SEED-IND-2026-019', 23.25, 2815.00, 56, 359, 3, '2026-06-25 13:52:29', 0, NULL),
+(54, 'Individual', 'Mobile Procurement', 62, NULL, NULL, NULL, 3.50, '2026-02-14', 'SEED-IND-2026-020', 23.50, 2900.00, 58, 378, 3, '2026-06-25 13:52:29', 0, NULL),
+(55, 'Farmer Organization', 'In-Warehouse', NULL, 11, 'Seed FO Representative', 10, 18.75, '2026-03-15', 'SEED-FO-2026-001', 23.50, 15250.00, 305, 398, 3, '2026-06-25 13:52:29', 0, NULL),
+(72, 'Individual', 'Mobile Procurement', 123, NULL, NULL, NULL, 1.20, '2026-05-01', 'WSR-WM000222-2026-001', 23.00, 900.00, 18, 49, 3, '2026-06-25 13:52:56', 0, NULL),
+(73, 'Individual', 'In-Warehouse', 124, NULL, NULL, NULL, 1.48, '2026-05-02', 'WSR-WM000222-2026-002', 23.15, 1250.00, 25, 49, 3, '2026-06-25 13:52:56', 0, NULL),
+(74, 'Individual', 'In-Warehouse', 125, NULL, NULL, NULL, 1.76, '2026-05-03', 'WSR-WM000222-2026-003', 23.30, 1600.00, 32, 49, 3, '2026-06-25 13:52:56', 0, NULL),
+(75, 'Individual', 'Mobile Procurement', 126, NULL, NULL, NULL, 2.04, '2026-05-04', 'WSR-WM000222-2026-004', 23.45, 1950.00, 39, 49, 3, '2026-06-25 13:52:56', 0, NULL),
+(76, 'Individual', 'In-Warehouse', 127, NULL, NULL, NULL, 2.32, '2026-05-05', 'WSR-WM000222-2026-005', 23.60, 2300.00, 46, 49, 3, '2026-06-25 13:52:56', 0, NULL),
+(77, 'Individual', 'In-Warehouse', 128, NULL, NULL, NULL, 2.60, '2026-05-06', 'WSR-WM000222-2026-006', 23.00, 2650.00, 53, 49, 3, '2026-06-25 13:52:56', 0, NULL),
+(78, 'Individual', 'Mobile Procurement', 129, NULL, NULL, NULL, 2.88, '2026-05-07', 'WSR-WM000222-2026-007', 23.15, 3000.00, 60, 49, 3, '2026-06-25 13:52:56', 0, NULL),
+(79, 'Individual', 'In-Warehouse', 130, NULL, NULL, NULL, 3.16, '2026-05-08', 'WSR-WM000222-2026-008', 23.30, 3350.00, 67, 49, 3, '2026-06-25 13:52:56', 0, NULL),
+(80, 'Individual', 'In-Warehouse', 131, NULL, NULL, NULL, 3.44, '2026-05-09', 'WSR-WM000222-2026-009', 23.45, 950.00, 19, 49, 3, '2026-06-25 13:52:56', 0, NULL),
+(81, 'Individual', 'Mobile Procurement', 132, NULL, NULL, NULL, 3.72, '2026-05-10', 'WSR-WM000222-2026-010', 23.60, 1300.00, 26, 49, 3, '2026-06-25 13:52:56', 0, NULL),
+(82, 'Individual', 'In-Warehouse', 133, NULL, NULL, NULL, 4.00, '2026-05-11', 'WSR-WM000222-2026-011', 23.00, 1650.00, 33, 49, 3, '2026-06-25 13:52:56', 0, NULL),
+(83, 'Individual', 'In-Warehouse', 134, NULL, NULL, NULL, 4.28, '2026-05-12', 'WSR-WM000222-2026-012', 23.15, 2000.00, 40, 49, 3, '2026-06-25 13:52:56', 0, NULL),
+(84, 'Individual', 'Mobile Procurement', 135, NULL, NULL, NULL, 1.20, '2026-05-13', 'WSR-WM000222-2026-013', 23.30, 2350.00, 47, 49, 3, '2026-06-25 13:52:56', 0, NULL),
+(85, 'Individual', 'In-Warehouse', 136, NULL, NULL, NULL, 1.48, '2026-05-14', 'WSR-WM000222-2026-014', 23.45, 2700.00, 54, 49, 3, '2026-06-25 13:52:56', 0, NULL),
+(86, 'Individual', 'In-Warehouse', 137, NULL, NULL, NULL, 1.76, '2026-05-15', 'WSR-WM000222-2026-015', 23.60, 3050.00, 61, 49, 3, '2026-06-25 13:52:56', 0, NULL),
+(87, 'Individual', 'Mobile Procurement', 138, NULL, NULL, NULL, 2.04, '2026-05-16', 'WSR-WM000222-2026-016', 23.00, 3400.00, 68, 49, 3, '2026-06-25 13:52:56', 0, NULL),
+(88, 'Individual', 'In-Warehouse', 139, NULL, NULL, NULL, 2.32, '2026-05-17', 'WSR-WM000222-2026-017', 23.15, 1000.00, 20, 49, 3, '2026-06-25 13:52:56', 0, NULL),
+(89, 'Individual', 'In-Warehouse', 140, NULL, NULL, NULL, 2.60, '2026-05-18', 'WSR-WM000222-2026-018', 23.30, 1350.00, 27, 49, 3, '2026-06-25 13:52:56', 0, NULL),
+(90, 'Individual', 'Mobile Procurement', 141, NULL, NULL, NULL, 2.88, '2026-05-19', 'WSR-WM000222-2026-019', 23.45, 1700.00, 34, 49, 3, '2026-06-25 13:52:56', 0, NULL),
+(91, 'Individual', 'In-Warehouse', 142, NULL, NULL, NULL, 3.16, '2026-05-20', 'WSR-WM000222-2026-020', 23.60, 2050.00, 41, 49, 3, '2026-06-25 13:52:56', 0, NULL),
+(92, 'Individual', 'In-Warehouse', 143, NULL, NULL, NULL, 3.44, '2026-05-21', 'WSR-WM000222-2026-021', 23.00, 2400.00, 48, 49, 3, '2026-06-25 13:52:56', 0, NULL),
+(93, 'Individual', 'Mobile Procurement', 144, NULL, NULL, NULL, 3.72, '2026-05-22', 'WSR-WM000222-2026-022', 23.15, 2750.00, 55, 49, 3, '2026-06-25 13:52:56', 0, NULL),
+(94, 'Individual', 'In-Warehouse', 145, NULL, NULL, NULL, 4.00, '2026-05-23', 'WSR-WM000222-2026-023', 23.30, 3100.00, 62, 49, 3, '2026-06-25 13:52:56', 0, NULL),
+(95, 'Individual', 'In-Warehouse', 146, NULL, NULL, NULL, 4.28, '2026-05-24', 'WSR-WM000222-2026-024', 23.45, 3450.00, 69, 49, 3, '2026-06-25 13:52:56', 0, NULL),
+(96, 'Individual', 'Mobile Procurement', 147, NULL, NULL, NULL, 1.20, '2026-05-25', 'WSR-WM000222-2026-025', 23.60, 1050.00, 21, 49, 3, '2026-06-25 13:52:56', 0, NULL),
+(97, 'Individual', 'In-Warehouse', 148, NULL, NULL, NULL, 1.48, '2026-06-01', 'WSR-WM000222-2026-026', 23.00, 1400.00, 28, 49, 3, '2026-06-25 13:52:56', 0, NULL),
+(98, 'Individual', 'In-Warehouse', 149, NULL, NULL, NULL, 1.76, '2026-06-02', 'WSR-WM000222-2026-027', 23.15, 1750.00, 35, 49, 3, '2026-06-25 13:52:56', 0, NULL),
+(99, 'Individual', 'Mobile Procurement', 150, NULL, NULL, NULL, 2.04, '2026-06-03', 'WSR-WM000222-2026-028', 23.30, 2100.00, 42, 49, 3, '2026-06-25 13:52:56', 0, NULL),
+(100, 'Individual', 'In-Warehouse', 151, NULL, NULL, NULL, 2.32, '2026-06-04', 'WSR-WM000222-2026-029', 23.45, 2450.00, 49, 49, 3, '2026-06-25 13:52:56', 0, NULL),
+(101, 'Individual', 'In-Warehouse', 152, NULL, NULL, NULL, 2.60, '2026-06-05', 'WSR-WM000222-2026-030', 23.60, 2800.00, 56, 49, 3, '2026-06-25 13:52:56', 0, NULL),
+(102, 'Individual', 'Mobile Procurement', 123, NULL, NULL, NULL, 2.88, '2026-06-06', 'WSR-WM000222-2026-031', 23.00, 3150.00, 63, 49, 3, '2026-06-25 13:52:56', 0, NULL),
+(103, 'Individual', 'In-Warehouse', 124, NULL, NULL, NULL, 3.16, '2026-06-07', 'WSR-WM000222-2026-032', 23.15, 3500.00, 70, 49, 3, '2026-06-25 13:52:56', 0, NULL),
+(104, 'Individual', 'In-Warehouse', 125, NULL, NULL, NULL, 3.44, '2026-06-08', 'WSR-WM000222-2026-033', 23.30, 1100.00, 22, 49, 3, '2026-06-25 13:52:56', 0, NULL),
+(105, 'Individual', 'Mobile Procurement', 126, NULL, NULL, NULL, 3.72, '2026-06-09', 'WSR-WM000222-2026-034', 23.45, 1450.00, 29, 49, 3, '2026-06-25 13:52:56', 0, NULL),
+(106, 'Individual', 'In-Warehouse', 127, NULL, NULL, NULL, 4.00, '2026-06-10', 'WSR-WM000222-2026-035', 23.60, 1800.00, 36, 49, 3, '2026-06-25 13:52:56', 0, NULL),
+(107, 'Individual', 'In-Warehouse', 128, NULL, NULL, NULL, 4.28, '2026-06-11', 'WSR-WM000222-2026-036', 23.00, 2150.00, 43, 49, 3, '2026-06-25 13:52:56', 0, NULL),
+(108, 'Individual', 'Mobile Procurement', 129, NULL, NULL, NULL, 1.20, '2026-06-12', 'WSR-WM000222-2026-037', 23.15, 2500.00, 50, 49, 3, '2026-06-25 13:52:56', 0, NULL),
+(109, 'Individual', 'In-Warehouse', 130, NULL, NULL, NULL, 1.48, '2026-06-13', 'WSR-WM000222-2026-038', 23.30, 2850.00, 57, 49, 3, '2026-06-25 13:52:56', 0, NULL),
+(110, 'Individual', 'In-Warehouse', 131, NULL, NULL, NULL, 1.76, '2026-06-14', 'WSR-WM000222-2026-039', 23.45, 3200.00, 64, 49, 3, '2026-06-25 13:52:56', 0, NULL),
+(111, 'Individual', 'Mobile Procurement', 132, NULL, NULL, NULL, 2.04, '2026-06-15', 'WSR-WM000222-2026-040', 23.60, 3550.00, 71, 49, 3, '2026-06-25 13:52:56', 0, NULL),
+(112, 'Individual', 'In-Warehouse', 133, NULL, NULL, NULL, 2.32, '2026-06-16', 'WSR-WM000222-2026-041', 23.00, 1150.00, 23, 49, 3, '2026-06-25 13:52:56', 0, NULL),
+(113, 'Individual', 'In-Warehouse', 134, NULL, NULL, NULL, 2.60, '2026-06-17', 'WSR-WM000222-2026-042', 23.15, 1500.00, 30, 49, 3, '2026-06-25 13:52:56', 0, NULL),
+(114, 'Individual', 'Mobile Procurement', 135, NULL, NULL, NULL, 2.88, '2026-06-18', 'WSR-WM000222-2026-043', 23.30, 1850.00, 37, 49, 3, '2026-06-25 13:52:56', 0, NULL),
+(115, 'Individual', 'In-Warehouse', 136, NULL, NULL, NULL, 3.16, '2026-06-19', 'WSR-WM000222-2026-044', 23.45, 2200.00, 44, 49, 3, '2026-06-25 13:52:56', 0, NULL),
+(116, 'Individual', 'In-Warehouse', 137, NULL, NULL, NULL, 3.44, '2026-06-20', 'WSR-WM000222-2026-045', 23.60, 2550.00, 51, 49, 3, '2026-06-25 13:52:56', 0, NULL),
+(117, 'Individual', 'Mobile Procurement', 138, NULL, NULL, NULL, 3.72, '2026-06-21', 'WSR-WM000222-2026-046', 23.00, 2900.00, 58, 49, 3, '2026-06-25 13:52:56', 0, NULL),
+(118, 'Individual', 'In-Warehouse', 139, NULL, NULL, NULL, 4.00, '2026-06-22', 'WSR-WM000222-2026-047', 23.15, 3250.00, 65, 49, 3, '2026-06-25 13:52:56', 0, NULL),
+(119, 'Individual', 'In-Warehouse', 140, NULL, NULL, NULL, 4.28, '2026-06-23', 'WSR-WM000222-2026-048', 23.30, 3600.00, 72, 49, 3, '2026-06-25 13:52:56', 0, NULL),
+(120, 'Individual', 'Mobile Procurement', 141, NULL, NULL, NULL, 1.20, '2026-06-24', 'WSR-WM000222-2026-049', 23.45, 1200.00, 24, 49, 3, '2026-06-25 13:52:56', 0, NULL),
+(121, 'Individual', 'In-Warehouse', 142, NULL, NULL, NULL, 1.48, '2026-06-25', 'WSR-WM000222-2026-050', 23.60, 1550.00, 31, 49, 3, '2026-06-25 13:52:56', 0, NULL);
 
 -- --------------------------------------------------------
 
@@ -2529,6 +2537,7 @@ ALTER TABLE `support_ticket_messages`
 ALTER TABLE `transactions`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `warehouse_stock_receipt_number` (`warehouse_stock_receipt_number`),
+  ADD UNIQUE KEY `transactions_client_control_number_unique` (`client_control_number`),
   ADD KEY `farmer_id` (`farmer_id`),
   ADD KEY `farmer_organization_id` (`farmer_organization_id`),
   ADD KEY `created_by` (`created_by`),
@@ -2566,7 +2575,7 @@ ALTER TABLE `warehouse_offices`
 -- AUTO_INCREMENT for table `audit_logs`
 --
 ALTER TABLE `audit_logs`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=51;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=58;
 
 --
 -- AUTO_INCREMENT for table `branch_offices`
@@ -2608,7 +2617,7 @@ ALTER TABLE `farmer_key_sequences`
 -- AUTO_INCREMENT for table `farmer_organizations`
 --
 ALTER TABLE `farmer_organizations`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=101;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=112;
 
 --
 -- AUTO_INCREMENT for table `landholdings`

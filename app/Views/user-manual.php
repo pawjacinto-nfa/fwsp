@@ -6,6 +6,7 @@ $canManageLibraries = $canEncode;
 $isSystemAdmin = $currentRole === 'System Admin';
 
 $allManualSections = [
+    'system-overview' => 'System Overview',
     'getting-started' => 'Getting Started',
     'roles' => 'Roles & Access',
     'dashboard' => 'Dashboard',
@@ -97,6 +98,33 @@ $roleDescriptions = [
         </aside>
 
         <article class="manual-content">
+            <section class="manual-section" id="system-overview">
+                <p class="manual-kicker"><?= e($manualSectionNumbers['system-overview']) ?></p>
+                <h2>System Overview</h2>
+
+                <h3>Introduction</h3>
+                <p>The NFA Farmer-Seller Registry is a web-based information system developed to support the National Food Authority's management of farmer-seller profiles and palay procurement records. It provides authorized users with a single workspace for registering farmers and farmer organizations, recording deliveries, retrieving records, and preparing reports for operational use.</p>
+
+                <h3>Background</h3>
+                <p>Before the development of this system, the NFA did not have a dedicated system for centrally managing farmer-seller information and palay delivery records. Information could be handled through separate files or manual processes, making it more difficult to maintain complete, consistent, and readily available records. The Farmer-Seller Registry was created to address this need by organizing relevant data in one system and making it easier for authorized personnel to access reliable information for day-to-day operations and reporting.</p>
+
+                <h3>Objectives</h3>
+                <ul class="manual-list">
+                    <li>Maintain accurate and organized profiles of individual farmer-sellers and farmer organizations.</li>
+                    <li>Record palay delivery transactions in a timely and consistent manner.</li>
+                    <li>Provide authorized users with searchable records and reports to support monitoring and decision-making.</li>
+                    <li>Improve data quality through role-based access, required information, and validation of key records.</li>
+                    <li>Produce operational and sex-disaggregated reports from a centralized source of information.</li>
+                </ul>
+
+                <h3>Scope and Limitations</h3>
+                <p>The system covers farmer-seller and farmer-organization registration, palay delivery encoding, record searching, location and reference-list maintenance, reports, user access management, and technical-support concerns. Access to these functions depends on the user's assigned role and organizational location.</p>
+                <div class="manual-callout is-warning">
+                    <strong>System limitations</strong>
+                    <p>The accuracy of reports and records depends on the completeness and correctness of encoded information. The system is intended for authorized NFA personnel and its assigned operational scope; it does not replace required NFA approvals, policies, or source-document verification. Users may only view or manage information allowed by their role and location assignment.</p>
+                </div>
+            </section>
+
             <section class="manual-section" id="getting-started">
                 <p class="manual-kicker"><?= e($manualSectionNumbers['getting-started']) ?></p>
                 <h2>Getting Started</h2>
