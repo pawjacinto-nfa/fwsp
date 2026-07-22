@@ -47,14 +47,44 @@ if (location.hash === "#display-settings") {
     const write = (items) => localStorage.setItem(key, JSON.stringify(items));
     const controlNumber = () => `OFF-${config.userId}-${Date.now().toString(36)}-${crypto.getRandomValues(new Uint32Array(1))[0].toString(36)}`.toUpperCase();
     const modal = (title, body, footer = '') => `<div class="modal fade auth-modal" id="offlineSystemModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h2 class="modal-title fs-5">${title}</h2><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body">${body}</div><div class="modal-footer">${footer || '<button class="btn btn-success" data-bs-dismiss="modal">OK</button>'}</div></div></div></div>`;
-    const show = (title, body, footer) => { document.getElementById('offlineSystemModal')?.remove(); document.body.insertAdjacentHTML('beforeend', modal(title, body, footer)); const node = document.getElementById('offlineSystemModal'); const instance = new bootstrap.Modal(node); instance.show(); return node; };
+    const show = (title, body, footer, locked = false) => { document.getElementById('offlineSystemModal')?.remove(); document.body.insertAdjacentHTML('beforeend', modal(title, body, footer)); const node = document.getElementById('offlineSystemModal'); const instance = new bootstrap.Modal(node, locked ? { backdrop: 'static', keyboard: false } : {}); instance.show(); return node; };
     const banner = (message, buttons = '', error = false) => { document.getElementById('offlineConnectionBanner')?.remove(); document.body.insertAdjacentHTML('beforeend', `<aside class="offline-banner${error ? ' is-error' : ''}" id="offlineConnectionBanner"><p>${message}</p>${buttons}</aside>`); };
     const clearBanner = () => document.getElementById('offlineConnectionBanner')?.remove();
     const refreshBadge = () => document.querySelectorAll('[data-offline-queue-count]').forEach(el => { const count = read().length; el.textContent = count ? count : ''; el.hidden = !count; });
-    const install = async () => {
-        const node = show('Preparing offline workspace', `<p class="text-muted">Setting up secure local delivery capture for this device.</p><div data-install-steps><div class="offline-step is-active"><i>1</i><span>Registering offline workspace</span></div><div class="offline-step"><i>2</i><span>Downloading delivery forms and resources</span></div><div class="offline-step"><i>3</i><span>Verifying local storage</span></div></div>`, '');
-        try { if (!('serviceWorker' in navigator)) throw new Error('This browser does not support offline workspaces.'); await navigator.serviceWorker.register('service-worker.js'); await navigator.serviceWorker.ready; const steps = node.querySelectorAll('.offline-step'); for (const step of steps) { step.classList.remove('is-active'); step.classList.add('is-done'); await new Promise(resolve => setTimeout(resolve, 350)); } node.querySelector('.modal-footer').innerHTML = '<button class="btn btn-success" data-bs-dismiss="modal">Offline workspace ready</button>'; }
-        catch (error) { node.querySelector('.modal-body').insertAdjacentHTML('beforeend', `<div class="alert alert-danger mt-3 mb-0">${error.message} Keep your connection on and try again.</div>`); node.querySelector('.modal-footer').innerHTML = '<button class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>'; }
+    const install = async (toggle) => {
+        const node = show('Installing offline workspace', `<p class="text-muted mb-3">Preparing secure delivery forms for this device. Please keep this window open.</p><div class="offline-install-progress"><div class="d-flex justify-content-between align-items-center mb-2"><strong data-install-status>Starting installation…</strong><strong data-install-percent>0%</strong></div><div class="progress" role="progressbar" aria-label="Offline installation progress"><div class="progress-bar progress-bar-striped progress-bar-animated" data-install-bar style="width:0%">0%</div></div></div><div class="mt-3" data-install-steps><div class="offline-step is-active" data-install-step="register"><i>1</i><span>Registering this device</span><small data-install-step-percent="register">0%</small></div><div class="offline-step" data-install-step="download"><i>2</i><span>Downloading forms and application resources</span><small data-install-step-percent="download">0%</small></div><div class="offline-step" data-install-step="verify"><i>3</i><span>Verifying offline workspace</span><small data-install-step-percent="verify">0%</small></div></div>`, '', true);
+        node.querySelector('.btn-close')?.remove();
+        if (toggle) toggle.disabled = true;
+        const setStep = (name, state) => { const step = node.querySelector(`[data-install-step="${name}"]`); if (!step) return; step.classList.remove('is-active', 'is-done'); step.classList.add(state); };
+        const setStepPercent = (name, percent) => { const output = node.querySelector(`[data-install-step-percent="${name}"]`); if (output) output.textContent = `${percent}%`; };
+        const update = (percent, status) => { const bar = node.querySelector('[data-install-bar]'); if (bar) { bar.style.width = `${percent}%`; bar.textContent = `${percent}%`; } node.querySelector('[data-install-percent]').textContent = `${percent}%`; node.querySelector('[data-install-status]').textContent = status; };
+        const finishError = (message) => { update(0, 'Installation needs attention'); node.querySelector('.modal-body').insertAdjacentHTML('beforeend', `<div class="alert alert-danger mt-3 mb-0">${message} Your offline mode setting was not changed.</div>`); node.querySelector('.modal-footer').innerHTML = '<button class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>'; if (toggle) { toggle.checked = false; toggle.disabled = false; } };
+        try {
+            if (!('serviceWorker' in navigator)) throw new Error('This browser does not support offline workspaces.');
+            update(8, 'Registering this device…'); setStep('register', 'is-active');
+            const registration = await navigator.serviceWorker.register('service-worker.js');
+            await navigator.serviceWorker.ready;
+            setStep('register', 'is-done'); setStepPercent('register', 100); setStep('download', 'is-active'); update(15, 'Downloading delivery forms and resources…');
+            const worker = registration.installing || registration.waiting || registration.active;
+            if (!worker) throw new Error('The offline workspace could not be started.');
+            await new Promise((resolve, reject) => {
+                const timeout = window.setTimeout(() => { cleanup(); reject(new Error('The installation did not respond. Please try again.')); }, 45000);
+                const receive = (event) => {
+                    const data = event.data || {};
+                    if (data.type === 'FWSP_INSTALL_PROGRESS') { setStepPercent('download', data.percent); update(Math.max(15, data.percent), `Downloading ${data.completed} of ${data.total} resources…`); return; }
+                    if (data.type === 'FWSP_INSTALL_ERROR') { cleanup(); reject(new Error(`${data.message} (${data.resource})`)); return; }
+                    if (data.type === 'FWSP_INSTALL_COMPLETE') { cleanup(); resolve(); }
+                };
+                const cleanup = () => { window.clearTimeout(timeout); navigator.serviceWorker.removeEventListener('message', receive); };
+                navigator.serviceWorker.addEventListener('message', receive);
+                worker.postMessage({ type: 'FWSP_INSTALL_OFFLINE' });
+            });
+            setStep('download', 'is-done'); setStepPercent('download', 100); setStep('verify', 'is-active'); update(96, 'Verifying offline workspace…');
+            await caches.open('fwsp-offline-v2');
+            setStep('verify', 'is-done'); setStepPercent('verify', 100); update(100, 'Offline workspace is ready.');
+            node.querySelector('.modal-footer').innerHTML = '<button class="btn btn-success" data-bs-dismiss="modal">Offline workspace ready</button>';
+            if (toggle) toggle.disabled = false;
+        } catch (error) { finishError(error.message || 'Unable to prepare the offline workspace.'); }
     };
     const queueForm = (form) => {
         const data = Object.fromEntries(new FormData(form).entries());
@@ -70,7 +100,7 @@ if (location.hash === "#display-settings") {
         const bar = node.querySelector('.progress-bar'), status = node.querySelector('[data-sync-status]'), remaining = [];
         for (let i = 0; i < items.length; i++) { const item = items[i]; status.textContent = `Uploading ${i + 1} of ${items.length} (${item.control})…`; try { const body = new URLSearchParams({ ...item.data, csrf_token: config.csrfToken }); body.delete('delivered_farmer_ids'); item.data.delivered_farmer_ids.forEach(id => body.append('delivered_farmer_ids[]', id)); const response = await fetch(config.syncUrl, { method: 'POST', headers: { 'X-Requested-With': 'fetch', 'Content-Type': 'application/x-www-form-urlencoded' }, body, credentials: 'same-origin' }); const result = await response.json(); if (!response.ok || !result.success) throw new Error(result.message || 'The server rejected this input.'); } catch (error) { remaining.push(item); } bar.style.width = `${Math.round(((i + 1) / items.length) * 100)}%`; bar.textContent = bar.style.width; }
         write(remaining); refreshBadge(); node.querySelector('.modal-footer').innerHTML = remaining.length ? `<button class="btn btn-warning" data-bs-dismiss="modal">${remaining.length} input(s) need attention</button>` : '<button class="btn btn-success" data-bs-dismiss="modal">Upload complete</button>'; status.textContent = remaining.length ? `${remaining.length} input(s) were kept safely on this device. Check your connection or correct the record before retrying.` : 'All offline inputs were uploaded successfully. You are back online.'; if (!remaining.length) setTimeout(() => location.reload(), 900); }
-    document.querySelector('[data-offline-enable]')?.addEventListener('change', event => { if (event.target.checked) install(); });
+    document.querySelector('[data-offline-enable]')?.addEventListener('change', event => { if (event.target.checked) install(event.target); });
     document.querySelectorAll('form.tracked-form').forEach(form => form.addEventListener('submit', event => { if (enabled() && !navigator.onLine) { event.preventDefault(); if (!form.reportValidity()) return; queueForm(form); } }));
     document.querySelectorAll('[data-offline-unavailable]').forEach(el => { if (enabled() && !navigator.onLine) el.hidden = true; });
     window.addEventListener('offline', () => { if (enabled()) banner('You are offline. Delivery forms remain available; reports and support are unavailable.'); else banner('You are offline — turn on offline mode?', '<a class="btn btn-sm btn-warning" href="index.php?page=account">Enable offline mode</a>'); });
@@ -200,6 +230,31 @@ document.querySelectorAll("[data-report-signatory-selector]").forEach((selector)
     syncPrintedSignatories();
 });
 
+const reportPrintHiddenRows = [];
+const revealReportRowsForPrint = () => {
+    reportPrintHiddenRows.length = 0;
+    document.querySelectorAll(".report-page .report-table tr[hidden]").forEach((row) => {
+        reportPrintHiddenRows.push(row);
+        row.hidden = false;
+    });
+};
+
+const restoreReportRowsAfterPrint = () => {
+    if (!reportPrintHiddenRows.length) return;
+
+    const tables = new Set();
+    reportPrintHiddenRows.forEach((row) => {
+        row.hidden = true;
+        const table = row.closest("table");
+        if (table) tables.add(table);
+    });
+    reportPrintHiddenRows.length = 0;
+    tables.forEach((table) => table.dispatchEvent(new CustomEvent("table:changed")));
+};
+
+window.addEventListener("beforeprint", revealReportRowsForPrint);
+window.addEventListener("afterprint", restoreReportRowsAfterPrint);
+
 window.addEventListener("load", () => {
     setTimeout(() => loader?.classList.add("is-hidden"), 350);
 });
@@ -257,7 +312,8 @@ themeToggle?.addEventListener("click", () => {
 });
 
 const screensaverToggle = document.getElementById("screensaverToggle");
-if (!document.querySelector("[data-landing-slideshow]")) {
+const screensaverUserLoggedIn = screensaverToggle?.dataset.userLoggedIn === "true";
+if (!document.querySelector("[data-landing-slideshow]") && !screensaverUserLoggedIn) {
     screensaverToggle?.setAttribute("hidden", "");
 } else {
     screensaverToggle?.addEventListener("click", () => {
@@ -872,53 +928,100 @@ document.querySelectorAll("table").forEach((table) => {
     const tbody = table.querySelector("tbody");
     const rowSelector = table.dataset.paginateRowSelector || "tr";
     const rows = tbody ? Array.from(tbody.querySelectorAll(rowSelector)).filter((row) => row.dataset.filterEmptyRow !== "true") : [];
-    const pageSizes = (table.dataset.pageSizes || "10,20,30,40,50")
-        .split(",")
-        .map((size) => Number(size.trim()))
-        .filter((size) => size > 0);
-    const defaultPageSize = Number(table.dataset.pageSize || pageSizes[0] || 10);
+    const defaultPageSize = Number(table.dataset.pageSize || 20);
 
     if (!tbody || rows.length <= defaultPageSize) return;
 
     const wrapper = table.closest(".table-responsive") || table.parentElement;
     const controls = document.createElement("div");
     const status = document.createElement("span");
-    const sizeLabel = document.createElement("label");
-    const sizeSelect = document.createElement("select");
     const pager = document.createElement("div");
+    const first = document.createElement("button");
     const previous = document.createElement("button");
     const next = document.createElement("button");
+    const last = document.createElement("button");
 
     let currentPage = 1;
     let pageSize = defaultPageSize;
 
     controls.className = "table-pagination no-print";
     status.className = "table-pagination-status";
-    sizeLabel.className = "table-page-size";
     pager.className = "table-page-buttons";
 
-    sizeLabel.textContent = "Rows";
-    sizeSelect.className = "form-select form-select-sm";
-    sizeSelect.setAttribute("aria-label", "Rows per page");
-    pageSizes.forEach((size) => {
-        const option = document.createElement("option");
-        option.value = size;
-        option.textContent = size;
-        if (size === pageSize) option.selected = true;
-        sizeSelect.appendChild(option);
-    });
-    sizeLabel.appendChild(sizeSelect);
-
+    first.className = "btn btn-sm btn-outline-success";
+    first.type = "button";
+    first.textContent = "First";
     previous.className = "btn btn-sm btn-outline-success";
     previous.type = "button";
     previous.textContent = "Previous";
     next.className = "btn btn-sm btn-outline-success";
     next.type = "button";
     next.textContent = "Next";
+    last.className = "btn btn-sm btn-outline-success";
+    last.type = "button";
+    last.textContent = "Last";
 
-    pager.append(previous, next);
-    controls.append(status, sizeLabel, pager);
+    pager.append(first, previous, next, last);
+    controls.append(status, pager);
     wrapper.after(controls);
+
+    const getPageSequence = (totalPages) => {
+        if (totalPages <= 7) {
+            return Array.from({ length: totalPages }, (_, index) => index + 1);
+        }
+
+        const pages = new Set([1, totalPages, currentPage, currentPage - 1, currentPage + 1]);
+
+        if (currentPage <= 4) {
+            [2, 3, 4, 5].forEach((page) => pages.add(page));
+        }
+
+        if (currentPage >= totalPages - 3) {
+            [totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1].forEach((page) => pages.add(page));
+        }
+
+        const sequence = Array.from(pages)
+            .filter((page) => page >= 1 && page <= totalPages)
+            .sort((a, b) => a - b);
+
+        return sequence.reduce((items, page, index) => {
+            const previousPage = sequence[index - 1];
+            if (previousPage && page - previousPage > 1) {
+                items.push("ellipsis");
+            }
+            items.push(page);
+            return items;
+        }, []);
+    };
+
+    const renderPageButtons = (totalPages) => {
+        pager.querySelectorAll("[data-page-number], .table-page-ellipsis").forEach((element) => element.remove());
+
+        getPageSequence(totalPages).forEach((page) => {
+            if (page === "ellipsis") {
+                const ellipsis = document.createElement("span");
+                ellipsis.className = "table-page-ellipsis";
+                ellipsis.textContent = "…";
+                next.before(ellipsis);
+                return;
+            }
+
+            const pageButton = document.createElement("button");
+            pageButton.className = `btn btn-sm ${page === currentPage ? "btn-success" : "btn-outline-success"}`;
+            pageButton.type = "button";
+            pageButton.textContent = page;
+            pageButton.dataset.pageNumber = String(page);
+            pageButton.setAttribute("aria-label", `Go to page ${page}`);
+            if (page === currentPage) {
+                pageButton.setAttribute("aria-current", "page");
+            }
+            pageButton.addEventListener("click", () => {
+                currentPage = page;
+                render();
+            });
+            next.before(pageButton);
+        });
+    };
 
     const render = () => {
         const currentRows = Array.from(tbody.querySelectorAll(rowSelector))
@@ -949,13 +1052,15 @@ document.querySelectorAll("table").forEach((table) => {
 
         const firstShown = totalVisibleRows === 0 ? 0 : start + 1;
         const lastShown = Math.min(end, totalVisibleRows);
-        status.textContent = `Showing ${firstShown}-${lastShown} of ${totalVisibleRows}`;
+        status.textContent = `Showing ${firstShown}-${lastShown} of ${totalVisibleRows} • Page ${currentPage} of ${totalPages}`;
+        renderPageButtons(totalPages);
+        first.disabled = currentPage <= 1;
         previous.disabled = currentPage <= 1;
         next.disabled = currentPage >= totalPages;
+        last.disabled = currentPage >= totalPages;
     };
 
-    sizeSelect.addEventListener("change", () => {
-        pageSize = Number(sizeSelect.value);
+    first.addEventListener("click", () => {
         currentPage = 1;
         render();
     });
@@ -967,6 +1072,13 @@ document.querySelectorAll("table").forEach((table) => {
 
     next.addEventListener("click", () => {
         currentPage += 1;
+        render();
+    });
+
+    last.addEventListener("click", () => {
+        const visibleRows = Array.from(tbody.querySelectorAll(rowSelector))
+            .filter((row) => row.dataset.filterEmptyRow !== "true" && row.dataset.filterHidden !== "true");
+        currentPage = Math.max(1, Math.ceil(visibleRows.length / pageSize));
         render();
     });
 

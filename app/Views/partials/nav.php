@@ -139,5 +139,5 @@ $unreadNotifications = $currentUserId ? \App\Models\Notification::unreadCount($c
     </div>
 </nav>
 <button class="mode-toggle floating-mode-toggle" type="button" id="themeToggle" aria-label="Toggle visual contrast"><span aria-hidden="true"></span></button>
-<button class="screensaver-toggle" type="button" id="screensaverToggle" aria-label="Enable screensaver mode" title="Screensaver mode"><span aria-hidden="true">▣</span></button>
-<a class="floating-home-link" href="index.php" aria-label="Go to home">Home</a>
+<button class="screensaver-toggle" type="button" id="screensaverToggle" aria-label="Enable screensaver mode" title="Screensaver mode" data-user-logged-in="<?= !empty($_SESSION['user_id']) ? 'true' : 'false' ?>"><span aria-hidden="true">SS</span></button>
+<a class="floating-home-link no-print print-exclude" href="index.php" aria-label="Go to home">Home</a>

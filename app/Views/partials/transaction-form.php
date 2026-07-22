@@ -59,12 +59,10 @@
         <div class="col-md-3"><label class="form-label">Price/Kg</label><input type="number" step="0.01" name="price" class="form-control" data-delivery-price></div>
         <div class="col-md-3"><label class="form-label">Net Kilogram</label><input type="number" step="0.01" name="net_kg" class="form-control" data-delivery-net-kg></div>
         <div class="col-md-3"><label class="form-label">Bags Delivered (50kg)</label><input type="number" min="0" name="bags" class="form-control"></div>
-        <?php if ($sellerType === 'Individual'): ?>
-            <div class="col-md-3 delivery-total-field">
-                <span class="form-label">Calculated Amount</span>
-                <output class="delivery-total-cost" data-delivery-total-cost>Total Cost: 0.00</output>
-            </div>
-        <?php endif; ?>
+        <div class="col-md-3 delivery-total-field">
+            <span class="form-label">Calculated Amount</span>
+            <output class="delivery-total-cost" data-delivery-total-cost>Total Cost: 0.00</output>
+        </div>
         <?php if ($sellerType === 'Farmer Organization'): ?>
             <div class="col-12">
                 <div class="fo-member-selector" data-fo-member-picker>

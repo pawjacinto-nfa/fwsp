@@ -24,7 +24,7 @@
                     <div class="col-sm-4 col-md-3"><button class="btn btn-success w-100" type="submit">Apply to selected users</button></div>
                 </form>
                 <div class="table-responsive">
-                <table class="table align-middle" id="users-table" data-page-size="10">
+                <table class="table align-middle" id="users-table" data-page-size="20">
                 <thead><tr><th data-no-sort="true"><input class="form-check-input" type="checkbox" aria-label="Select all users" data-select-all="users-table"></th><th>Username</th><th>Name</th><th>Office</th><th>Designation</th><th>Created</th><th>Status</th><th>Role</th><th>Password Reset</th><th data-no-sort="true">Action</th></tr></thead>
                 <tbody>
                 <?php foreach ($users as $account): ?>
@@ -67,7 +67,7 @@
 
             <section class="tab-pane fade panel table-section" id="audit-logs-panel" role="tabpanel" aria-labelledby="audit-logs-tab" tabindex="0">
                 <div class="table-responsive">
-                    <table class="table align-middle" id="audit-logs-table" data-page-size="10">
+                    <table class="table align-middle" id="audit-logs-table" data-page-size="20">
                         <thead>
                             <tr>
                                 <th>Date/Time</th>

@@ -1568,6 +1568,17 @@ body.route-fade::before {
     width: 82px;
 }
 
+.table-page-buttons {
+    flex-wrap: wrap;
+}
+
+.table-page-ellipsis {
+    min-width: 22px;
+    color: color-mix(in srgb, var(--ink), transparent 35%);
+    font-weight: 700;
+    text-align: center;
+}
+
 .farmer-name-with-limit {
     display: inline-flex;
     align-items: center;
@@ -2181,7 +2192,7 @@ body.route-fade::before {
 
 .screensaver-toggle {
     position: fixed;
-    right: 82px;
+    right: 142px;
     bottom: 22px;
     z-index: 1045;
     width: 50px;
@@ -2199,7 +2210,7 @@ body.route-fade::before {
 
 .floating-home-link {
     position: fixed;
-    right: 142px;
+    right: 82px;
     bottom: 22px;
     z-index: 1045;
     display: grid;
@@ -3292,6 +3303,18 @@ body.screensaver-mode .floating-home-link { pointer-events: none; opacity: 0; tr
         display: table-header-group !important;
     }
 
+    .report-page .report-table tr[hidden] {
+        display: table-row !important;
+    }
+
+    .report-page .sortable-heading {
+        cursor: default;
+    }
+
+    .report-page .sortable-heading::after {
+        content: "" !important;
+    }
+
     .print-document-title-row {
         display: table-row !important;
     }
@@ -3834,3 +3857,4 @@ body.screensaver-mode .floating-home-link { pointer-events: none; opacity: 0; tr
     line-height: 1.25;
     overflow-wrap: anywhere;
 }
+ .offline-step [data-install-step-percent]{margin-left:auto;font-weight:700;color:#667085;font-variant-numeric:tabular-nums}.offline-step.is-active [data-install-step-percent]{color:#9a6700}.offline-step.is-done [data-install-step-percent]{color:#198754}

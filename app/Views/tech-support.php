@@ -65,7 +65,7 @@ $archiveKey = $isSuperAdmin ? 'admin_archived' : 'reporter_archived';
             <div class="support-empty">No tech support tickets yet.</div>
         <?php else: ?>
             <div class="table-responsive">
-                <table class="table align-middle support-ticket-table" data-no-sort="true" data-page-size="5" data-page-sizes="5" data-paginate-row-selector=".ticket-summary-row">
+                <table class="table align-middle support-ticket-table" data-no-sort="true" data-page-size="20" data-paginate-row-selector=".ticket-summary-row">
                     <thead>
                     <tr>
                         <th>Ticket</th>

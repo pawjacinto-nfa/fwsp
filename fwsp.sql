@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 20, 2026 at 09:34 AM
+-- Generation Time: Jul 22, 2026 at 06:26 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -96,7 +96,28 @@ INSERT INTO `audit_logs` (`id`, `user_id`, `action`, `details`, `created_at`) VA
 (54, 1, 'Paw Jacinto logged in.', '{}', '2026-07-15 08:10:36'),
 (55, 1, 'Paw Jacinto logged out.', '{}', '2026-07-16 01:18:23'),
 (56, 1, 'Paw Jacinto logged in.', '{}', '2026-07-16 01:18:29'),
-(57, 1, 'Paw Jacinto logged in.', '{}', '2026-07-17 07:13:48');
+(57, 1, 'Paw Jacinto logged in.', '{}', '2026-07-17 07:13:48'),
+(58, 1, 'Bulk user access updated for 5 account(s).', '{}', '2026-07-22 01:10:12'),
+(59, 1, 'Bulk user access updated for 5 account(s).', '{}', '2026-07-22 01:10:23'),
+(60, 1, 'Paw Jacinto logged out.', '{}', '2026-07-22 01:17:02'),
+(61, 1, 'Paw Jacinto logged in.', '{}', '2026-07-22 02:08:46'),
+(62, 1, 'Paw Jacinto logged out.', '{}', '2026-07-22 02:19:01'),
+(63, 1, 'Paw Jacinto logged in.', '{}', '2026-07-22 03:06:55'),
+(64, 1, 'Paw Jacinto logged out.', '{}', '2026-07-22 03:11:56'),
+(65, 1, 'Paw Jacinto logged in.', '{}', '2026-07-22 03:12:37'),
+(66, 1, 'Paw Jacinto logged out.', '{}', '2026-07-22 03:13:42'),
+(67, NULL, 'New user registration submitted for 111111.', '{}', '2026-07-22 03:14:48'),
+(68, 1, 'Paw Jacinto logged in.', '{}', '2026-07-22 03:14:57'),
+(69, 1, 'User access updated.', '{}', '2026-07-22 03:15:09'),
+(70, 1, 'Paw Jacinto logged out.', '{}', '2026-07-22 03:15:13'),
+(71, 8, 'Test User Warehouse logged in.', '{}', '2026-07-22 03:15:27'),
+(72, 8, 'Test User Warehouse logged out.', '{}', '2026-07-22 03:18:09'),
+(73, 8, 'Test User Warehouse logged in.', '{}', '2026-07-22 03:31:05'),
+(74, 3, 'Danica Garcia logged in.', '{}', '2026-07-22 04:09:06'),
+(75, 3, 'Danica Garcia logged in.', '{}', '2026-07-22 04:09:24'),
+(76, 3, 'Danica Garcia logged in.', '{}', '2026-07-22 04:11:58'),
+(77, 1, 'Paw Jacinto logged in.', '{}', '2026-07-22 04:22:44'),
+(78, 3, 'Danica Garcia logged in.', '{}', '2026-07-22 04:25:24');
 
 -- --------------------------------------------------------
 
@@ -245,6 +266,64 @@ CREATE TABLE `central_units` (
   `division_id` bigint(20) UNSIGNED NOT NULL,
   `name` varchar(180) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `display_photos`
+--
+
+CREATE TABLE `display_photos` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `submitted_by` bigint(20) UNSIGNED DEFAULT NULL,
+  `title` varchar(160) NOT NULL,
+  `photographer_name` varchar(160) NOT NULL,
+  `location` varchar(160) NOT NULL DEFAULT '',
+  `image_path` varchar(255) NOT NULL,
+  `optimized_path` varchar(255) DEFAULT NULL,
+  `source` varchar(80) NOT NULL DEFAULT 'User submission',
+  `image_width` int(10) UNSIGNED DEFAULT NULL,
+  `image_height` int(10) UNSIGNED DEFAULT NULL,
+  `position` int(10) UNSIGNED NOT NULL DEFAULT 999,
+  `status` enum('Pending','Approved','Rejected') NOT NULL DEFAULT 'Pending',
+  `reviewed_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `display_photos`
+--
+
+INSERT INTO `display_photos` (`id`, `submitted_by`, `title`, `photographer_name`, `location`, `image_path`, `optimized_path`, `source`, `image_width`, `image_height`, `position`, `status`, `reviewed_at`, `created_at`) VALUES
+(1, NULL, 'Rainy-day rice field', 'Ruth Bolano', '', 'assets/images/landing-slides/palay-01.avif', NULL, 'Pexels', NULL, NULL, 1, 'Approved', NULL, '2026-07-22 02:15:40'),
+(2, NULL, 'Rice at dusk', 'Stijn Dijkstra', '', 'assets/images/landing-slides/palay-02.avif', NULL, 'Pexels', NULL, NULL, 2, 'Approved', NULL, '2026-07-22 02:15:40'),
+(3, NULL, 'Terraced fields', 'Charlie Dogaong', '', 'assets/images/landing-slides/palay-03.avif', NULL, 'Pexels', NULL, NULL, 3, 'Approved', NULL, '2026-07-22 02:15:40'),
+(4, NULL, 'Morning over the fields', 'Aria Batula', '', 'assets/images/landing-slides/palay-04.avif', NULL, 'Pexels', NULL, NULL, 4, 'Approved', NULL, '2026-07-22 02:15:40'),
+(5, NULL, 'Aerial rice landscape', 'Bobby Mc Gee Lee', '', 'assets/images/landing-slides/palay-05.avif', NULL, 'Pexels', NULL, NULL, 5, 'Approved', NULL, '2026-07-22 02:15:40'),
+(6, NULL, 'Working the paddy', 'Dave', '', 'assets/images/landing-slides/palay-06.avif', NULL, 'Pexels', NULL, NULL, 6, 'Approved', NULL, '2026-07-22 02:15:40'),
+(7, NULL, 'After the rain', 'Denniz Futalan', '', 'assets/images/landing-slides/palay-07.avif', NULL, 'Pexels', NULL, NULL, 7, 'Approved', NULL, '2026-07-22 02:15:40'),
+(8, NULL, 'Watered terraces', 'Dada', '', 'assets/images/landing-slides/palay-08.avif', NULL, 'Pexels', NULL, NULL, 8, 'Approved', NULL, '2026-07-22 02:15:40'),
+(9, NULL, 'Planting season', 'Neil Clark Ongchangco', '', 'assets/images/landing-slides/palay-09.avif', NULL, 'Pexels', NULL, NULL, 9, 'Approved', NULL, '2026-07-22 02:15:40'),
+(10, NULL, 'Fields in afternoon light', 'XT7CORE', '', 'assets/images/landing-slides/palay-10.avif', NULL, 'Pexels', NULL, NULL, 10, 'Approved', NULL, '2026-07-22 02:15:40');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `display_settings`
+--
+
+CREATE TABLE `display_settings` (
+  `id` tinyint(3) UNSIGNED NOT NULL,
+  `loop_duration` tinyint(3) UNSIGNED NOT NULL DEFAULT 7,
+  `panning_enabled` tinyint(1) NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `display_settings`
+--
+
+INSERT INTO `display_settings` (`id`, `loop_duration`, `panning_enabled`) VALUES
+(1, 7, 1);
 
 -- --------------------------------------------------------
 
@@ -1308,7 +1387,13 @@ CREATE TABLE `notifications` (
 
 INSERT INTO `notifications` (`id`, `user_id`, `message`, `target_url`, `is_read`, `created_at`) VALUES
 (1, 2, 'Review new warehouse submissions for approval.', NULL, 0, '2026-06-25 13:45:17'),
-(2, 2, 'Two seed farmer records are ready for reporting.', NULL, 0, '2026-06-25 13:45:17');
+(2, 2, 'Two seed farmer records are ready for reporting.', NULL, 0, '2026-06-25 13:45:17'),
+(3, 1, 'New user registration is pending activation.', 'index.php?page=users', 1, '2026-07-22 03:14:48'),
+(4, 2, 'New user registration is pending activation.', 'index.php?page=users', 0, '2026-07-22 03:14:48'),
+(5, 3, 'New user registration is pending activation.', 'index.php?page=users', 0, '2026-07-22 03:14:48'),
+(6, 4, 'New user registration is pending activation.', 'index.php?page=users', 0, '2026-07-22 03:14:48'),
+(7, 5, 'New user registration is pending activation.', 'index.php?page=users', 0, '2026-07-22 03:14:48'),
+(8, 6, 'New user registration is pending activation.', 'index.php?page=users', 0, '2026-07-22 03:14:48');
 
 -- --------------------------------------------------------
 
@@ -1789,11 +1874,12 @@ CREATE TABLE `users` (
 
 INSERT INTO `users` (`id`, `full_name`, `username`, `email`, `password_hash`, `role`, `is_active`, `status`, `office_scope`, `region_id`, `branch_id`, `province_id`, `warehouse_id`, `central_department_id`, `central_division_id`, `central_unit_id`, `designation`, `contact_number`, `profile_image`, `password_reset_status`, `password_reset_requested_at`, `password_reset_approved_at`, `created_at`) VALUES
 (1, 'Paw Jacinto', '940640', 'superadmin@fwsp.local', '$2y$10$GN7cBbOJqlqWKG4WTlq9WeDddCeEISNlbqSS3enkM2UeyQxVXti9e', 'System Admin', 1, 'Active', 'field', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'System Administrator', 'n/a', 'assets/uploads/profile-1-1782714851.jpg', NULL, NULL, NULL, '2026-06-25 13:45:17'),
-(2, 'Maria Warehouse', 'warehouse', 'warehouse@fwsp.local', '$2y$10$eImiTXuWVxfM37uY4JANjQeD8ZtcVgHPwrFA4ocK9n53KRzLtPz4S', 'Warehouse Personnel', 1, 'Active', 'field', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Warehouse Supervisor', '09170000000', NULL, NULL, NULL, NULL, '2026-06-25 13:45:17'),
-(3, 'Danica Garcia', '000222', '000222@fwsp.local', '$2y$10$NYsz2cMvNc537Iw/7H1vB.EOqKR1WAxdIgXTaMOdLiCeP4JCPZubK', 'Warehouse Personnel', 1, 'Active', 'field', 19, 12, 29, 49, NULL, NULL, NULL, 'Warehouse Manager', '09000000222', NULL, NULL, NULL, NULL, '2026-06-25 13:52:29'),
-(4, 'Seed Regional Branch Manager', '000111', '000111@fwsp.local', '$2y$10$NYsz2cMvNc537Iw/7H1vB.EOqKR1WAxdIgXTaMOdLiCeP4JCPZubK', 'Manager', 1, 'Active', 'field', 19, 12, NULL, NULL, NULL, NULL, NULL, 'Regional/Branch Manager', '09000000111', NULL, NULL, NULL, NULL, '2026-06-25 13:52:29'),
-(5, 'Seed Warehouse Manager 000333', '000333', '000333@fwsp.local', '$2y$10$vRpoOMwSBWt9IuiaGlNCOeOn9Tme8iMEJVEi573EgTc2qSw4voc52', 'Warehouse Personnel', 1, 'Active', 'field', 19, 12, 29, 50, NULL, NULL, NULL, 'Warehouse Manager', '09000000333', NULL, NULL, NULL, NULL, '2026-06-25 13:52:45'),
-(6, 'Seed Manager 000001', '000001', '000001@fwsp.local', '$2y$10$nuVtJi6ZWE233OdTFeK/POA7NzHPcQlmfdH31tOx3NfgqO3k9RfzW', 'Manager', 1, 'Active', 'field', 19, 12, NULL, NULL, NULL, NULL, NULL, 'Manager', NULL, NULL, NULL, NULL, NULL, '2026-06-30 02:52:16');
+(2, 'Maria Warehouse', 'warehouse', 'warehouse@fwsp.local', '$2y$10$eImiTXuWVxfM37uY4JANjQeD8ZtcVgHPwrFA4ocK9n53KRzLtPz4S', 'System Admin', 1, 'Active', 'field', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Warehouse Supervisor', '09170000000', NULL, NULL, NULL, NULL, '2026-06-25 13:45:17'),
+(3, 'Danica Garcia', '000222', '000222@fwsp.local', '$2y$10$NYsz2cMvNc537Iw/7H1vB.EOqKR1WAxdIgXTaMOdLiCeP4JCPZubK', 'System Admin', 1, 'Active', 'field', 19, 12, 29, 49, NULL, NULL, NULL, 'Warehouse Manager', '09000000222', NULL, NULL, NULL, NULL, '2026-06-25 13:52:29'),
+(4, 'Seed Regional Branch Manager', '000111', '000111@fwsp.local', '$2y$10$NYsz2cMvNc537Iw/7H1vB.EOqKR1WAxdIgXTaMOdLiCeP4JCPZubK', 'System Admin', 1, 'Active', 'field', 19, 12, NULL, NULL, NULL, NULL, NULL, 'Regional/Branch Manager', '09000000111', NULL, NULL, NULL, NULL, '2026-06-25 13:52:29'),
+(5, 'Seed Warehouse Manager 000333', '000333', '000333@fwsp.local', '$2y$10$vRpoOMwSBWt9IuiaGlNCOeOn9Tme8iMEJVEi573EgTc2qSw4voc52', 'System Admin', 1, 'Active', 'field', 19, 12, 29, 50, NULL, NULL, NULL, 'Warehouse Manager', '09000000333', NULL, NULL, NULL, NULL, '2026-06-25 13:52:45'),
+(6, 'Seed Manager 000001', '000001', '000001@fwsp.local', '$2y$10$nuVtJi6ZWE233OdTFeK/POA7NzHPcQlmfdH31tOx3NfgqO3k9RfzW', 'System Admin', 1, 'Active', 'field', 19, 12, NULL, NULL, NULL, NULL, NULL, 'Manager', NULL, NULL, NULL, NULL, NULL, '2026-06-30 02:52:16'),
+(8, 'Test User Warehouse', '111111', 'pawjacinto@gmail.com', '$2y$10$WStBHojQsP13FQ3TPWJiH.xHrJYOPyn1SH0UnwPCvSNF3nKdli5r.', 'Warehouse Personnel', 1, 'Active', 'field', 29, 53, 91, 523, NULL, NULL, NULL, 'Warehouse Manager', '09175374296', NULL, NULL, NULL, NULL, '2026-07-22 03:14:48');
 
 -- --------------------------------------------------------
 
@@ -2450,6 +2536,20 @@ ALTER TABLE `central_units`
   ADD UNIQUE KEY `central_unit_unique` (`division_id`,`name`);
 
 --
+-- Indexes for table `display_photos`
+--
+ALTER TABLE `display_photos`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `display_photo_status_position` (`status`,`position`),
+  ADD KEY `submitted_by` (`submitted_by`);
+
+--
+-- Indexes for table `display_settings`
+--
+ALTER TABLE `display_settings`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `farmers`
 --
 ALTER TABLE `farmers`
@@ -2575,7 +2675,7 @@ ALTER TABLE `warehouse_offices`
 -- AUTO_INCREMENT for table `audit_logs`
 --
 ALTER TABLE `audit_logs`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=58;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=79;
 
 --
 -- AUTO_INCREMENT for table `branch_offices`
@@ -2602,6 +2702,12 @@ ALTER TABLE `central_units`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `display_photos`
+--
+ALTER TABLE `display_photos`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+
+--
 -- AUTO_INCREMENT for table `farmers`
 --
 ALTER TABLE `farmers`
@@ -2617,7 +2723,7 @@ ALTER TABLE `farmer_key_sequences`
 -- AUTO_INCREMENT for table `farmer_organizations`
 --
 ALTER TABLE `farmer_organizations`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=112;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=155;
 
 --
 -- AUTO_INCREMENT for table `landholdings`
@@ -2635,7 +2741,7 @@ ALTER TABLE `location_masterlist`
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `province_offices`
@@ -2683,7 +2789,7 @@ ALTER TABLE `transaction_farmer_members`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `warehouse_offices`
@@ -2718,6 +2824,12 @@ ALTER TABLE `central_divisions`
 --
 ALTER TABLE `central_units`
   ADD CONSTRAINT `central_units_division_fk` FOREIGN KEY (`division_id`) REFERENCES `central_divisions` (`id`);
+
+--
+-- Constraints for table `display_photos`
+--
+ALTER TABLE `display_photos`
+  ADD CONSTRAINT `display_photos_ibfk_1` FOREIGN KEY (`submitted_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
 
 --
 -- Constraints for table `farmers`
