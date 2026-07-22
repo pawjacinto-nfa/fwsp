@@ -116,10 +116,14 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
+                <div class="alert alert-info small mb-3" role="alert">
+                    Please take note that your username is your six digit employee number. Keep your password in mind for future logins.
+                    Passwords must be at least 9 characters and include letters and numbers. Special characters are allowed.
+                </div>
                 <label class="form-label">Full Name</label>
                 <input required name="full_name" class="form-control mb-3">
-                <label class="form-label">Username / Employee Number</label>
-                <input required name="username" class="form-control mb-3">
+                <label class="form-label">Username (Employee Number)</label>
+                <input required name="username" class="form-control mb-3" inputmode="numeric" pattern="[0-9]{6}" minlength="6" maxlength="6" title="Enter your six digit employee number using numbers only.">
                 <ul class="nav nav-tabs mb-3" role="tablist">
                     <li class="nav-item" role="presentation">
                         <button class="nav-link active" type="button" role="tab" data-bs-toggle="tab" data-bs-target="#registerFieldOffice" data-registration-scope-tab="field" aria-selected="true">Field Office</button>
@@ -134,7 +138,7 @@
                             <?php
                             $locationClass = 'col-md-6';
                             $locationRequired = false;
-                            $locationRequiredLevels = ['region', 'branch'];
+                            $locationRequiredLevels = [];
                             $locationIncludeAll = false;
                             $locationLabelWarehouse = 'Facility Name';
                             require BASE_PATH . '/app/Views/partials/location-selects.php';
@@ -145,7 +149,7 @@
                         <div class="row g-3">
                             <div class="col-md-4">
                                 <label class="form-label">Department</label>
-                                <select required disabled name="central_department_id" class="form-select" data-central-office-level="department">
+                                <select disabled name="central_department_id" class="form-select" data-central-office-level="department">
                                     <option value="">Select</option>
                                     <?php foreach (\App\Models\CentralOffice::departments() as $department): ?>
                                         <option value="<?= e($department['id']) ?>"><?= e($department['name']) ?></option>
@@ -154,7 +158,7 @@
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">Division</label>
-                                <select required disabled name="central_division_id" class="form-select" data-central-office-level="division">
+                                <select disabled name="central_division_id" class="form-select" data-central-office-level="division">
                                     <option value="">Select</option>
                                 </select>
                             </div>
@@ -169,14 +173,26 @@
                 </div>
                 <label class="form-label">Designation</label>
                 <input required name="designation" class="form-control mb-3">
-                <label class="form-label">Email</label>
-                <input required type="email" name="email" class="form-control mb-3">
-                <label class="form-label">Contact Number</label>
-                <input required name="contact_number" class="form-control mb-3">
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Email</label>
+                        <input required type="email" name="email" class="form-control" pattern="[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}" title="Enter a valid email address.">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Contact Number</label>
+                        <input required name="contact_number" class="form-control" inputmode="numeric" pattern="09[0-9]{9}" minlength="11" maxlength="11" placeholder="09xxxxxxxxx" title="Enter an 11 digit contact number, for example 09xxxxxxxxx.">
+                    </div>
+                </div>
                 <label class="form-label">Password</label>
-                <input required type="password" name="password" class="form-control mb-3">
+                <div class="input-group mb-3">
+                    <input required type="password" name="password" class="form-control" pattern="(?=.*[A-Za-z])(?=.*[0-9]).{9,}" minlength="9" title="Password must be at least 9 characters and include letters and numbers. Special characters are allowed." data-password-field>
+                    <button class="btn btn-outline-secondary" type="button" data-password-hold-toggle aria-label="Hold to show password" title="Hold to show password">&#128065;</button>
+                </div>
                 <label class="form-label">Password Confirmation</label>
-                <input required type="password" name="password_confirmation" class="form-control">
+                <div class="input-group">
+                    <input required type="password" name="password_confirmation" class="form-control" pattern="(?=.*[A-Za-z])(?=.*[0-9]).{9,}" minlength="9" title="Password confirmation must be at least 9 characters and include letters and numbers. Special characters are allowed." data-password-field>
+                    <button class="btn btn-outline-secondary" type="button" data-password-hold-toggle aria-label="Hold to show password confirmation" title="Hold to show password">&#128065;</button>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="submit" class="btn btn-warning">Submit Request</button>

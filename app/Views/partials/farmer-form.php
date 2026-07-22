@@ -46,7 +46,6 @@
                 <?php foreach (['Persons with Disability', 'Indigenous People', 'Senior Citizen', 'Muslim', 'Youth', 'Adult'] as $item): ?>
                     <label><input type="checkbox" name="sector[]" value="<?= e($item) ?>"> <?= e($item) ?></label>
                 <?php endforeach; ?>
-                <label class="ip-group-member-choice"><input type="checkbox" name="is_ip_group_member" value="1"> Indigenous Sector Group Delivery Member</label>
             </div>
         </section>
         <section>

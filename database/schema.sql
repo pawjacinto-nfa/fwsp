@@ -230,6 +230,31 @@ CREATE TABLE IF NOT EXISTS notifications (
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
+CREATE TABLE IF NOT EXISTS display_settings (
+    id TINYINT UNSIGNED PRIMARY KEY,
+    loop_duration TINYINT UNSIGNED NOT NULL DEFAULT 7,
+    panning_enabled TINYINT(1) NOT NULL DEFAULT 1
+);
+
+CREATE TABLE IF NOT EXISTS display_photos (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    submitted_by BIGINT UNSIGNED NULL,
+    title VARCHAR(160) NOT NULL,
+    photographer_name VARCHAR(160) NOT NULL,
+    location VARCHAR(160) NOT NULL DEFAULT '',
+    image_path VARCHAR(255) NOT NULL,
+    optimized_path VARCHAR(255) NULL,
+    source VARCHAR(80) NOT NULL DEFAULT 'User submission',
+    image_width INT UNSIGNED NULL,
+    image_height INT UNSIGNED NULL,
+    position INT UNSIGNED NOT NULL DEFAULT 999,
+    status ENUM('Pending', 'Approved', 'Rejected') NOT NULL DEFAULT 'Pending',
+    reviewed_at TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX display_photo_status_position (status, position),
+    FOREIGN KEY (submitted_by) REFERENCES users(id) ON DELETE SET NULL
+);
+
 CREATE TABLE IF NOT EXISTS support_tickets (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     reporter_id BIGINT UNSIGNED NOT NULL,

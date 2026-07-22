@@ -1,5 +1,43 @@
 const loader = document.getElementById("loaderScreen");
 
+/* The landing artwork is loaded one image ahead, keeping the initial visit light. */
+(() => {
+    const slideshow = document.querySelector("[data-landing-slideshow]");
+    if (!slideshow || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const slides = [...slideshow.querySelectorAll(".landing-slide")];
+    if (slides.length < 2) return;
+    let current = slides.findIndex((slide) => slide.classList.contains("is-active"));
+
+    const load = (slide) => new Promise((resolve) => {
+        const image = slide.querySelector("img");
+        if (image.complete && image.currentSrc) return resolve();
+        image.addEventListener("load", resolve, { once: true });
+        image.addEventListener("error", resolve, { once: true });
+        image.src = image.dataset.src;
+        image.removeAttribute("data-src");
+    });
+
+    const advance = async () => {
+        const next = (current + 1) % slides.length;
+        await load(slides[next]);
+        slides[current].classList.remove("is-active");
+        slides[next].classList.add("is-active");
+        current = next;
+        const afterNext = (current + 1) % slides.length;
+        window.setTimeout(() => { load(slides[afterNext]); }, 900);
+    };
+
+    window.setTimeout(() => { load(slides[1]); }, 1200);
+    const duration = Math.max(3, Math.min(30, Number(slideshow.dataset.loopDuration || 7))) * 1000;
+    window.setInterval(advance, duration);
+})();
+
+if (location.hash === "#display-settings") {
+    const tab = document.querySelector('[data-bs-target="#display-settings"]');
+    if (tab && window.bootstrap) bootstrap.Tab.getOrCreateInstance(tab).show();
+}
+
 /* Offline delivery queue. Records are stored locally only until this user approves upload. */
 (() => {
     const config = window.FWSP_OFFLINE || {};
@@ -218,6 +256,27 @@ themeToggle?.addEventListener("click", () => {
     localStorage.setItem("fwsp-theme", nextTheme);
 });
 
+const screensaverToggle = document.getElementById("screensaverToggle");
+if (!document.querySelector("[data-landing-slideshow]")) {
+    screensaverToggle?.setAttribute("hidden", "");
+} else {
+    screensaverToggle?.addEventListener("click", () => {
+        document.body.classList.add("screensaver-mode");
+        let canRestore = false;
+        const restore = () => {
+            if (!canRestore) return;
+            document.body.classList.remove("screensaver-mode");
+            document.removeEventListener("pointermove", restore);
+            document.removeEventListener("focusin", restore);
+        };
+        window.setTimeout(() => {
+            canRestore = true;
+            document.addEventListener("pointermove", restore, { once: true });
+            document.addEventListener("focusin", restore, { once: true });
+        }, 450);
+    });
+}
+
 const desktopMenuHover = window.matchMedia("(min-width: 1200px) and (hover: hover)");
 const mainMenuDropdowns = [...document.querySelectorAll(".app-nav .main-menu > .dropdown")];
 
@@ -274,6 +333,36 @@ document.querySelectorAll("[data-password-toggle]").forEach((button) => {
         button.setAttribute("aria-label", isHidden ? "Hide password" : "Show password");
         button.title = isHidden ? "Hide password" : "Show password";
     });
+});
+
+document.querySelectorAll("[data-password-hold-toggle]").forEach((button) => {
+    const group = button.closest(".input-group") || button.parentElement;
+    const field = group?.querySelector("[data-password-field]");
+    if (!field) return;
+
+    const showPassword = () => {
+        field.type = "text";
+        button.setAttribute("aria-label", "Release to hide password");
+        button.title = "Release to hide password";
+    };
+    const hidePassword = () => {
+        field.type = "password";
+        button.setAttribute("aria-label", "Hold to show password");
+        button.title = "Hold to show password";
+    };
+
+    button.addEventListener("pointerdown", (event) => {
+        event.preventDefault();
+        showPassword();
+    });
+    button.addEventListener("pointerup", hidePassword);
+    button.addEventListener("pointerleave", hidePassword);
+    button.addEventListener("pointercancel", hidePassword);
+    button.addEventListener("blur", hidePassword);
+    button.addEventListener("keydown", (event) => {
+        if (event.key === " " || event.key === "Enter") showPassword();
+    });
+    button.addEventListener("keyup", hidePassword);
 });
 
 const loginModal = document.getElementById("loginModal");
@@ -682,7 +771,7 @@ document.querySelectorAll("table").forEach((table) => {
     if (!tbody || headers.length === 0) return;
 
     headers.forEach((header, index) => {
-        if (header.textContent.trim().toLowerCase() === "actions" || header.textContent.trim().toLowerCase() === "action") return;
+        if (header.dataset.noSort === "true" || header.querySelector("input, select, button") || ["actions", "action"].includes(header.textContent.trim().toLowerCase())) return;
 
         header.classList.add("sortable-heading");
         header.tabIndex = 0;
@@ -696,13 +785,25 @@ document.querySelectorAll("table").forEach((table) => {
             header.dataset.sortDirection = direction;
 
             rows.sort((left, right) => {
-                const leftText = left.children[index]?.dataset.sortValue || left.children[index]?.textContent.trim() || "";
-                const rightText = right.children[index]?.dataset.sortValue || right.children[index]?.textContent.trim() || "";
+                const valueFor = (row) => {
+                    const cell = row.children[index];
+                    if (!cell) return "";
+                    if (cell.dataset.sortValue !== undefined) return cell.dataset.sortValue;
+                    return cell.querySelector("select")?.selectedOptions[0]?.textContent.trim()
+                        || cell.querySelector("input:not([type=checkbox])")?.value.trim()
+                        || cell.textContent.trim();
+                };
+                const leftText = valueFor(left);
+                const rightText = valueFor(right);
+                const leftDate = Date.parse(leftText);
+                const rightDate = Date.parse(rightText);
                 const leftNumber = Number(leftText.replace(/,/g, ""));
                 const rightNumber = Number(rightText.replace(/,/g, ""));
-                const result = Number.isNaN(leftNumber) || Number.isNaN(rightNumber)
-                    ? leftText.localeCompare(rightText)
-                    : leftNumber - rightNumber;
+                const result = !Number.isNaN(leftDate) && !Number.isNaN(rightDate)
+                    ? leftDate - rightDate
+                    : (!Number.isNaN(leftNumber) && !Number.isNaN(rightNumber)
+                        ? leftNumber - rightNumber
+                        : leftText.localeCompare(rightText, undefined, { numeric: true, sensitivity: "base" }));
 
                 return direction === "asc" ? result : -result;
             });
@@ -719,6 +820,16 @@ document.querySelectorAll("table").forEach((table) => {
             }
         });
     });
+});
+
+document.querySelectorAll("[data-select-all]").forEach((checkbox) => {
+    const table = document.getElementById(checkbox.dataset.selectAll);
+    const updateAll = () => {
+        table?.querySelectorAll('tbody input[type="checkbox"][name="user_ids[]"]').forEach((item) => {
+            item.checked = checkbox.checked;
+        });
+    };
+    checkbox.addEventListener("change", updateAll);
 });
 
 document.querySelectorAll("[data-table-filter]").forEach((input) => {

@@ -16,17 +16,26 @@
 
         <div class="tab-content" id="userControlTabContent">
             <section class="tab-pane fade show active panel table-section" id="users-panel" role="tabpanel" aria-labelledby="users-tab" tabindex="0">
+                <form method="post" id="bulkUserAccessForm" class="row g-2 align-items-end mb-3">
+                    <input type="hidden" name="action" value="user-access-bulk">
+                    <div class="col-md-4"><label class="form-label" for="userTableFilter">Filter users</label><input id="userTableFilter" class="form-control" type="search" placeholder="Search users, office, status, or role" data-table-filter="users-table"></div>
+                    <div class="col-sm-4 col-md-2"><label class="form-label" for="bulkStatus">Set status</label><select id="bulkStatus" name="bulk_status" class="form-select"><option value="">No change</option><option>Pending</option><option>Active</option><option>Disabled</option></select></div>
+                    <div class="col-sm-4 col-md-3"><label class="form-label" for="bulkRole">Set role</label><select id="bulkRole" name="bulk_role" class="form-select"><option value="">No change</option><?php foreach ($roles as $role): ?><option><?= e($role) ?></option><?php endforeach; ?></select></div>
+                    <div class="col-sm-4 col-md-3"><button class="btn btn-success w-100" type="submit">Apply to selected users</button></div>
+                </form>
                 <div class="table-responsive">
                 <table class="table align-middle" id="users-table" data-page-size="10">
-                <thead><tr><th>Username</th><th>Name</th><th>Office</th><th>Designation</th><th>Status</th><th>Role</th><th>Password Reset</th><th>Action</th></tr></thead>
+                <thead><tr><th data-no-sort="true"><input class="form-check-input" type="checkbox" aria-label="Select all users" data-select-all="users-table"></th><th>Username</th><th>Name</th><th>Office</th><th>Designation</th><th>Created</th><th>Status</th><th>Role</th><th>Password Reset</th><th data-no-sort="true">Action</th></tr></thead>
                 <tbody>
                 <?php foreach ($users as $account): ?>
                     <?php $formId = 'userAccessForm' . (int) $account['id']; ?>
                     <tr>
+                        <td><input class="form-check-input" type="checkbox" name="user_ids[]" value="<?= (int) $account['id'] ?>" form="bulkUserAccessForm" aria-label="Select <?= e($account['username']) ?>"></td>
                         <td><?= e($account['username']) ?></td>
                         <td><?= e($account['full_name']) ?></td>
-                        <td><?= e(str_replace("\n", ' / ', \App\Models\User::locationLabel($account))) ?></td>
+                        <td class="user-office-cell"><?= e(str_replace("\n", ' / ', \App\Models\User::locationLabel($account))) ?></td>
                         <td><?= e($account['designation']) ?></td>
+                        <td data-sort-value="<?= e($account['created_at']) ?>"><?= e(date('M j, Y', strtotime($account['created_at']))) ?></td>
                         <td data-sort-value="<?= e($account['status']) ?>"><select name="status" form="<?= e($formId) ?>" class="form-select"><option <?= $account['status'] === 'Pending' ? 'selected' : '' ?>>Pending</option><option <?= $account['status'] === 'Active' ? 'selected' : '' ?>>Active</option><option <?= $account['status'] === 'Disabled' ? 'selected' : '' ?>>Disabled</option></select></td>
                         <td data-sort-value="<?= e($account['role']) ?>"><select name="role" form="<?= e($formId) ?>" class="form-select"><?php foreach ($roles as $role): ?><option <?= $account['role'] === $role ? 'selected' : '' ?>><?= e($role) ?></option><?php endforeach; ?></select></td>
                         <td data-sort-value="<?= e($account['password_reset_status'] ?? '') ?>">

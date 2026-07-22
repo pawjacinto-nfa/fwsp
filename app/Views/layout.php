@@ -15,7 +15,7 @@
 <body>
 <div class="loader-screen" id="loaderScreen" aria-hidden="true">
     <div class="palay-loader">
-        <img src="assets/images/fwsp-loader.gif" width="96" height="96" alt="">
+        <img src="assets/images/farmer-seller-registry-logo-optimized.webp" width="96" height="96" alt="">
     </div>
 </div>
 

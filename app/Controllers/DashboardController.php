@@ -7,6 +7,7 @@ use App\Core\View;
 use App\Models\Activity;
 use App\Models\CentralOffice;
 use App\Models\DatabaseSchema;
+use App\Models\DisplayPhoto;
 use App\Models\Farmer;
 use App\Models\FarmerOrganization;
 use App\Models\Location;
@@ -40,6 +41,8 @@ final class DashboardController
         View::render('dashboard', [
             'title' => "Farmer's Who Sold Palay to NFA",
             'alert' => $this->pullFlash(),
+            'slides' => DisplayPhoto::slides(),
+            'displaySettings' => DisplayPhoto::settings(),
         ]);
     }
 
@@ -340,6 +343,22 @@ final class DashboardController
             'tables' => $tables,
             'selectedTable' => $selectedTable,
             'schema' => $schema,
+        ]);
+    }
+
+    public function displaySettings(): void
+    {
+        if (($_SESSION['role'] ?? '') !== 'System Admin') {
+            $this->flash('danger', 'Only System Admin can manage the landing page display.');
+            $this->redirect();
+            return;
+        }
+
+        View::render('display-settings', [
+            'title' => 'Display Settings',
+            'alert' => $this->pullFlash(),
+            'settings' => DisplayPhoto::settings(),
+            'photos' => DisplayPhoto::all(),
         ]);
     }
 
@@ -806,25 +825,38 @@ final class DashboardController
         $fullName = $this->clean($payload['full_name'] ?? '');
         $username = $this->clean($payload['username'] ?? '');
         $designation = $this->clean($payload['designation'] ?? '');
+        $email = $this->clean($payload['email'] ?? '');
+        $contactNumber = $this->clean($payload['contact_number'] ?? '');
         $password = (string) ($payload['password'] ?? '');
         $passwordConfirmation = (string) ($payload['password_confirmation'] ?? '');
         $officeScope = ($payload['office_scope'] ?? '') === 'central' ? 'central' : 'field';
-        $firstLocation = $officeScope === 'central'
-            ? $this->clean($payload['central_department_id'] ?? '')
-            : $this->clean($payload['region_id'] ?? '');
-        $secondLocation = $officeScope === 'central'
-            ? $this->clean($payload['central_division_id'] ?? '')
-            : $this->clean($payload['branch_id'] ?? '');
 
-        if ($fullName === '' || $username === '' || $designation === '' || $password === '' || $passwordConfirmation === '') {
-            $this->flash('danger', 'Full name, username/employee number, designation, and both password fields are required.');
+        if ($fullName === '' || $username === '' || $designation === '' || $email === '' || $contactNumber === '' || $password === '' || $passwordConfirmation === '') {
+            $this->flash('danger', 'Full name, username/employee number, designation, email, contact number, and both password fields are required.');
             $this->redirect('?show_register=1');
             return;
         }
 
-        if ($firstLocation === '' || $secondLocation === '') {
-            $locationLabels = $officeScope === 'central' ? 'Department and Division' : 'Region and Branch';
-            $this->flash('danger', $locationLabels . ' are required.');
+        if (!preg_match('/^\d{6}$/', $username)) {
+            $this->flash('danger', 'Username must be your six digit employee number using numbers only.');
+            $this->redirect('?show_register=1');
+            return;
+        }
+
+        if (!preg_match('/^[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,}$/i', $email)) {
+            $this->flash('danger', 'Enter a valid email address.');
+            $this->redirect('?show_register=1');
+            return;
+        }
+
+        if (!preg_match('/^09\d{9}$/', $contactNumber)) {
+            $this->flash('danger', 'Contact number must be 11 digits, for example 09xxxxxxxxx.');
+            $this->redirect('?show_register=1');
+            return;
+        }
+
+        if (!preg_match('/^(?=.*[A-Za-z])(?=.*\d).{9,}$/', $password)) {
+            $this->flash('danger', 'Password must be at least 9 characters and include letters and numbers. Special characters are allowed.');
             $this->redirect('?show_register=1');
             return;
         }
@@ -848,8 +880,8 @@ final class DashboardController
             'central_unit_id' => $officeScope === 'central' ? $this->clean($payload['central_unit_id'] ?? '') : '',
             'designation' => $designation,
             'password' => $password,
-            'email' => $this->clean($payload['email'] ?? ''),
-            'contact_number' => $this->clean($payload['contact_number'] ?? ''),
+            'email' => $email,
+            'contact_number' => $contactNumber,
         ]);
         Activity::add('New user registration submitted for ' . $username . '.');
         Notification::addUserRegistrationPending();
@@ -898,6 +930,75 @@ final class DashboardController
         $this->redirect('?page=account');
     }
 
+    public function submitDisplayPhoto(array $payload, array $files): void
+    {
+        if (!$this->authorizeAuthenticated()) return;
+        $title = $this->clean($payload['title'] ?? '');
+        $photographer = $this->clean($payload['photographer_name'] ?? '');
+        $location = $this->clean($payload['location'] ?? '');
+        $file = $files['display_photo'] ?? null;
+        if ($title === '' || $photographer === '' || !$file || ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+            $this->flash('danger', 'Add a title, photographer name, and a 4K image to submit your photo.');
+            $this->redirect('?page=account#display-settings');
+            return;
+        }
+        if (($file['size'] ?? 0) > 30 * 1024 * 1024 || !in_array(mime_content_type($file['tmp_name']), ['image/jpeg', 'image/png', 'image/webp'], true)) {
+            $this->flash('danger', 'Upload a JPG, PNG, or WebP image no larger than 30 MB.');
+            $this->redirect('?page=account#display-settings');
+            return;
+        }
+        $size = @getimagesize($file['tmp_name']);
+        if (!$size || min((int) $size[0], (int) $size[1]) < 2160 || max((int) $size[0], (int) $size[1]) < 3840) {
+            $this->flash('danger', 'Your photo must be 4K: at least 3,840 × 2,160 pixels (or the portrait equivalent).');
+            $this->redirect('?page=account#display-settings');
+            return;
+        }
+        $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        $directory = BASE_PATH . '/assets/uploads/display-submissions';
+        if (!is_dir($directory)) mkdir($directory, 0775, true);
+        $filename = 'submission-' . $_SESSION['user_id'] . '-' . time() . '-' . bin2hex(random_bytes(4)) . '.' . $extension;
+        if (!move_uploaded_file($file['tmp_name'], $directory . '/' . $filename)) {
+            $this->flash('danger', 'The photo could not be saved. Please try again.');
+            $this->redirect('?page=account#display-settings');
+            return;
+        }
+        DisplayPhoto::create((int) $_SESSION['user_id'], $title, $photographer, $location, 'assets/uploads/display-submissions/' . $filename, (int) $size[0], (int) $size[1]);
+        foreach ($this->superAdminIds() as $adminId) Notification::add('New landing photo submission from ' . $_SESSION['user'] . '.', $adminId, 'index.php?page=display-settings');
+        Activity::add($_SESSION['user'] . ' submitted a landing page photo for review.');
+        $this->flash('success', 'Your 4K photo was submitted for System Admin review.');
+        $this->redirect('?page=account#display-settings');
+    }
+
+    public function reviewDisplayPhoto(array $payload): void
+    {
+        if (($_SESSION['role'] ?? '') !== 'System Admin') { $this->redirect(); return; }
+        $photo = DisplayPhoto::find((int) ($payload['id'] ?? 0));
+        $status = in_array($payload['status'] ?? '', ['Approved', 'Rejected'], true) ? $payload['status'] : 'Rejected';
+        if (!$photo) { $this->flash('danger', 'Photo submission was not found.'); $this->redirect('?page=display-settings'); return; }
+        $optimized = $status === 'Approved' ? $this->optimizeDisplayPhoto($photo) : null;
+        if ($status === 'Approved' && !$optimized) { $this->flash('danger', 'The photo could not be optimized.'); $this->redirect('?page=display-settings'); return; }
+        DisplayPhoto::review((int) $photo['id'], $status, max(1, (int) ($payload['position'] ?? 999)), $optimized);
+        if (!empty($photo['submitted_by'])) Notification::add('Your landing photo submission “' . $photo['title'] . '” was ' . strtolower($status) . '.', (int) $photo['submitted_by'], 'index.php?page=account#display-settings');
+        $this->flash('success', 'Photo ' . strtolower($status) . '.');
+        $this->redirect('?page=display-settings');
+    }
+
+    public function saveDisplaySettings(array $payload): void
+    {
+        if (($_SESSION['role'] ?? '') !== 'System Admin') { $this->redirect(); return; }
+        DisplayPhoto::updateSettings(min(30, max(3, (int) ($payload['loop_duration'] ?? 7))), !empty($payload['panning_enabled']));
+        $this->flash('success', 'Display settings saved.');
+        $this->redirect('?page=display-settings');
+    }
+
+    public function updateDisplayPhotoPosition(array $payload): void
+    {
+        if (($_SESSION['role'] ?? '') !== 'System Admin') { $this->redirect(); return; }
+        DisplayPhoto::updatePosition((int) ($payload['id'] ?? 0), max(1, (int) ($payload['position'] ?? 999)));
+        $this->flash('success', 'Slide position updated.');
+        $this->redirect('?page=display-settings');
+    }
+
     public function updateUserAccess(array $payload): void
     {
         if (($_SESSION['role'] ?? '') !== 'System Admin') {
@@ -920,6 +1021,31 @@ final class DashboardController
         );
         Activity::add('User access updated.');
         $this->flash('success', 'User access updated.');
+        $this->redirect('?page=users');
+    }
+
+    public function updateUserAccessBulk(array $payload): void
+    {
+        if (($_SESSION['role'] ?? '') !== 'System Admin') {
+            $this->flash('danger', 'Only System Admin can manage user access.');
+            $this->redirect('?page=users');
+            return;
+        }
+
+        $ids = array_map('intval', is_array($payload['user_ids'] ?? null) ? $payload['user_ids'] : []);
+        $role = $this->clean($payload['bulk_role'] ?? '') ?: null;
+        $status = $this->clean($payload['bulk_status'] ?? '') ?: null;
+        if ($ids === []) {
+            $this->flash('danger', 'Select at least one user.');
+        } elseif (($role !== null && !in_array($role, self::ROLES, true)) || ($status !== null && !in_array($status, ['Pending', 'Active', 'Disabled'], true))) {
+            $this->flash('danger', 'Select a valid status or role.');
+        } elseif ($role === null && $status === null) {
+            $this->flash('danger', 'Choose a status, role, or both to update.');
+        } else {
+            $updated = User::updateAccessBulk($ids, $role, $status);
+            Activity::add('Bulk user access updated for ' . $updated . ' account(s).');
+            $this->flash('success', 'User access updated for ' . $updated . ' account(s).');
+        }
         $this->redirect('?page=users');
     }
 
@@ -1604,6 +1730,33 @@ final class DashboardController
         }
 
         return 'assets/uploads/' . $filename;
+    }
+
+    private function optimizeDisplayPhoto(array $photo): ?string
+    {
+        if (!extension_loaded('gd')) return (string) $photo['image_path'];
+        $source = BASE_PATH . '/' . ltrim((string) $photo['image_path'], '/');
+        $info = @getimagesize($source);
+        if (!$info) return null;
+        $image = match ($info['mime'] ?? '') {
+            'image/jpeg' => @imagecreatefromjpeg($source),
+            'image/png' => @imagecreatefrompng($source),
+            'image/webp' => @imagecreatefromwebp($source),
+            default => false,
+        };
+        if (!$image) return null;
+        $width = imagesx($image); $height = imagesy($image);
+        $scale = min(1, 2560 / max($width, $height));
+        $targetWidth = max(1, (int) round($width * $scale));
+        $targetHeight = max(1, (int) round($height * $scale));
+        $canvas = imagecreatetruecolor($targetWidth, $targetHeight);
+        imagecopyresampled($canvas, $image, 0, 0, 0, 0, $targetWidth, $targetHeight, $width, $height);
+        $directory = BASE_PATH . '/assets/uploads/display';
+        if (!is_dir($directory)) mkdir($directory, 0775, true);
+        $filename = 'display-' . $photo['id'] . '-' . time() . '.webp';
+        $saved = imagewebp($canvas, $directory . '/' . $filename, 78);
+        imagedestroy($canvas); imagedestroy($image);
+        return $saved ? 'assets/uploads/display/' . $filename : null;
     }
 
     private function saveFarmerPhoto(?array $file): ?string

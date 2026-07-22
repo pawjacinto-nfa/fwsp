@@ -223,6 +223,33 @@ final class User
         ]);
     }
 
+    /** @param list<int> $ids */
+    public static function updateAccessBulk(array $ids, ?string $role, ?string $status): int
+    {
+        $ids = array_values(array_unique(array_filter($ids, static fn (int $id): bool => $id > 0)));
+        if ($ids === [] || ($role === null && $status === null)) return 0;
+
+        self::ensurePasswordResetSchema();
+        $sets = [];
+        $params = [];
+        if ($role !== null) { $sets[] = 'role = :role'; $params['role'] = $role; }
+        if ($status !== null) {
+            $sets[] = 'status = :status';
+            $sets[] = 'is_active = :is_active';
+            $params['status'] = $status;
+            $params['is_active'] = $status === 'Active' ? 1 : 0;
+        }
+        $placeholders = [];
+        foreach ($ids as $index => $id) {
+            $key = 'id' . $index;
+            $placeholders[] = ':' . $key;
+            $params[$key] = $id;
+        }
+        $stmt = Database::connection()->prepare('UPDATE users SET ' . implode(', ', $sets) . ' WHERE id IN (' . implode(', ', $placeholders) . ')');
+        $stmt->execute($params);
+        return $stmt->rowCount();
+    }
+
     public static function requestPasswordReset(int $id): void
     {
         self::ensurePasswordResetSchema();

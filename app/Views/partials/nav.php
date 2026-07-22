@@ -3,19 +3,19 @@ $currentUserId = !empty($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : nul
 $notifications = $currentUserId ? \App\Models\Notification::all($currentUserId) : [];
 $unreadNotifications = $currentUserId ? \App\Models\Notification::unreadCount($currentUserId) : 0;
 ?>
-<nav class="navbar navbar-expand-xl sticky-top app-nav">
+<nav class="navbar navbar-expand-xl sticky-top app-nav<?= empty($_SESSION['user_id']) ? ' guest-nav' : '' ?>">
     <div class="container-fluid px-3 px-lg-4">
-        <a class="navbar-brand app-logo" href="index.php">
-            <img src="assets/images/nfa-website-banner.png" alt="National Food Authority Farmer-Seller Registry">
-        </a>
+        <?php if (!empty($_SESSION['user_id'])): ?>
+            <a class="navbar-brand app-text-brand" href="index.php" aria-label="National Food Authority Farmer-Seller Registry home">
+                <img src="assets/images/farmer-seller-registry-logo-optimized.webp" width="56" height="56" alt="">
+                <span><small>National Food Authority</small><strong>Farmer-Seller Registry</strong></span>
+            </a>
+        <?php endif; ?>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="mainNav">
             <ul class="navbar-nav main-menu ms-lg-auto me-lg-3 mb-2 mb-lg-0">
-                <?php if (in_array($_SESSION['role'] ?? '', ['Warehouse Personnel', 'System Admin'], true) || empty($_SESSION['user_id'])): ?>
-                    <li class="nav-item"><a class="nav-link home-link" href="index.php">Home</a></li>
-                <?php endif; ?>
                 <?php if (in_array($_SESSION['role'] ?? '', ['Warehouse Personnel', 'System Admin'], true)): ?>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="index.php?page=encode-farmer" role="button" data-bs-toggle="dropdown" aria-expanded="false">Encode</a>
@@ -66,6 +66,7 @@ $unreadNotifications = $currentUserId ? \App\Models\Notification::unreadCount($c
                             <li><a class="dropdown-item" href="index.php?page=tech-support">Tech Support</a></li>
                             <li><a class="dropdown-item" href="index.php?page=user-manual">System Guide</a></li>
                             <?php if (($_SESSION['role'] ?? '') === 'System Admin'): ?>
+                                <li><a class="dropdown-item" href="index.php?page=display-settings">Display Settings</a></li>
                                 <li><a class="dropdown-item" href="index.php?page=users">User Control</a></li>
                                 <li><a class="dropdown-item" href="index.php?page=database-management">Database Management</a></li>
                             <?php endif; ?>
@@ -131,11 +132,12 @@ $unreadNotifications = $currentUserId ? \App\Models\Notification::unreadCount($c
                         <button class="btn btn-sm btn-success" type="submit">Logout</button>
                     </form>
                 <?php else: ?>
-                    <button class="btn btn-sm btn-success" type="button" data-bs-toggle="modal" data-bs-target="#loginModal">Login</button>
-                    <button class="btn btn-sm btn-warning" type="button" data-bs-toggle="modal" data-bs-target="#registerModal">Register</button>
+                    <!-- Guest authentication controls are presented in the landing masthead. -->
                 <?php endif; ?>
             </div>
         </div>
     </div>
 </nav>
 <button class="mode-toggle floating-mode-toggle" type="button" id="themeToggle" aria-label="Toggle visual contrast"><span aria-hidden="true"></span></button>
+<button class="screensaver-toggle" type="button" id="screensaverToggle" aria-label="Enable screensaver mode" title="Screensaver mode"><span aria-hidden="true">▣</span></button>
+<a class="floating-home-link" href="index.php" aria-label="Go to home">Home</a>
