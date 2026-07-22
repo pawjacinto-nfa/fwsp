@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 22, 2026 at 08:59 AM
+-- Generation Time: Jul 22, 2026 at 09:16 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -27,7 +27,6 @@ SET time_zone = "+00:00";
 -- Table structure for table `audit_logs`
 --
 
-DROP TABLE IF EXISTS `audit_logs`;
 CREATE TABLE `audit_logs` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `user_id` bigint(20) UNSIGNED DEFAULT NULL,
@@ -126,7 +125,6 @@ INSERT INTO `audit_logs` (`id`, `user_id`, `action`, `details`, `created_at`) VA
 -- Table structure for table `branch_offices`
 --
 
-DROP TABLE IF EXISTS `branch_offices`;
 CREATE TABLE `branch_offices` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `region_id` bigint(20) UNSIGNED NOT NULL,
@@ -204,7 +202,6 @@ INSERT INTO `branch_offices` (`id`, `region_id`, `name`) VALUES
 -- Table structure for table `central_departments`
 --
 
-DROP TABLE IF EXISTS `central_departments`;
 CREATE TABLE `central_departments` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `name` varchar(180) NOT NULL
@@ -233,7 +230,6 @@ INSERT INTO `central_departments` (`id`, `name`) VALUES
 -- Table structure for table `central_divisions`
 --
 
-DROP TABLE IF EXISTS `central_divisions`;
 CREATE TABLE `central_divisions` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `department_id` bigint(20) UNSIGNED NOT NULL,
@@ -265,7 +261,6 @@ INSERT INTO `central_divisions` (`id`, `department_id`, `name`) VALUES
 -- Table structure for table `central_units`
 --
 
-DROP TABLE IF EXISTS `central_units`;
 CREATE TABLE `central_units` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `division_id` bigint(20) UNSIGNED NOT NULL,
@@ -278,7 +273,6 @@ CREATE TABLE `central_units` (
 -- Table structure for table `display_photos`
 --
 
-DROP TABLE IF EXISTS `display_photos`;
 CREATE TABLE `display_photos` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `submitted_by` bigint(20) UNSIGNED DEFAULT NULL,
@@ -318,7 +312,6 @@ INSERT INTO `display_photos` (`id`, `submitted_by`, `title`, `photographer_name`
 -- Table structure for table `display_settings`
 --
 
-DROP TABLE IF EXISTS `display_settings`;
 CREATE TABLE `display_settings` (
   `id` tinyint(3) UNSIGNED NOT NULL,
   `loop_duration` tinyint(3) UNSIGNED NOT NULL DEFAULT 7,
@@ -338,7 +331,6 @@ INSERT INTO `display_settings` (`id`, `loop_duration`, `panning_enabled`) VALUES
 -- Table structure for table `farmers`
 --
 
-DROP TABLE IF EXISTS `farmers`;
 CREATE TABLE `farmers` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `farmer_key` varchar(32) DEFAULT NULL,
@@ -488,7 +480,6 @@ INSERT INTO `farmers` (`id`, `farmer_key`, `rsbsa_number`, `first_name`, `middle
 -- Table structure for table `farmer_key_sequences`
 --
 
-DROP TABLE IF EXISTS `farmer_key_sequences`;
 CREATE TABLE `farmer_key_sequences` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
@@ -618,7 +609,6 @@ INSERT INTO `farmer_key_sequences` (`id`, `created_at`) VALUES
 -- Table structure for table `farmer_organizations`
 --
 
-DROP TABLE IF EXISTS `farmer_organizations`;
 CREATE TABLE `farmer_organizations` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `name` varchar(180) NOT NULL,
@@ -651,7 +641,6 @@ INSERT INTO `farmer_organizations` (`id`, `name`, `created_at`, `total_members`,
 -- Table structure for table `landholdings`
 --
 
-DROP TABLE IF EXISTS `landholdings`;
 CREATE TABLE `landholdings` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `farmer_id` bigint(20) UNSIGNED NOT NULL,
@@ -768,7 +757,6 @@ INSERT INTO `landholdings` (`id`, `farmer_id`, `classification`, `irrigated`, `h
 -- Table structure for table `location_masterlist`
 --
 
-DROP TABLE IF EXISTS `location_masterlist`;
 CREATE TABLE `location_masterlist` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `region` varchar(120) NOT NULL,
@@ -1384,7 +1372,6 @@ INSERT INTO `location_masterlist` (`id`, `region`, `branch`, `province`, `facili
 -- Table structure for table `notifications`
 --
 
-DROP TABLE IF EXISTS `notifications`;
 CREATE TABLE `notifications` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `user_id` bigint(20) UNSIGNED DEFAULT NULL,
@@ -1414,7 +1401,6 @@ INSERT INTO `notifications` (`id`, `user_id`, `message`, `target_url`, `is_read`
 -- Table structure for table `province_offices`
 --
 
-DROP TABLE IF EXISTS `province_offices`;
 CREATE TABLE `province_offices` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `branch_id` bigint(20) UNSIGNED NOT NULL,
@@ -1531,7 +1517,6 @@ INSERT INTO `province_offices` (`id`, `branch_id`, `name`) VALUES
 -- Table structure for table `regions`
 --
 
-DROP TABLE IF EXISTS `regions`;
 CREATE TABLE `regions` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `name` varchar(120) NOT NULL
@@ -1567,7 +1552,6 @@ INSERT INTO `regions` (`id`, `name`) VALUES
 -- Table structure for table `report_signatories`
 --
 
-DROP TABLE IF EXISTS `report_signatories`;
 CREATE TABLE `report_signatories` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `user_id` bigint(20) UNSIGNED NOT NULL,
@@ -1589,7 +1573,6 @@ INSERT INTO `report_signatories` (`id`, `user_id`, `full_name`, `designation`, `
 -- Table structure for table `support_tickets`
 --
 
-DROP TABLE IF EXISTS `support_tickets`;
 CREATE TABLE `support_tickets` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `reporter_id` bigint(20) UNSIGNED NOT NULL,
@@ -1612,7 +1595,6 @@ CREATE TABLE `support_tickets` (
 -- Table structure for table `support_ticket_messages`
 --
 
-DROP TABLE IF EXISTS `support_ticket_messages`;
 CREATE TABLE `support_ticket_messages` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `ticket_id` bigint(20) UNSIGNED NOT NULL,
@@ -1627,7 +1609,6 @@ CREATE TABLE `support_ticket_messages` (
 -- Table structure for table `transactions`
 --
 
-DROP TABLE IF EXISTS `transactions`;
 CREATE TABLE `transactions` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `seller_type` enum('Individual','Farmer Organization') NOT NULL,
@@ -1751,7 +1732,6 @@ INSERT INTO `transactions` (`id`, `seller_type`, `procurement_type`, `farmer_id`
 -- Table structure for table `transaction_farmer_members`
 --
 
-DROP TABLE IF EXISTS `transaction_farmer_members`;
 CREATE TABLE `transaction_farmer_members` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `transaction_id` bigint(20) UNSIGNED NOT NULL,
@@ -1848,10 +1828,147 @@ INSERT INTO `transaction_farmer_members` (`id`, `transaction_id`, `farmer_id`, `
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `users`
+--
+
+CREATE TABLE `users` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `full_name` varchar(160) NOT NULL,
+  `username` varchar(80) NOT NULL,
+  `email` varchar(160) NOT NULL,
+  `password_hash` varchar(255) NOT NULL,
+  `role` varchar(60) NOT NULL DEFAULT 'Read-Only User',
+  `is_active` tinyint(1) NOT NULL DEFAULT 0,
+  `status` varchar(30) NOT NULL DEFAULT 'Pending',
+  `office_scope` varchar(30) NOT NULL DEFAULT 'field',
+  `region_id` bigint(20) UNSIGNED DEFAULT NULL,
+  `branch_id` bigint(20) UNSIGNED DEFAULT NULL,
+  `province_id` bigint(20) UNSIGNED DEFAULT NULL,
+  `warehouse_id` bigint(20) UNSIGNED DEFAULT NULL,
+  `central_department_id` bigint(20) UNSIGNED DEFAULT NULL,
+  `central_division_id` bigint(20) UNSIGNED DEFAULT NULL,
+  `central_unit_id` bigint(20) UNSIGNED DEFAULT NULL,
+  `designation` varchar(120) DEFAULT NULL,
+  `contact_number` varchar(40) DEFAULT NULL,
+  `profile_image` varchar(255) DEFAULT NULL,
+  `password_reset_status` varchar(30) DEFAULT NULL,
+  `password_reset_requested_at` timestamp NULL DEFAULT NULL,
+  `password_reset_approved_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `users`
+--
+
+INSERT INTO `users` (`id`, `full_name`, `username`, `email`, `password_hash`, `role`, `is_active`, `status`, `office_scope`, `region_id`, `branch_id`, `province_id`, `warehouse_id`, `central_department_id`, `central_division_id`, `central_unit_id`, `designation`, `contact_number`, `profile_image`, `password_reset_status`, `password_reset_requested_at`, `password_reset_approved_at`, `created_at`) VALUES
+(1, 'Paw Jacinto', '940640', 'superadmin@fwsp.local', '$2y$10$GN7cBbOJqlqWKG4WTlq9WeDddCeEISNlbqSS3enkM2UeyQxVXti9e', 'System Admin', 1, 'Active', 'field', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'System Administrator', 'n/a', 'assets/uploads/profile-1-1782714851.jpg', NULL, NULL, NULL, '2026-06-25 13:45:17'),
+(2, 'Maria Warehouse', 'warehouse', 'warehouse@fwsp.local', '$2y$10$eImiTXuWVxfM37uY4JANjQeD8ZtcVgHPwrFA4ocK9n53KRzLtPz4S', 'System Admin', 1, 'Active', 'field', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Warehouse Supervisor', '09170000000', NULL, NULL, NULL, NULL, '2026-06-25 13:45:17'),
+(3, 'Danica Garcia', '000222', '000222@fwsp.local', '$2y$10$NYsz2cMvNc537Iw/7H1vB.EOqKR1WAxdIgXTaMOdLiCeP4JCPZubK', 'System Admin', 1, 'Active', 'field', 19, 12, 29, 49, NULL, NULL, NULL, 'Warehouse Manager', '09000000222', NULL, NULL, NULL, NULL, '2026-06-25 13:52:29'),
+(4, 'Seed Regional Branch Manager', '000111', '000111@fwsp.local', '$2y$10$NYsz2cMvNc537Iw/7H1vB.EOqKR1WAxdIgXTaMOdLiCeP4JCPZubK', 'System Admin', 1, 'Active', 'field', 19, 12, NULL, NULL, NULL, NULL, NULL, 'Regional/Branch Manager', '09000000111', NULL, NULL, NULL, NULL, '2026-06-25 13:52:29'),
+(5, 'Seed Warehouse Manager 000333', '000333', '000333@fwsp.local', '$2y$10$vRpoOMwSBWt9IuiaGlNCOeOn9Tme8iMEJVEi573EgTc2qSw4voc52', 'System Admin', 1, 'Active', 'field', 19, 12, 29, 50, NULL, NULL, NULL, 'Warehouse Manager', '09000000333', NULL, NULL, NULL, NULL, '2026-06-25 13:52:45'),
+(6, 'Seed Manager 000001', '000001', '000001@fwsp.local', '$2y$10$nuVtJi6ZWE233OdTFeK/POA7NzHPcQlmfdH31tOx3NfgqO3k9RfzW', 'System Admin', 1, 'Active', 'field', 19, 12, NULL, NULL, NULL, NULL, NULL, 'Manager', NULL, NULL, NULL, NULL, NULL, '2026-06-30 02:52:16'),
+(8, 'Test User Warehouse', '111111', 'pawjacinto@gmail.com', '$2y$10$WStBHojQsP13FQ3TPWJiH.xHrJYOPyn1SH0UnwPCvSNF3nKdli5r.', 'Warehouse Personnel', 1, 'Active', 'field', 29, 53, 91, 523, NULL, NULL, NULL, 'Warehouse Manager', '09175374296', NULL, NULL, NULL, NULL, '2026-07-22 03:14:48'),
+(9, 'SUSANA ASEJO', '937922', 'asejosusana11@gmail.com', '$2y$10$L3zwe1L2yzoR1w0dv/Ty7OnUTM/A4vB.8AO429XXtDd8OuM3DCYpS', 'Warehouse Personnel', 1, 'Active', 'field', 29, 52, 90, 510, NULL, NULL, NULL, 'Acting Supervising Grains Officer', '09127802676', NULL, NULL, NULL, NULL, '2026-07-21 21:02:51'),
+(10, 'Raybelle Joy V. Encarnacion', '938363', 'raybelle.naliv@gmail.com', '$2y$10$MN/ncRcLBJM8Q4JQwVCKieWeua6i.kZcEolLJkxGQPd9KkSEJqnZm', 'Warehouse Personnel', 1, 'Active', 'field', 22, 28, 57, 276, NULL, NULL, NULL, 'Warehouse Supervisor', '09778037759', NULL, NULL, NULL, NULL, '2026-07-21 21:05:13'),
+(11, 'MERICRIS GARDOSE', '944045', 'gardosemericris15@gmail.com', '$2y$10$c1SOJ8xkdnqRnWJNmaMvruhFCkylJkCl.54YvziBAmPV9hI6Fclp6', 'Warehouse Personnel', 1, 'Active', 'field', 25, 38, 70, 374, NULL, NULL, NULL, 'ACTING WAREHOUSE SUPERVISOR', '09162155776', NULL, NULL, NULL, NULL, '2026-07-21 21:05:21'),
+(12, 'Anie A. Magsino', '938315', 'anie_magsino@yahoo.com', '$2y$10$BjMKm5yf6LTfLRKe4j6WA.X44c5rSbD9HlkoAff9A93GNAgGAPdkm', 'Warehouse Personnel', 1, 'Active', 'field', 22, 26, 55, 240, NULL, NULL, NULL, 'Supervising Grains Officer', '09985322960', NULL, NULL, NULL, NULL, '2026-07-21 21:05:44'),
+(13, 'Jean Ann Tivman', '941006', 'jeanzticman@gmail.com', '$2y$10$6kpbU1W47TAljxm5b6kKmO6mFgCSbLKYvbVcnTUVSzjQ2ERB7hK2W', 'Warehouse Personnel', 1, 'Active', 'field', 19, 12, 29, NULL, NULL, NULL, NULL, 'Grains Operations Officer 1', '09998345930', NULL, NULL, NULL, NULL, '2026-07-21 21:07:40'),
+(14, 'Jeffrey aldea gutierrez', '941600', 'epoyagutierrez02161984@gmail.com', '$2y$10$tPioaPZTSyfI5L.MQgU7dOtKco38Q6SUBwomM1sk3Dkvcrhp.KNsW', 'Warehouse Personnel', 1, 'Active', 'field', 22, 28, 57, 275, NULL, NULL, NULL, 'Warehouse supervisor', '09088827457', NULL, NULL, NULL, NULL, '2026-07-21 21:08:53'),
+(15, 'Bernadette Pe??a', '939971', 'badzocampo24@gmail.com', '$2y$10$KDhK/I14UtkobpMgio1etOpBATEL8MrkbVFliREFXYBRZpmd3JM5i', 'Warehouse Personnel', 1, 'Active', 'field', 22, 28, 57, 279, NULL, NULL, NULL, 'Supervising Grains Officer', '09778141869', NULL, NULL, NULL, NULL, '2026-07-21 21:09:35'),
+(16, 'Desiree J. Dimalibot', '945311', 'desireedimalibot14@gmail.com', '$2y$10$03YMtlA3K2dhJeToP3EY5OM8GETE0xqDesUBeThYV9E3p5mvLAOBO', 'Warehouse Personnel', 1, 'Active', 'field', 22, 28, 57, 275, NULL, NULL, NULL, 'Warehouse Assistant', '09476188550', NULL, NULL, NULL, NULL, '2026-07-21 21:09:48'),
+(17, 'Ciara Fe Calang', '938486', 'xiaracalang@gmail.com', '$2y$10$zywYRaic9vj9Q.JiULlmf.RwqmOAeEjqRodk8MwIU6hGgHd5f7LnK', 'Warehouse Personnel', 1, 'Active', 'field', 19, 12, 29, 59, NULL, NULL, NULL, 'Acting SAO', '09317830342', NULL, 'Approved', '2026-07-21 21:20:28', '2026-07-21 22:15:21', '2026-07-21 21:10:07'),
+(18, 'Jonathan F. Domantay', '943712', 'hyatae@gmail.com', '$2y$10$I0R/yBxp0OoshzkiuAld0umTY2FnlUYeiOmquSf4h8mL.nSafNium', 'Warehouse Personnel', 1, 'Active', 'field', 19, 12, 29, 58, NULL, NULL, NULL, 'Warehouse Assistant', '09913123171', NULL, NULL, NULL, NULL, '2026-07-21 21:10:25'),
+(19, 'Jucy Sarmiento', '943841', 'jucy.sarmiento18@gmail.com', '$2y$10$hVu2gXYgSGQdT2qzgjQVx.IqBRUqar/aWWjMH.D3lIxcTaG81IIau', 'Warehouse Personnel', 1, 'Active', 'field', 22, 28, 57, 276, NULL, NULL, NULL, 'Acting WA', '09750243258', NULL, NULL, NULL, NULL, '2026-07-21 21:11:33'),
+(20, 'Eduard Jayson Conchada', '939833', 'ejconchada@gmail.com', '$2y$10$3BFMwiCIEEb5.eIHv.eI0OL16460PRsXZ7lkDirsE/pgbHP0fnn8u', 'Warehouse Personnel', 1, 'Active', 'field', 27, 46, 82, 455, NULL, NULL, NULL, 'Economist IV', '09062078244', NULL, NULL, NULL, NULL, '2026-07-21 21:11:51'),
+(21, 'Cherry Ann Soriano', '939635', 'cherryann_paiste@yahoo.com', '$2y$10$Kfjj2Ao4tNA0BKQYIDPfU.5wJ3fld.8nDPti5mNtSAq5aWtfRoIFi', 'Warehouse Personnel', 1, 'Active', 'field', 19, 12, 29, 54, NULL, NULL, NULL, 'Supervising Grains Officer', '09778197222', NULL, NULL, NULL, NULL, '2026-07-21 21:12:12'),
+(22, 'Clyde N. Bustamante', '916949', 'clydebustamante43@gmail.com', '$2y$10$39Z9L264wXS/gLhOfcgwyOz/bg.QuojJwQeWbX5yjeP2KWNLo05/S', 'Warehouse Personnel', 1, 'Active', 'field', 19, 12, 29, 58, NULL, NULL, NULL, 'Warehouse Supervisor 11', '09437001001', NULL, NULL, NULL, NULL, '2026-07-21 21:15:06'),
+(23, 'Cristine B Penuela', '939191', 'tindems@yahoo.com', '$2y$10$FkjFYrPaOxIE7.K3boIOSuma9erZIleMzZusVkejWugm1oJD7V/5q', 'Warehouse Personnel', 1, 'Active', 'field', 25, 38, 69, 367, NULL, NULL, NULL, 'Warehouse Supervisor', '09487125392', NULL, NULL, NULL, NULL, '2026-07-21 21:15:56'),
+(24, 'Mary Grace L. Ramos', '935673', 'mgramos44@gmail.com', '$2y$10$/grVzhwEH6uJz7HlUbLQjeYooGzj2DKJb39sDqu4MO10gO2IJM2zC', 'Warehouse Personnel', 1, 'Active', 'field', 19, 12, 30, 62, NULL, NULL, NULL, 'Warehouse Supervisor', '09178461722', NULL, NULL, NULL, NULL, '2026-07-21 21:16:12'),
+(25, 'Dennis N Mejico', '937133', 'dnmejico@yahoo.com.ph', '$2y$10$NTAgiAm5zIESYZ3LRns/QeKpupkdC/SLSuYmZwHBRCEyecFF2aof2', 'Manager', 1, 'Active', 'field', 22, 28, 57, 279, NULL, NULL, NULL, 'Branch Manager', '09994225129', NULL, NULL, NULL, NULL, '2026-07-21 21:17:43'),
+(26, 'JULIETA B NACES', '938360', 'jbnacs@gmail.com', '$2y$10$l6.k08/a/0SjPsxac8th3OPhgv4wZVYVPalfX6XdqIWwvbapsiIcC', 'Warehouse Personnel', 1, 'Active', 'field', 26, 44, 78, 429, NULL, NULL, NULL, 'Statistician II', '09357133861', NULL, NULL, NULL, NULL, '2026-07-21 21:18:07'),
+(27, 'Mary Ann Q. Caballero', '937691', 'caballeromaryann6@gmail.com', '$2y$10$/HmXux.zL1AGUci9CayyROIb8ohgNQY/rTMbkh1H8.ODwJLmu.uaq', 'Warehouse Personnel', 1, 'Active', 'field', 19, 12, 29, 59, NULL, NULL, NULL, 'Acting warehouse supervisor', '09952672435', NULL, NULL, NULL, NULL, '2026-07-21 21:18:31'),
+(28, 'Angello Charlton Evann A. Salvatierra', '945656', 'acesalvatierra15@gmail.com', '$2y$10$R.QzKxa8C2sybayXvlT4qOxk9hKhmJmyyw3E71mZyY9QxOQOmEAD.', 'Warehouse Personnel', 1, 'Active', 'field', 22, 28, 57, 274, NULL, NULL, NULL, 'Warehouse Assistant', '09292428460', NULL, NULL, NULL, NULL, '2026-07-21 21:20:05'),
+(29, 'Christia Velante', '938162', 'christia_velante@yahoo.com.ph', '$2y$10$z5GZm.9KStjz8lWB55LiHe1K1GMB5K/oA4v0zE86mxcx5nNNyNEDe', 'Warehouse Personnel', 1, 'Active', 'field', 22, 28, 57, 279, NULL, NULL, NULL, 'WS', '09171369092', NULL, NULL, NULL, NULL, '2026-07-21 21:23:27'),
+(30, 'Alma G Chua', '932884', 'almachua45@gmail.com', '$2y$10$j2kPvhZ7Zsxn3WZJnB6yJuDS42GFfy7VNGMKv.qCmC7IgjKgGhOuq', 'Warehouse Personnel', 1, 'Active', 'field', 21, 20, 46, 173, NULL, NULL, NULL, 'Warehouse Supervisor', '09608622904', NULL, NULL, NULL, NULL, '2026-07-21 21:24:03'),
+(31, 'Charlene Marie F. Cantos', '945677', 'charlene.cantos04@gmail.com', '$2y$10$SqkwSVAmIsk04Wk3kcQujOLfA6.P9yTsaOKEkmQQTbVy1B2mWn91a', 'Warehouse Personnel', 1, 'Active', 'field', 22, 28, 57, 278, NULL, NULL, NULL, 'Warehouse Assistant', '09068439271', NULL, NULL, NULL, NULL, '2026-07-21 21:24:16'),
+(32, 'JAN NI??O RICO JANDOG', '943793', 'nfaaklan@gmail.com', '$2y$10$kVvMeiPmBFTancakKBSUjeR0ivLkU2SWrGnJlMZwJ84frgJPLhkKO', 'Warehouse Personnel', 1, 'Active', 'field', 25, 38, 69, 367, NULL, NULL, NULL, 'Warehouse Assistant', '09190072579', NULL, NULL, NULL, NULL, '2026-07-21 21:25:28'),
+(33, 'Valerie', '939440', 'nfacbostatistics.2023@gmail.com', '$2y$10$jTVQESsc6GBgXK/xjDTEr.43bnhcOA/fjiC7rENV6ZPF6YqYkg5/W', 'Warehouse Personnel', 1, 'Active', 'field', 25, 38, 70, NULL, NULL, NULL, NULL, 'Officer In-Charge BSM Section', '09940068361', NULL, NULL, NULL, NULL, '2026-07-21 21:25:56'),
+(34, 'Khristine T. Vincoy', '935656', 'kvincoy@gmail.com', '$2y$10$OCGTGoFB1/Jc5v8BIwZzMezTOyBnte1/bbzDWfWUf6laDFkxM9JJC', 'Warehouse Personnel', 1, 'Active', 'field', 26, 43, NULL, NULL, NULL, NULL, NULL, 'Assistant Branch Manager', '09998831085', NULL, NULL, NULL, NULL, '2026-07-21 21:26:29'),
+(35, 'MARNELLE DELANDAO', '942185', 'mdelandao2016@gmail.com', '$2y$10$gvrMzGFao6EoAIp4c..Nm.N7RwudHBZq83Ho8GJfKmM86je7p7XFW', 'Warehouse Personnel', 1, 'Active', 'field', 25, 38, 70, 369, NULL, NULL, NULL, 'STATISTICIAN II', '09171933399', NULL, NULL, NULL, NULL, '2026-07-21 21:26:36'),
+(36, 'FEBROSE N. VALENZUELA', '943478', 'febrosenillo@gmail.com', '$2y$10$r0HUuvB/nV3Bxu1AiLIfz.NQzoEe5/arCTaXXNVNngI6tClm53gbq', 'Warehouse Personnel', 1, 'Active', 'field', 19, 14, 35, 87, NULL, NULL, NULL, 'STATISTICIAN II', '09076414405', NULL, NULL, NULL, NULL, '2026-07-21 21:27:17'),
+(37, 'Czarina Loren Q. Gutierrez', '941117', 'clbquinio@gmail.com', '$2y$10$PFjL6vs8P56GKA1oxIDe8ecc9effD3X9qqz8krzmIYGDGrVDv89va', 'Warehouse Personnel', 1, 'Active', 'field', 22, 28, 57, 278, NULL, NULL, NULL, 'Warehouse Supervisor', '09568675970', NULL, NULL, NULL, NULL, '2026-07-21 21:28:09'),
+(38, 'Felina C. Albo', '925594', 'felinacalbo@gmail.com', '$2y$10$nHplHKFQGLgRoBueIcnj8uLeUc2WCW1hAB.mgaxkShCa8wx4WJld2', 'Warehouse Personnel', 1, 'Active', 'field', 22, 28, 57, 274, NULL, NULL, NULL, 'Warehouse Supervisor', '09294892882', NULL, NULL, NULL, NULL, '2026-07-21 21:29:23'),
+(39, 'Leticia A. Medel', '938237', 'medelleticia123@gmail.com', '$2y$10$/RXMVd27Zph/XeNI5sSOPe5PvlqyJGQrH83vS7DLE61Ktc02X4r3O', 'Warehouse Personnel', 1, 'Active', 'field', 26, 44, 78, 427, NULL, NULL, NULL, 'Warehouse Supervisor', '09696135488', NULL, NULL, NULL, NULL, '2026-07-21 21:29:51'),
+(40, 'Megan Victor Culla', '945668', 'meganvictor.culla@gmail.com', '$2y$10$5z6yuq.dKg.h/oVSdCu5V.rhsVEGAuUJhw5lTcApQ1AYb1h7ZRsZS', 'Warehouse Personnel', 1, 'Active', 'field', 22, 28, 57, 279, NULL, NULL, NULL, 'Grains Operations Officer I', '09171427985', NULL, NULL, NULL, NULL, '2026-07-21 21:30:18'),
+(41, 'Andy P. Ostan', '938684', 'andyostan14@gmail.com', '$2y$10$bsRL8sOzoIlFfVxwDovkkOTKWcujIzfTnWRIP03yXNkmZxrtRU75K', 'Manager', 1, 'Active', 'field', 25, 38, 70, NULL, NULL, NULL, NULL, 'Acting ABM', '09088796977', NULL, NULL, NULL, NULL, '2026-07-21 21:31:22'),
+(42, 'Raquel J. Carredo', '939323', 'raquelcarredo@gmail.com', '$2y$10$ps8i3VeoE6U26iyNEVf7luKgrGrVK0YoEXAu3f.QbrmxNfVTTs9Hy', 'Warehouse Personnel', 1, 'Active', 'field', 26, 43, 77, 424, NULL, NULL, NULL, 'Warehouse Supervisor', '09369544240', NULL, NULL, NULL, NULL, '2026-07-21 21:32:24'),
+(43, 'Jeffrey Ryan L. Arellano', '941927', 'jeffarellano84@gmail.com', '$2y$10$gd9u8I12v.KH49eCrxg/nOANdllzRXlOFqLThp.PWwljJXk7KCb6O', 'Warehouse Personnel', 1, 'Active', 'field', 22, 27, 56, 255, NULL, NULL, NULL, 'Acting Warehouse Supervisor', '09776963708', NULL, NULL, NULL, NULL, '2026-07-21 21:32:33'),
+(44, 'Aries Cruz', '939362', 'ariesdcruz@gmail.com', '$2y$10$Vq63DhWZLpHSmcfFX/Ynm.ER.PEeGQUPgk7qjf0tYDhIyGi7VjJdS', 'Warehouse Personnel', 1, 'Active', 'field', 29, 53, 91, 523, NULL, NULL, NULL, 'SGO', '09515316831', NULL, NULL, NULL, NULL, '2026-07-21 21:33:19'),
+(45, 'Frances Anne Concepcion L. Paqueo', '941885', 'faclpaqueonfa2021@gmail.com', '$2y$10$8cGjoj6uoiZarihHHAyyOu5K8cNPWRZGfdTYzlgcQIjg1R61iHQvG', 'Warehouse Personnel', 1, 'Active', 'field', 29, 53, 91, 523, NULL, NULL, NULL, 'GOO 1', '09238666723', NULL, NULL, NULL, NULL, '2026-07-21 21:33:21'),
+(46, 'Cristopher Gumapac', '940475', 'gumapac.cristopher@gmail.com', '$2y$10$VWhhqRDmLsHROvZwK.t8PeLI7Ss0JgRz.DxC8l/ZWZwcuwkcZppom', 'Warehouse Personnel', 1, 'Active', 'field', 29, 52, 90, 514, NULL, NULL, NULL, 'WAREHOUSE SUPERVISOR', '09107843502', NULL, NULL, NULL, NULL, '2026-07-21 21:34:21'),
+(47, 'Dexter Navarro', '937964', 'dextercarlos12345@gmail.com', '$2y$10$yhY7p4C9Sl1uYLo1dmfNOeSlPbJ2Bmt24hKSWLGj6MvFgX9Vvn6EO', 'Warehouse Personnel', 1, 'Active', 'field', 26, 43, 77, 425, NULL, NULL, NULL, 'Warehouse Supervisor', '09497423112', NULL, NULL, NULL, NULL, '2026-07-21 21:34:36'),
+(48, 'Jerome B. Fernandez', '941456', 'jeromectu1164256@gmail.com', '$2y$10$mO0LO.JwtU.SpdUu/zvctuJs6TbQJqEvUaPULml5VSP6gVC28RKd2', 'Warehouse Personnel', 1, 'Active', 'field', 26, 43, 77, 424, NULL, NULL, NULL, 'Acting Warehouse Assistant', '09219714905', NULL, NULL, NULL, NULL, '2026-07-21 21:35:29'),
+(49, 'Senen T Carcosia', '937925', 'senencarcosia@gmail.com', '$2y$10$9l9.cyOrwBiHxOm4jyoYiOC0LIe30o2NcUXnqSYYZfNiZJCLZISYu', 'Warehouse Personnel', 1, 'Active', 'field', 29, 52, 90, 510, NULL, NULL, NULL, 'Warehouse Supervisor', '09914349139', NULL, NULL, NULL, NULL, '2026-07-21 21:35:45'),
+(50, 'Marimar Jardinez Floresca', '945356', 'jardinezmarimar@gmail.com', '$2y$10$kZb4djCmIQ8gZIaxhz8TmOcOQuqjZUQUXfC36Zy3IKZkXxocW4eHe', 'Warehouse Personnel', 1, 'Active', 'field', 22, 27, 56, 266, NULL, NULL, NULL, 'Warehouse Assistant', '09304758904', NULL, NULL, NULL, NULL, '2026-07-21 21:36:54'),
+(51, 'Maria Mica Angelica D. Bruno', '945755', 'mariamicaangelica@gmail.com', '$2y$10$NWfyDclE4VQynhQ2rn9Ws.kselYw9rX27XMMmg04Yd2u0ImEX7tjK', 'Warehouse Personnel', 1, 'Active', 'field', 22, 27, 56, 266, NULL, NULL, NULL, 'Warehouse Assistant', '09108904222', NULL, NULL, NULL, NULL, '2026-07-21 21:36:59'),
+(52, 'JOHN KENT L. QUIRAO', '946064', 'nfacapiz.mos@gmail.com', '$2y$10$chrkKtUErolO3XY1ZwVDg.pHcpRX9aBrRQjHpBbMTCj3h3Aa5TLWO', 'Warehouse Personnel', 1, 'Active', 'field', 25, 38, 70, NULL, NULL, NULL, NULL, 'GOO-I', '09760853203', NULL, NULL, NULL, NULL, '2026-07-21 21:37:14'),
+(53, 'Anthony Jake C. Panelo', '945707', 'jakepanelo12@gmail.com', '$2y$10$3ygyIS2GgaeRZ1d.uGZQp.hR6qoLBDqFJmPMK2N4tmmQJsXoV.u4a', 'Warehouse Personnel', 1, 'Active', 'field', 22, 27, 56, 245, NULL, NULL, NULL, 'Warehouse Assistant', '09637051816', NULL, NULL, NULL, NULL, '2026-07-21 21:37:18'),
+(54, 'Irah B. Razote', '941234', 'irah_razote@yahoo.com', '$2y$10$P64.Or3ggmCLC7S9BJuG.Oj6J7MBzihhv8dtoWZye/W/y.AtfPpji', 'Read-Only User', 1, 'Active', 'field', 25, 40, 74, 405, NULL, NULL, NULL, 'Statistician II', '09773377494', NULL, NULL, NULL, NULL, '2026-07-21 21:37:25'),
+(55, 'Lovella Manio Dela Cruz', '932722', 'lovelladelacruz22@gmail.com', '$2y$10$tXHOGrQxOAZYae7gw2IGY.i1uh/4j/paA0Nq0LV03n9ZG8nHT0Nbu', 'Warehouse Personnel', 1, 'Active', 'field', 19, 12, 29, 53, NULL, NULL, NULL, 'Warehouse Supervisor', '09272208723', NULL, NULL, NULL, NULL, '2026-07-21 21:37:27'),
+(56, 'Fernando I. Sanque', '934425', 'fernando.i.sanque@gmail.com', '$2y$10$JXZaWX4p7lKtRy4aJR9grO.jj6iKzfSMn0HAEBEkdM4aAgH/VSHm2', 'Manager', 1, 'Active', 'field', 22, 28, 57, 279, NULL, NULL, NULL, 'Assistant Branch Manager', '09062233599', NULL, NULL, NULL, NULL, '2026-07-21 21:37:31'),
+(57, 'Jemmarie N. Gega', '945713', 'jemmariegega02@gmail.com', '$2y$10$whXpEUu/okJcMe8nLA6DwelC0gECuPr2EaYISSWNqWcEiWAIhVdgW', 'Warehouse Personnel', 1, 'Active', 'field', 22, 27, 56, 266, NULL, NULL, NULL, 'Grains Operations Officer I', '09199941429', NULL, NULL, NULL, NULL, '2026-07-21 21:38:33'),
+(58, 'Danjovic Salvador A. Callos', '945773', 'callosjovic@gmail.com', '$2y$10$N2EBhKcpP3ixV1AYi8W7Xur6Ie50VWHFYR6Oykrrp6c0XzFSqaRve', 'Warehouse Personnel', 1, 'Active', 'field', 22, 27, 56, 266, NULL, NULL, NULL, 'Warehouse Assistant', '09953404352', NULL, NULL, NULL, NULL, '2026-07-21 21:38:58'),
+(59, 'Kathlyn M. Gonzales', '933512', 'kathlyngonzales@gmail.com', '$2y$10$JX52wX8Bp9ABOppHR5dLs.YHrDsEb3CWjdSxEWP1KnmSDumGqExc6', 'Manager', 1, 'Active', 'field', 22, 27, 56, 266, NULL, NULL, NULL, 'Assistant Branch Manager', '09175607581', NULL, NULL, NULL, NULL, '2026-07-21 21:40:46'),
+(60, 'Joshua Dalsaitan Barayoga', '945758', 'joshuabarayoga23@gmail.com', '$2y$10$Wt3Ekira9/0CNtlOku8u4./23hPlZR8MvvNxojw5QOrff2S4m3umi', 'Read-Only User', 1, 'Active', 'field', 22, 27, 56, 266, NULL, NULL, NULL, 'Buffer Stock Management', '09918595466', NULL, NULL, NULL, NULL, '2026-07-21 21:41:02'),
+(61, 'MARLEN D. ZAMORA', '938648', 'lencinzamdion@gmail.com', '$2y$10$XxXvh66GxRxjKXK42hJUbeE8zLzftaVPqB9Ij5jZPjai4p4hYNNN6', 'Warehouse Personnel', 1, 'Active', 'field', 29, 54, NULL, NULL, NULL, NULL, NULL, 'Warehouse Supervisor', '09063307182', NULL, NULL, NULL, NULL, '2026-07-21 21:42:16'),
+(62, 'Julius Cesar M. Supangan', '945878', 'supanganjulius7@gmail.com', '$2y$10$a61iwS6AreVVnS3j6FdIve2nYiTKLR13YtItLVWQWu8PTop1KiW8i', 'Warehouse Personnel', 1, 'Active', 'field', 19, 12, 30, 65, NULL, NULL, NULL, 'Warehouse Assistant', '09773715161', NULL, NULL, NULL, NULL, '2026-07-21 21:42:17'),
+(63, 'Bryan Atienza', '944084', 'bryanatienzatsd04@gmail.com', '$2y$10$7p5UXx2HWyem1aiQcBnK/OwZh242PO0W.wi7goNwpdfPaATMtztkG', 'Warehouse Personnel', 1, 'Active', 'field', 22, 27, 56, 246, NULL, NULL, NULL, 'Warehouse Supervisor', '09270769558', NULL, NULL, NULL, NULL, '2026-07-21 21:42:29'),
+(64, 'Hennalyn G. Gorospe', '944030', 'hennazoe2408@gmail.com', '$2y$10$jErOoXBsZAImlf/DkLVU4ObAQChxgptPhRrDwZdSqmd39FFR6E2OC', 'Warehouse Personnel', 1, 'Active', 'field', 22, 27, 56, 266, NULL, NULL, NULL, 'Statistician', '09177683308', NULL, NULL, NULL, NULL, '2026-07-21 21:43:19'),
+(65, 'Harold D. Cuartero', '939137', 'cuarteroharold@gmail.com', '$2y$10$mqmH0VvEqqoqTv3oOQa9he.4.tjkLsTvoFVSNNLFNnk6qtd.Tp9qO', 'Manager', 1, 'Active', 'field', 22, 27, 56, 266, NULL, NULL, NULL, 'Branch Manager', '09176742611', NULL, NULL, NULL, NULL, '2026-07-21 21:46:01'),
+(66, 'RENELLE JEANNE D. CASAS', '940472', 'nelnelcasas@gmail.com', '$2y$10$GgoqN4rG4VfRWwZncPp2mu1YvryU9RVuGm0ukb8N2ebWQYZFHcL16', 'Warehouse Personnel', 1, 'Active', 'field', 29, 52, 90, 510, NULL, NULL, NULL, 'GRAINS OPERATIONS OFFICER 1', '09395427027', NULL, NULL, NULL, NULL, '2026-07-21 21:46:45'),
+(67, 'EDEN CHARITY MASING POLICIOS', '941003', 'ecpolicios@gmail.com', '$2y$10$8OyUTOHKdQmIli5EAulfU.hRJiwqE0opABHyq8tqCOH6/ECH5DhVu', 'Read-Only User', 1, 'Active', 'field', 29, 52, 90, 510, NULL, NULL, NULL, 'Statistician II', '09454714331', NULL, NULL, NULL, NULL, '2026-07-21 21:47:45'),
+(68, 'Christine C. Magnaye', '944492', 'tincenamagnaye@gmail.com', '$2y$10$UbJ8NpQyX7ie/fYIVnIGCu17j77ABLf8M3O/er6qo4DQBco51sjLC', 'Warehouse Personnel', 1, 'Active', 'field', 22, 31, 60, 297, NULL, NULL, NULL, 'Grains Operations Officer I', '09770829874', NULL, NULL, NULL, NULL, '2026-07-21 21:47:49'),
+(69, 'GARRY PAUL F. CORTEZ', '940457', 'syndicatepaul3179@gmail.com', '$2y$10$5Uyq5jDetV9R3iOim8n.qOsBhXzDtiMBocDPAneH/iYjAWJY1HDEG', 'Warehouse Personnel', 1, 'Active', 'field', 19, 12, 30, 65, NULL, NULL, NULL, 'Warehouse Supervisor', '09178339575', NULL, NULL, NULL, NULL, '2026-07-21 21:52:10'),
+(70, 'JONA BENSI GINGOYON', '939773', 'jonagingoyon@gmail.com', '$2y$10$ep3iPNlU.GZnCMQgSc.Sf.gT6.LeIrEoCmltAFOUWzRJaf7cXV9qa', 'Warehouse Personnel', 1, 'Active', 'field', 26, 43, 77, 416, NULL, NULL, NULL, 'Warehouse Supervisor', '09524725762', NULL, NULL, NULL, NULL, '2026-07-21 21:52:56'),
+(71, 'Anna Deza C. Manatad', '939515', 'annadezamanatad@gmail.com', '$2y$10$NljVIDwgTzq7bleKTIxw6O3ngNFuCyOXpNGYhYyb0U5CChpQ84ZeO', 'Warehouse Personnel', 1, 'Active', 'field', 29, 52, 90, 514, NULL, NULL, NULL, 'Warehouse Assistant', '09434377480', NULL, NULL, NULL, NULL, '2026-07-21 21:54:59'),
+(72, 'Genesis D. Zaspa', '938354', 'tivzii@yahoo.com.ph', '$2y$10$zrBVyWf6oIrbbWj95C7hcOPS02ahgKzKuKxyPwxqpm5qQZ55oLpta', 'Warehouse Personnel', 1, 'Active', 'field', 26, 43, 77, 416, NULL, NULL, NULL, 'Warehouse Supervisor', '09205047736', NULL, NULL, NULL, NULL, '2026-07-21 21:55:26'),
+(73, 'Richel O. Aguilar', '945710', 'richelaguilar855@gmail.com', '$2y$10$UWqfsnoGxNvqojKQB4ToyeZ3mb88wEHxvtSETtMQgyK58pM8Frb3G', 'Warehouse Personnel', 1, 'Active', 'field', 22, 27, 56, 253, NULL, NULL, NULL, 'Warehouse Assistant', '09974228621', NULL, NULL, NULL, NULL, '2026-07-21 21:56:43'),
+(74, 'Honeylette Igasan', '943835', 'nfa.honeyletteigasan@gmail.com', '$2y$10$VAs8t2ImE/P5hwzUB41VOuRfZfIh5Wrt405/jCnK4l.LG.QKVPTQW', 'Warehouse Personnel', 1, 'Active', 'field', 22, 26, 55, 240, NULL, NULL, NULL, 'Grains Operation Officer I', '09458134534', NULL, NULL, NULL, NULL, '2026-07-21 21:57:10'),
+(75, 'Marlon V. Sanchez', '942653', 'sanchezmarlon1988@gmail.com', '$2y$10$WaTxClf0zamEzbiEMe916e7iPJ/n8i1flHzvlYqh0KVlO.DCIssmO', 'Warehouse Personnel', 1, 'Active', 'field', 29, 52, 90, 512, NULL, NULL, NULL, 'Warehouse Assistant', '09664651960', NULL, NULL, NULL, NULL, '2026-07-21 21:59:51'),
+(76, 'Enrico Y. Salcedo', '945776', 'nfaisaopns@gmail.com', '$2y$10$06vJGZ93mR6zT9Jh.OpFN.uOncC7./bn0RmWnaMCbieMu82u.WNb6', 'Warehouse Personnel', 1, 'Active', 'field', 20, 17, 40, 128, NULL, NULL, NULL, 'Grains Operations Officer I', '09055110628', NULL, NULL, NULL, NULL, '2026-07-21 22:00:00'),
+(77, 'Jonathan D. Hernandez', '932324', 'engrtanhernandez@gmail.com', '$2y$10$3v1c6raeujlIfSN2ZL2h6OWvC6HhojWkG57xVkKRhcEDZRAgAuJJO', 'Warehouse Personnel', 1, 'Active', 'field', 22, 27, 56, 252, NULL, NULL, NULL, 'Warehouse Supervisor', '09178696300', NULL, NULL, NULL, NULL, '2026-07-21 22:00:55'),
+(78, 'ALBERT A. EVARDOME', '942050', 'flgcwarehouse@gmail.com', '$2y$10$UwWuwi3qsNhBGO1zy2.3A.yt0IZLQ3wwIn5hCvVM3dHN9XvvK0Y3O', 'Warehouse Personnel', 1, 'Active', 'field', 22, 26, 55, 236, NULL, NULL, NULL, 'WAREHOUSE SUPERVISOR', '09213674787', NULL, NULL, NULL, NULL, '2026-07-21 22:02:12'),
+(79, 'Auria C. Carganilla', '945443', 'nfaisabelabsm@gmail.com', '$2y$10$1H6EUCWhLCCYml4jSjCjAevt8LEksXT9zqJMYip2H3JeMh1ax86iW', 'Read-Only User', 1, 'Active', 'field', 20, 17, 40, 128, NULL, NULL, NULL, 'Acting Statistician II', '09398546922', NULL, NULL, NULL, NULL, '2026-07-21 22:03:51'),
+(80, 'Mark Anthony M. Custodio', '940241', 'markanthonycustodio30@yahoo.com', '$2y$10$1dAv64NjCfm/DHa0oYf8KuSmoCwjsFhdTqH/3AW52dlGW5GvG.TNy', 'Warehouse Personnel', 1, 'Active', 'field', 22, 27, 56, 253, NULL, NULL, NULL, 'Warehouse Supervisor', '09062338665', NULL, NULL, NULL, NULL, '2026-07-21 22:04:38'),
+(81, 'MARCOS C. ANNANG, JR.', '934387', 'marcosannanggg@gmail.com', '$2y$10$uvSrJ0HKyT0FqQC2Osct0.R9CxwjqPro4bZYQyRdzrXQ44V4Ws8Ni', 'Warehouse Personnel', 1, 'Active', 'field', 20, 16, 38, 96, NULL, NULL, NULL, 'Acting SGO', '09061732270', NULL, NULL, NULL, NULL, '2026-07-21 22:06:08'),
+(82, 'MARAH L. CAYAYAN', '935263', 'operationsnfabcd@gmail.com', '$2y$10$EILHthSwqd8r7ia2gscvjeN7D9w7R5CkSeXtdDyhugeZ3zFgNo/t.', 'Warehouse Personnel', 1, 'Active', 'field', 25, 40, 74, 405, NULL, NULL, NULL, 'SGO', '09287809353', NULL, NULL, NULL, NULL, '2026-07-21 22:07:57'),
+(83, 'Rhic Ryan Lhee V. Fabian', '938495', 'rhicryanlhee@gmail.com', '$2y$10$pRlnvA4jzkolYbbhnteUNeqDK5eYRPiaODNarb8I.R16WzKR0ap0a', 'Warehouse Personnel', 1, 'Active', 'field', 20, 17, 40, 128, NULL, NULL, NULL, 'Supervising Grains Officer', '09261073925', NULL, NULL, NULL, NULL, '2026-07-21 22:13:06'),
+(84, 'Marisa Adolfo', '938357', 'mladolfo75@gmail.com', '$2y$10$I5uB6jwoBwWRj7UCM80BJuw.wCKN4528V1V1CnhjVx3wi8a8Vs7vy', 'Warehouse Personnel', 1, 'Active', 'field', 26, 43, 77, 416, NULL, NULL, NULL, 'Supervising Grains Officer', '09176326682', NULL, NULL, NULL, NULL, '2026-07-21 22:14:34'),
+(85, 'Analyn C. Mendoza', '939536', 'analyncmendoza08@yahoo.com', '$2y$10$d9XvWSgt/x7pybVMnm0OEen/v6J/JWmRtbV/O9Jue9FMVPgP89.ZC', 'Warehouse Personnel', 1, 'Active', 'field', 22, 26, 55, 237, NULL, NULL, NULL, 'Warehouse Supervisor', '09502766168', NULL, NULL, NULL, NULL, '2026-07-21 22:17:59'),
+(86, 'Corinna B. Loyzaga', '938729', 'loyzagacorinna@gmail.xom', '$2y$10$XF3QhCyN6X9xp1iUOe14quyBqm7v6hFUO0nacz4Q/jGOI842jufH2', 'Warehouse Personnel', 1, 'Active', 'field', 22, 27, 56, 251, NULL, NULL, NULL, 'WS', '09551830274', NULL, NULL, NULL, NULL, '2026-07-21 22:22:31'),
+(87, 'Marianne C Tapongot', '939860', 'operations.region10@nfa.gov.oh', '$2y$10$ebJ9qkCJ8GcrmayaM8C3wekVYxY4G43YSEiU453oe1VPsi1QFY7gi', 'Warehouse Personnel', 1, 'Active', 'field', 28, 51, 89, 509, NULL, NULL, NULL, 'Acting RECO', '09177712408', NULL, NULL, NULL, NULL, '2026-07-21 22:23:18'),
+(88, 'IVY JANEL A. PEREZ', '942728', 'aiveeperez31@gmail.com', '$2y$10$3tU8LhMzEi.lupeFUZzgheiOLDxHHzHxfvPKWT.qg/kbIlAPDjFs2', 'Warehouse Personnel', 1, 'Active', 'field', 22, 28, 57, 279, NULL, NULL, NULL, 'Statistician II', '09215438242', NULL, NULL, NULL, NULL, '2026-07-21 22:26:18'),
+(89, 'Sheila Mae Alvarez', '944675', 'sheilamaeblanco@gmail.com', '$2y$10$hQf5Z4i1gM3e95gVdbDlteuuk3RIJmqxut/gKI9te/MO7ZZB8rIS6', 'Warehouse Personnel', 1, 'Active', 'field', 25, 38, 70, 369, NULL, NULL, NULL, 'Warehouse Assistant', '09567085768', NULL, NULL, NULL, NULL, '2026-07-21 22:31:43'),
+(90, 'John D. Alvarez', '938912', 'johndelacruzalvarez@gmail.com', '$2y$10$YhbvJhDIjctqTWVpb55HfuoWYO3rpvnSGM5qK1Fq75NOW28aTIOF2', 'Manager', 1, 'Active', 'field', 25, 40, 74, 405, NULL, NULL, NULL, 'Acting Assistant Branch Manager', '09088185099', NULL, NULL, NULL, NULL, '2026-07-21 22:32:04'),
+(91, 'Michael P. Adarlo', '938732', 'adarlomichael.ma@gmail.com', '$2y$10$Xy76OM1BRYWDXD4lUtOG4e/Eah55wXW1ASdNioOowqcsJJZzCtOR2', 'Warehouse Personnel', 1, 'Active', 'field', 22, 27, 56, 267, NULL, NULL, NULL, 'Acting WS', '09478699824', NULL, NULL, NULL, NULL, '2026-07-21 22:34:20'),
+(92, 'Vivien h marzo', '938144', 'vhmarzo@gmail.com', '$2y$10$kc6GhTNaHmRlQfpogiGfNe6rbqDhXjzx7e9kMWpG9llpL4EeiL/PW', 'Read-Only User', 0, 'Pending', 'field', 29, 52, 90, 520, NULL, NULL, NULL, 'Warehouse supervisor', '09171052567', NULL, NULL, NULL, NULL, '2026-07-21 22:36:15'),
+(93, 'Leo Arsenio G. Ramos', '938735', 'leoarsenioramos@gmail.com', '$2y$10$KShp6/3OBbeQmrBoeEqOS.n1xBsNporUqNS2youKqG//pbeex6mX.', 'Read-Only User', 0, 'Pending', 'field', 22, 27, 56, 244, NULL, NULL, NULL, 'Warehouse Supervisor', '09499699905', NULL, NULL, NULL, NULL, '2026-07-21 22:38:39'),
+(94, 'Marjorie Quintero Cabaldo', '942752', 'quinteromarjorie960@gmail.com', '$2y$10$c5jf0CVf4vj4RhcyyE75RudUNE8sNcAraLH0GG1/6NDWzGPuTZv2W', 'Read-Only User', 0, 'Pending', 'field', 20, 18, 41, 150, NULL, NULL, NULL, 'Grains Operations Officer I / Acting Regional Information Officer', '09652354118', NULL, NULL, NULL, NULL, '2026-07-21 22:40:17'),
+(95, 'Edizah Marie G Canape', '942746', 'edizah.nfa@gmail.com', '$2y$10$LxMv/YYNp3MOAjKYbWOj/.8ZhCuC1l2a1mSewTYvAQRctdsJV8N1a', 'Read-Only User', 0, 'Pending', 'field', 22, 26, 55, 240, NULL, NULL, NULL, 'Statistician II', '09158051071', NULL, NULL, NULL, NULL, '2026-07-21 22:41:15'),
+(96, 'Judy Ann Yotosil', '944051', 'gidnobowarehouse@gmail.com', '$2y$10$kXgvAJMLXWV0qG37zGVV0ucimMDbNlv6eVnZeLN0iBBK33IjPTPra', 'Read-Only User', 0, 'Pending', 'field', 25, 40, 74, 402, NULL, NULL, NULL, 'Acting Warehouse Assistant', '09304310553', NULL, NULL, NULL, NULL, '2026-07-21 22:47:50'),
+(97, 'FRANCIS EDWARD A. ESTEBAN', '940271', 'francisedwardesteban@gmail.com', '$2y$10$paxbrftIEF4xwJ7hJyGOpeyLcgHfTDyMkwAWwnu/k9FRoQQN0JZCi', 'Read-Only User', 0, 'Pending', 'field', 22, 27, 56, NULL, NULL, NULL, NULL, 'Acting SGO', '09199760074', NULL, NULL, NULL, NULL, '2026-07-21 22:53:47'),
+(98, 'Louise Marie G. Macarto', '937820', 'acctg.nfaifg@gmail.com', '$2y$10$/xpLxEeyWYaX0DC7tHqxuexhKh1e7l8nxNoREKhR.f78l9w7Wc.re', 'Read-Only User', 0, 'Pending', 'field', 20, 17, 40, 128, NULL, NULL, NULL, 'Acting Assistant Branch Manager', '09171744322', NULL, NULL, NULL, NULL, '2026-07-21 22:58:07'),
+(99, 'Aurelia C. Ramos', '938447', 'ella_corpuz@yahoo.com', '$2y$10$JCiJSfNALUXLX/m2NvWCjuVQY2b50Sj7.sK9VZe0jPGQBr2R2BwhW', 'Read-Only User', 0, 'Pending', 'field', 22, 27, 56, 248, NULL, NULL, NULL, 'Warehouse Supervisor', '09199283102', NULL, NULL, NULL, NULL, '2026-07-21 23:01:00'),
+(100, 'Charito Neis Peras', '934279', 'nfacebubsm22@gmail.com', '$2y$10$9zSKuqc1WhjBtLImddg46OdjpCVmd4mOHNPga1LUgza5vdRNk2H/6', 'Read-Only User', 0, 'Pending', 'field', 26, 43, 77, 416, NULL, NULL, NULL, 'Statistician II', '09177050017', NULL, NULL, NULL, NULL, '2026-07-21 23:01:21'),
+(101, 'Gerard V. Lim', '938402', 'plissken67@gmail.com', '$2y$10$LIZAOf0XytZ.V9ueTVbN.uY6AIyYdQdHkVNhVFKqU0Rlgu3e0dReS', 'Read-Only User', 0, 'Pending', 'field', 20, 17, 40, 128, NULL, NULL, NULL, 'Branch Manager', '09171744322', NULL, NULL, NULL, NULL, '2026-07-21 23:02:32');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `warehouse_offices`
 --
 
-DROP TABLE IF EXISTS `warehouse_offices`;
 CREATE TABLE `warehouse_offices` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `branch_id` bigint(20) UNSIGNED NOT NULL,
@@ -2617,6 +2734,14 @@ ALTER TABLE `transaction_farmer_members`
   ADD KEY `transaction_farmer_members_farmer_id_index` (`farmer_id`);
 
 --
+-- Indexes for table `users`
+--
+ALTER TABLE `users`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `username` (`username`),
+  ADD UNIQUE KEY `email` (`email`);
+
+--
 -- Indexes for table `warehouse_offices`
 --
 ALTER TABLE `warehouse_offices`
@@ -2741,6 +2866,12 @@ ALTER TABLE `transactions`
 --
 ALTER TABLE `transaction_farmer_members`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=241;
+
+--
+-- AUTO_INCREMENT for table `users`
+--
+ALTER TABLE `users`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=109;
 
 --
 -- AUTO_INCREMENT for table `warehouse_offices`
