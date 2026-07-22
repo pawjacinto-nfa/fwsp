@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 22, 2026 at 06:26 AM
+-- Generation Time: Jul 22, 2026 at 08:00 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -136,7 +136,6 @@ CREATE TABLE `branch_offices` (
 --
 
 INSERT INTO `branch_offices` (`id`, `region_id`, `name`) VALUES
-(1, 3, 'Nueva Ecija Branch'),
 (2, 16, 'BASULTA Branch'),
 (3, 16, 'Lanao del Sur Branch'),
 (4, 16, 'Maguindanao Branch'),
@@ -156,6 +155,7 @@ INSERT INTO `branch_offices` (`id`, `region_id`, `name`) VALUES
 (18, 20, 'NFA Region 2'),
 (19, 20, 'Nueva Vizcaya Branch Office'),
 (20, 21, 'Bulacan Branch Office'),
+(1, 21, 'Nueva Ecija Branch'),
 (21, 21, 'Nueva Ecija Branch Office'),
 (22, 21, 'Pampanga Branch Office'),
 (23, 21, 'Regional Office IIII'),
@@ -1501,6 +1501,7 @@ INSERT INTO `province_offices` (`id`, `branch_id`, `name`) VALUES
 (87, 50, 'Cagayan De Oro'),
 (88, 50, 'Camiguin'),
 (89, 51, 'Cagayan De Oro, Misamis Oriental'),
+(98, 52, 'Davao de Oro'),
 (90, 52, 'Davao Del Norte'),
 (91, 53, 'Davao Del Sur'),
 (92, 54, 'Davao Del Sur'),
@@ -1529,21 +1530,6 @@ INSERT INTO `regions` (`id`, `name`) VALUES
 (16, 'ARMM'),
 (17, 'CARAGA'),
 (18, 'NCR'),
-(1, 'Region 1'),
-(10, 'Region 10'),
-(11, 'Region 11'),
-(12, 'Region 12'),
-(13, 'Region 13'),
-(14, 'Region 14'),
-(15, 'Region 15'),
-(2, 'Region 2'),
-(3, 'Region 3'),
-(4, 'Region 4'),
-(5, 'Region 5'),
-(6, 'Region 6'),
-(7, 'Region 7'),
-(8, 'Region 8'),
-(9, 'Region 9'),
 (19, 'Region I'),
 (20, 'Region II'),
 (21, 'Region III'),
@@ -1555,7 +1541,10 @@ INSERT INTO `regions` (`id`, `name`) VALUES
 (27, 'Region VIII'),
 (28, 'Region X'),
 (29, 'Region XI'),
-(30, 'Region XII');
+(30, 'Region XII'),
+(13, 'Region XIII'),
+(14, 'Region XIV'),
+(15, 'Region XV');
 
 -- --------------------------------------------------------
 
@@ -1835,51 +1824,6 @@ INSERT INTO `transaction_farmer_members` (`id`, `transaction_id`, `farmer_id`, `
 (238, 18, 20, '2026-06-25 13:52:45'),
 (239, 18, 21, '2026-06-25 13:52:45'),
 (240, 18, 22, '2026-06-25 13:52:45');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `users`
---
-
-CREATE TABLE `users` (
-  `id` bigint(20) UNSIGNED NOT NULL,
-  `full_name` varchar(160) NOT NULL,
-  `username` varchar(80) NOT NULL,
-  `email` varchar(160) NOT NULL,
-  `password_hash` varchar(255) NOT NULL,
-  `role` varchar(60) NOT NULL DEFAULT 'Read-Only User',
-  `is_active` tinyint(1) NOT NULL DEFAULT 0,
-  `status` varchar(30) NOT NULL DEFAULT 'Pending',
-  `office_scope` varchar(30) NOT NULL DEFAULT 'field',
-  `region_id` bigint(20) UNSIGNED DEFAULT NULL,
-  `branch_id` bigint(20) UNSIGNED DEFAULT NULL,
-  `province_id` bigint(20) UNSIGNED DEFAULT NULL,
-  `warehouse_id` bigint(20) UNSIGNED DEFAULT NULL,
-  `central_department_id` bigint(20) UNSIGNED DEFAULT NULL,
-  `central_division_id` bigint(20) UNSIGNED DEFAULT NULL,
-  `central_unit_id` bigint(20) UNSIGNED DEFAULT NULL,
-  `designation` varchar(120) DEFAULT NULL,
-  `contact_number` varchar(40) DEFAULT NULL,
-  `profile_image` varchar(255) DEFAULT NULL,
-  `password_reset_status` varchar(30) DEFAULT NULL,
-  `password_reset_requested_at` timestamp NULL DEFAULT NULL,
-  `password_reset_approved_at` timestamp NULL DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data for table `users`
---
-
-INSERT INTO `users` (`id`, `full_name`, `username`, `email`, `password_hash`, `role`, `is_active`, `status`, `office_scope`, `region_id`, `branch_id`, `province_id`, `warehouse_id`, `central_department_id`, `central_division_id`, `central_unit_id`, `designation`, `contact_number`, `profile_image`, `password_reset_status`, `password_reset_requested_at`, `password_reset_approved_at`, `created_at`) VALUES
-(1, 'Paw Jacinto', '940640', 'superadmin@fwsp.local', '$2y$10$GN7cBbOJqlqWKG4WTlq9WeDddCeEISNlbqSS3enkM2UeyQxVXti9e', 'System Admin', 1, 'Active', 'field', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'System Administrator', 'n/a', 'assets/uploads/profile-1-1782714851.jpg', NULL, NULL, NULL, '2026-06-25 13:45:17'),
-(2, 'Maria Warehouse', 'warehouse', 'warehouse@fwsp.local', '$2y$10$eImiTXuWVxfM37uY4JANjQeD8ZtcVgHPwrFA4ocK9n53KRzLtPz4S', 'System Admin', 1, 'Active', 'field', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Warehouse Supervisor', '09170000000', NULL, NULL, NULL, NULL, '2026-06-25 13:45:17'),
-(3, 'Danica Garcia', '000222', '000222@fwsp.local', '$2y$10$NYsz2cMvNc537Iw/7H1vB.EOqKR1WAxdIgXTaMOdLiCeP4JCPZubK', 'System Admin', 1, 'Active', 'field', 19, 12, 29, 49, NULL, NULL, NULL, 'Warehouse Manager', '09000000222', NULL, NULL, NULL, NULL, '2026-06-25 13:52:29'),
-(4, 'Seed Regional Branch Manager', '000111', '000111@fwsp.local', '$2y$10$NYsz2cMvNc537Iw/7H1vB.EOqKR1WAxdIgXTaMOdLiCeP4JCPZubK', 'System Admin', 1, 'Active', 'field', 19, 12, NULL, NULL, NULL, NULL, NULL, 'Regional/Branch Manager', '09000000111', NULL, NULL, NULL, NULL, '2026-06-25 13:52:29'),
-(5, 'Seed Warehouse Manager 000333', '000333', '000333@fwsp.local', '$2y$10$vRpoOMwSBWt9IuiaGlNCOeOn9Tme8iMEJVEi573EgTc2qSw4voc52', 'System Admin', 1, 'Active', 'field', 19, 12, 29, 50, NULL, NULL, NULL, 'Warehouse Manager', '09000000333', NULL, NULL, NULL, NULL, '2026-06-25 13:52:45'),
-(6, 'Seed Manager 000001', '000001', '000001@fwsp.local', '$2y$10$nuVtJi6ZWE233OdTFeK/POA7NzHPcQlmfdH31tOx3NfgqO3k9RfzW', 'System Admin', 1, 'Active', 'field', 19, 12, NULL, NULL, NULL, NULL, NULL, 'Manager', NULL, NULL, NULL, NULL, NULL, '2026-06-30 02:52:16'),
-(8, 'Test User Warehouse', '111111', 'pawjacinto@gmail.com', '$2y$10$WStBHojQsP13FQ3TPWJiH.xHrJYOPyn1SH0UnwPCvSNF3nKdli5r.', 'Warehouse Personnel', 1, 'Active', 'field', 29, 53, 91, 523, NULL, NULL, NULL, 'Warehouse Manager', '09175374296', NULL, NULL, NULL, NULL, '2026-07-22 03:14:48');
 
 -- --------------------------------------------------------
 
@@ -2652,14 +2596,6 @@ ALTER TABLE `transaction_farmer_members`
   ADD KEY `transaction_farmer_members_farmer_id_index` (`farmer_id`);
 
 --
--- Indexes for table `users`
---
-ALTER TABLE `users`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `username` (`username`),
-  ADD UNIQUE KEY `email` (`email`);
-
---
 -- Indexes for table `warehouse_offices`
 --
 ALTER TABLE `warehouse_offices`
@@ -2747,7 +2683,7 @@ ALTER TABLE `notifications`
 -- AUTO_INCREMENT for table `province_offices`
 --
 ALTER TABLE `province_offices`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=98;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=99;
 
 --
 -- AUTO_INCREMENT for table `regions`
@@ -2784,12 +2720,6 @@ ALTER TABLE `transactions`
 --
 ALTER TABLE `transaction_farmer_members`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=241;
-
---
--- AUTO_INCREMENT for table `users`
---
-ALTER TABLE `users`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `warehouse_offices`

@@ -299,33 +299,10 @@ INSERT IGNORE INTO users (full_name, username, email, password_hash, role, is_ac
 ('System Admin', '940640', 'superadmin@fwsp.local', '$2y$10$GN7cBbOJqlqWKG4WTlq9WeDddCeEISNlbqSS3enkM2UeyQxVXti9e', 'System Admin', 1, 'Active', 'System Administrator', 'n/a'),
 ('Maria Warehouse', 'warehouse', 'warehouse@fwsp.local', '$2y$10$eImiTXuWVxfM37uY4JANjQeD8ZtcVgHPwrFA4ocK9n53KRzLtPz4S', 'Warehouse Personnel', 1, 'Active', 'Warehouse Personnel', '09170000000');
 
-INSERT IGNORE INTO regions (id, name) VALUES
-(1, 'Region 1'), (2, 'Region 2'), (3, 'Region 3'), (4, 'Region 4'), (5, 'Region 5'),
-(6, 'Region 6'), (7, 'Region 7'), (8, 'Region 8'), (9, 'Region 9'), (10, 'Region 10'),
-(11, 'Region 11'), (12, 'Region 12'), (13, 'Region 13'), (14, 'Region 14'), (15, 'Region 15');
-
-INSERT IGNORE INTO branch_offices (region_id, name)
-SELECT id, 'Nueva Ecija Branch' FROM regions WHERE name = 'Region 3';
-
-INSERT IGNORE INTO province_offices (branch_id, name)
-SELECT id, 'Nueva Ecija' FROM branch_offices WHERE name = 'Nueva Ecija Branch';
-
-INSERT IGNORE INTO warehouse_offices (branch_id, name)
-SELECT id, 'San Jose Warehouse' FROM branch_offices WHERE name = 'Nueva Ecija Branch';
-
-UPDATE warehouse_offices w
-JOIN branch_offices b ON b.id = w.branch_id
-JOIN province_offices p ON p.branch_id = b.id AND p.name = 'Nueva Ecija'
-SET w.province_id = p.id
-WHERE w.name = 'San Jose Warehouse' AND w.province_id IS NULL;
-
-UPDATE farmers SET warehouse_id = (SELECT w.id FROM warehouse_offices w JOIN branch_offices b ON b.id = w.branch_id JOIN regions r ON r.id = b.region_id WHERE r.name = 'Region 3' AND w.name = 'San Jose Warehouse' LIMIT 1)
-WHERE warehouse_id IN (SELECT w.id FROM warehouse_offices w JOIN branch_offices b ON b.id = w.branch_id JOIN regions r ON r.id = b.region_id WHERE r.name = 'Region III');
-UPDATE transactions SET warehouse_id = (SELECT w.id FROM warehouse_offices w JOIN branch_offices b ON b.id = w.branch_id JOIN regions r ON r.id = b.region_id WHERE r.name = 'Region 3' AND w.name = 'San Jose Warehouse' LIMIT 1)
-WHERE warehouse_id IN (SELECT w.id FROM warehouse_offices w JOIN branch_offices b ON b.id = w.branch_id JOIN regions r ON r.id = b.region_id WHERE r.name = 'Region III');
-DELETE w FROM warehouse_offices w JOIN branch_offices b ON b.id = w.branch_id JOIN regions r ON r.id = b.region_id WHERE r.name = 'Region III';
-DELETE b FROM branch_offices b JOIN regions r ON r.id = b.region_id WHERE r.name = 'Region III';
-UPDATE regions SET name = 'Region 1' WHERE name = 'Region III';
+INSERT IGNORE INTO regions (name) VALUES
+('Region I'), ('Region II'), ('Region III'), ('Region IV'), ('Region V'),
+('Region VI'), ('Region VII'), ('Region VIII'), ('Region IX'), ('Region X'),
+('Region XI'), ('Region XII'), ('Region XIII'), ('Region XIV'), ('Region XV');
 
 INSERT IGNORE INTO farmer_organizations (name) VALUES
 ('Nueva Harvest FO'),
