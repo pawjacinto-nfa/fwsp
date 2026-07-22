@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 22, 2026 at 08:00 AM
+-- Generation Time: Jul 22, 2026 at 08:59 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -27,6 +27,7 @@ SET time_zone = "+00:00";
 -- Table structure for table `audit_logs`
 --
 
+DROP TABLE IF EXISTS `audit_logs`;
 CREATE TABLE `audit_logs` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `user_id` bigint(20) UNSIGNED DEFAULT NULL,
@@ -125,6 +126,7 @@ INSERT INTO `audit_logs` (`id`, `user_id`, `action`, `details`, `created_at`) VA
 -- Table structure for table `branch_offices`
 --
 
+DROP TABLE IF EXISTS `branch_offices`;
 CREATE TABLE `branch_offices` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `region_id` bigint(20) UNSIGNED NOT NULL,
@@ -202,6 +204,7 @@ INSERT INTO `branch_offices` (`id`, `region_id`, `name`) VALUES
 -- Table structure for table `central_departments`
 --
 
+DROP TABLE IF EXISTS `central_departments`;
 CREATE TABLE `central_departments` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `name` varchar(180) NOT NULL
@@ -230,6 +233,7 @@ INSERT INTO `central_departments` (`id`, `name`) VALUES
 -- Table structure for table `central_divisions`
 --
 
+DROP TABLE IF EXISTS `central_divisions`;
 CREATE TABLE `central_divisions` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `department_id` bigint(20) UNSIGNED NOT NULL,
@@ -261,6 +265,7 @@ INSERT INTO `central_divisions` (`id`, `department_id`, `name`) VALUES
 -- Table structure for table `central_units`
 --
 
+DROP TABLE IF EXISTS `central_units`;
 CREATE TABLE `central_units` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `division_id` bigint(20) UNSIGNED NOT NULL,
@@ -273,6 +278,7 @@ CREATE TABLE `central_units` (
 -- Table structure for table `display_photos`
 --
 
+DROP TABLE IF EXISTS `display_photos`;
 CREATE TABLE `display_photos` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `submitted_by` bigint(20) UNSIGNED DEFAULT NULL,
@@ -312,6 +318,7 @@ INSERT INTO `display_photos` (`id`, `submitted_by`, `title`, `photographer_name`
 -- Table structure for table `display_settings`
 --
 
+DROP TABLE IF EXISTS `display_settings`;
 CREATE TABLE `display_settings` (
   `id` tinyint(3) UNSIGNED NOT NULL,
   `loop_duration` tinyint(3) UNSIGNED NOT NULL DEFAULT 7,
@@ -331,6 +338,7 @@ INSERT INTO `display_settings` (`id`, `loop_duration`, `panning_enabled`) VALUES
 -- Table structure for table `farmers`
 --
 
+DROP TABLE IF EXISTS `farmers`;
 CREATE TABLE `farmers` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `farmer_key` varchar(32) DEFAULT NULL,
@@ -480,6 +488,7 @@ INSERT INTO `farmers` (`id`, `farmer_key`, `rsbsa_number`, `first_name`, `middle
 -- Table structure for table `farmer_key_sequences`
 --
 
+DROP TABLE IF EXISTS `farmer_key_sequences`;
 CREATE TABLE `farmer_key_sequences` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
@@ -609,6 +618,7 @@ INSERT INTO `farmer_key_sequences` (`id`, `created_at`) VALUES
 -- Table structure for table `farmer_organizations`
 --
 
+DROP TABLE IF EXISTS `farmer_organizations`;
 CREATE TABLE `farmer_organizations` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `name` varchar(180) NOT NULL,
@@ -641,6 +651,7 @@ INSERT INTO `farmer_organizations` (`id`, `name`, `created_at`, `total_members`,
 -- Table structure for table `landholdings`
 --
 
+DROP TABLE IF EXISTS `landholdings`;
 CREATE TABLE `landholdings` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `farmer_id` bigint(20) UNSIGNED NOT NULL,
@@ -757,6 +768,7 @@ INSERT INTO `landholdings` (`id`, `farmer_id`, `classification`, `irrigated`, `h
 -- Table structure for table `location_masterlist`
 --
 
+DROP TABLE IF EXISTS `location_masterlist`;
 CREATE TABLE `location_masterlist` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `region` varchar(120) NOT NULL,
@@ -1372,6 +1384,7 @@ INSERT INTO `location_masterlist` (`id`, `region`, `branch`, `province`, `facili
 -- Table structure for table `notifications`
 --
 
+DROP TABLE IF EXISTS `notifications`;
 CREATE TABLE `notifications` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `user_id` bigint(20) UNSIGNED DEFAULT NULL,
@@ -1401,6 +1414,7 @@ INSERT INTO `notifications` (`id`, `user_id`, `message`, `target_url`, `is_read`
 -- Table structure for table `province_offices`
 --
 
+DROP TABLE IF EXISTS `province_offices`;
 CREATE TABLE `province_offices` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `branch_id` bigint(20) UNSIGNED NOT NULL,
@@ -1517,6 +1531,7 @@ INSERT INTO `province_offices` (`id`, `branch_id`, `name`) VALUES
 -- Table structure for table `regions`
 --
 
+DROP TABLE IF EXISTS `regions`;
 CREATE TABLE `regions` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `name` varchar(120) NOT NULL
@@ -1552,6 +1567,7 @@ INSERT INTO `regions` (`id`, `name`) VALUES
 -- Table structure for table `report_signatories`
 --
 
+DROP TABLE IF EXISTS `report_signatories`;
 CREATE TABLE `report_signatories` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `user_id` bigint(20) UNSIGNED NOT NULL,
@@ -1573,6 +1589,7 @@ INSERT INTO `report_signatories` (`id`, `user_id`, `full_name`, `designation`, `
 -- Table structure for table `support_tickets`
 --
 
+DROP TABLE IF EXISTS `support_tickets`;
 CREATE TABLE `support_tickets` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `reporter_id` bigint(20) UNSIGNED NOT NULL,
@@ -1595,6 +1612,7 @@ CREATE TABLE `support_tickets` (
 -- Table structure for table `support_ticket_messages`
 --
 
+DROP TABLE IF EXISTS `support_ticket_messages`;
 CREATE TABLE `support_ticket_messages` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `ticket_id` bigint(20) UNSIGNED NOT NULL,
@@ -1609,6 +1627,7 @@ CREATE TABLE `support_ticket_messages` (
 -- Table structure for table `transactions`
 --
 
+DROP TABLE IF EXISTS `transactions`;
 CREATE TABLE `transactions` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `seller_type` enum('Individual','Farmer Organization') NOT NULL,
@@ -1732,6 +1751,7 @@ INSERT INTO `transactions` (`id`, `seller_type`, `procurement_type`, `farmer_id`
 -- Table structure for table `transaction_farmer_members`
 --
 
+DROP TABLE IF EXISTS `transaction_farmer_members`;
 CREATE TABLE `transaction_farmer_members` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `transaction_id` bigint(20) UNSIGNED NOT NULL,
@@ -1831,6 +1851,7 @@ INSERT INTO `transaction_farmer_members` (`id`, `transaction_id`, `farmer_id`, `
 -- Table structure for table `warehouse_offices`
 --
 
+DROP TABLE IF EXISTS `warehouse_offices`;
 CREATE TABLE `warehouse_offices` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `branch_id` bigint(20) UNSIGNED NOT NULL,
