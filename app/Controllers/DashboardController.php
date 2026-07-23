@@ -388,7 +388,7 @@ final class DashboardController
         }
 
         View::render('user-manual', [
-            'title' => "User's Manual",
+            'title' => ($_SESSION['role'] ?? '') === 'System Admin' ? 'System Administrator Manual' : "User's Manual",
             'alert' => $this->pullFlash(),
         ]);
     }
@@ -432,6 +432,44 @@ final class DashboardController
         $this->redirect('?page=tech-support');
     }
 
+    /** Receives a browser-captured failure. This endpoint intentionally permits anonymous reports. */
+    public function storeErrorReport(array $payload): void
+    {
+        header('Content-Type: application/json');
+
+        $description = trim((string) ($payload['description'] ?? ''));
+        $pageUrl = trim((string) ($payload['page_url'] ?? ''));
+        $browser = trim((string) ($payload['browser'] ?? ''));
+        if ($description === '') {
+            http_response_code(422);
+            echo json_encode(['success' => false, 'message' => 'The error description is required.']);
+            return;
+        }
+
+        $description = mb_substr(strip_tags($description), 0, 10000);
+        $context = implode("\n", array_filter([
+            'Page: ' . mb_substr(strip_tags($pageUrl), 0, 1000),
+            'Browser: ' . mb_substr(strip_tags($browser), 0, 1000),
+        ], static fn (string $value): bool => trim($value) !== ''));
+        $ticketId = SupportTicket::create([
+            'reporter_id' => !empty($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : null,
+            'title' => 'Automatic error report',
+            'category' => 'System Error',
+            'description' => $description . ($context !== '' ? "\n\n" . $context : ''),
+            'screenshot_path' => null,
+        ]);
+
+        foreach (SupportTicket::superAdminIds() as $adminId) {
+            Notification::add('New automatic error report #' . $ticketId . ' submitted.', $adminId, 'index.php?page=tech-support');
+        }
+
+        if (!empty($_SESSION['user'])) {
+            Activity::add($_SESSION['user'] . ' submitted automatic error report #' . $ticketId . '.');
+        }
+
+        echo json_encode(['success' => true, 'ticket_id' => $ticketId]);
+    }
+
     public function replySupportTicket(array $payload): void
     {
         if (!$this->authorizeHelp()) {
@@ -457,7 +495,9 @@ final class DashboardController
         SupportTicket::addMessage($ticketId, (int) $_SESSION['user_id'], $message);
 
         if (($_SESSION['role'] ?? '') === 'System Admin') {
-            Notification::add('Developer team replied to your ticket: ' . $ticket['title'] . '.', (int) $ticket['reporter_id'], 'index.php?page=tech-support');
+            if (!empty($ticket['reporter_id'])) {
+                Notification::add('Developer team replied to your ticket: ' . $ticket['title'] . '.', (int) $ticket['reporter_id'], 'index.php?page=tech-support');
+            }
         } else {
             foreach (SupportTicket::superAdminIds() as $adminId) {
                 Notification::add('User replied to tech support ticket: ' . $ticket['title'] . '.', $adminId, 'index.php?page=tech-support');
@@ -486,7 +526,9 @@ final class DashboardController
         }
 
         SupportTicket::markCompleted($ticketId, (int) $_SESSION['user_id']);
-        Notification::add('Your tech support ticket has been marked completed: ' . $ticket['title'] . '.', (int) $ticket['reporter_id'], 'index.php?page=tech-support');
+        if (!empty($ticket['reporter_id'])) {
+            Notification::add('Your tech support ticket has been marked completed: ' . $ticket['title'] . '.', (int) $ticket['reporter_id'], 'index.php?page=tech-support');
+        }
         Activity::add($_SESSION['user'] . ' completed support ticket #' . $ticketId . '.');
         $this->flash('success', 'Support ticket marked as completed.');
         $this->redirect('?page=tech-support');
@@ -701,6 +743,20 @@ final class DashboardController
 
         if (
             $resetUser
+            && ($resetUser['status'] ?? '') === 'Pending'
+            && (int) $resetUser['is_active'] !== 1
+            && password_verify($password, (string) $resetUser['password_hash'])
+        ) {
+            $this->flash(
+                'warning',
+                'Your account is registered but has not been activated yet. Please contact the system administrator to enable account activation.'
+            );
+            $this->redirect('?show_login=1');
+            return;
+        }
+
+        if (
+            $resetUser
             && (int) $resetUser['is_active'] === 1
             && ($resetUser['password_reset_status'] ?? '') === 'Requested'
         ) {
@@ -843,6 +899,11 @@ final class DashboardController
             return;
         }
 
+        if (User::findByUsername($username) !== null) {
+            $this->rejectDuplicateRegistrationUsername($username);
+            return;
+        }
+
         if (!preg_match('/^[A-Z0-9._%+\-]+@[A-Z0-9.\-]+\.[A-Z]{2,}$/i', $email)) {
             $this->flash('danger', 'Enter a valid email address.');
             $this->redirect('?show_register=1');
@@ -867,22 +928,31 @@ final class DashboardController
             return;
         }
 
-        User::register([
-            'full_name' => $fullName,
-            'username' => $username,
-            'office_scope' => $officeScope,
-            'region_id' => $officeScope === 'central' ? '' : $this->clean($payload['region_id'] ?? ''),
-            'branch_id' => $officeScope === 'central' ? '' : $this->clean($payload['branch_id'] ?? ''),
-            'province_id' => $officeScope === 'central' ? '' : $this->clean($payload['province_id'] ?? ''),
-            'warehouse_id' => $officeScope === 'central' ? '' : $this->clean($payload['warehouse_id'] ?? ''),
-            'central_department_id' => $officeScope === 'central' ? $this->clean($payload['central_department_id'] ?? '') : '',
-            'central_division_id' => $officeScope === 'central' ? $this->clean($payload['central_division_id'] ?? '') : '',
-            'central_unit_id' => $officeScope === 'central' ? $this->clean($payload['central_unit_id'] ?? '') : '',
-            'designation' => $designation,
-            'password' => $password,
-            'email' => $email,
-            'contact_number' => $contactNumber,
-        ]);
+        try {
+            User::register([
+                'full_name' => $fullName,
+                'username' => $username,
+                'office_scope' => $officeScope,
+                'region_id' => $officeScope === 'central' ? '' : $this->clean($payload['region_id'] ?? ''),
+                'branch_id' => $officeScope === 'central' ? '' : $this->clean($payload['branch_id'] ?? ''),
+                'province_id' => $officeScope === 'central' ? '' : $this->clean($payload['province_id'] ?? ''),
+                'warehouse_id' => $officeScope === 'central' ? '' : $this->clean($payload['warehouse_id'] ?? ''),
+                'central_department_id' => $officeScope === 'central' ? $this->clean($payload['central_department_id'] ?? '') : '',
+                'central_division_id' => $officeScope === 'central' ? $this->clean($payload['central_division_id'] ?? '') : '',
+                'central_unit_id' => $officeScope === 'central' ? $this->clean($payload['central_unit_id'] ?? '') : '',
+                'designation' => $designation,
+                'password' => $password,
+                'email' => $email,
+                'contact_number' => $contactNumber,
+            ]);
+        } catch (\PDOException $exception) {
+            if ($exception->getCode() === '23000' && User::findByUsername($username) !== null) {
+                $this->rejectDuplicateRegistrationUsername($username);
+                return;
+            }
+
+            throw $exception;
+        }
         Activity::add('New user registration submitted for ' . $username . '.');
         Notification::addUserRegistrationPending();
         $this->flash('success', 'Registration submitted for System Admin activation.');
@@ -1673,6 +1743,15 @@ final class DashboardController
     private function flash(string $type, string $message): void
     {
         $_SESSION['flash'] = compact('type', 'message');
+    }
+
+    private function rejectDuplicateRegistrationUsername(string $username): void
+    {
+        $_SESSION['registration_username_error'] = [
+            'username' => $username,
+            'message' => 'The username is already used. Please log in using the username and password.',
+        ];
+        $this->redirect('?show_register=1');
     }
 
     private function pullFlash(): ?array

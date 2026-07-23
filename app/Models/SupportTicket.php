@@ -15,6 +15,7 @@ final class SupportTicket
         'Location Library',
         'Data Correction',
         'System Performance',
+        'System Error',
         'Other Concern',
     ];
 
@@ -46,7 +47,7 @@ final class SupportTicket
                 DATE_FORMAT(t.created_at, '%b %d, %Y %h:%i %p') AS submitted_at,
                 DATE_FORMAT(t.updated_at, '%b %d, %Y %h:%i %p') AS updated_label
             FROM support_tickets t
-            JOIN users u ON u.id = t.reporter_id
+            LEFT JOIN users u ON u.id = t.reporter_id
             WHERE t.reporter_id = :reporter_id
             ORDER BY t.created_at DESC, t.id DESC
         ");
@@ -64,7 +65,7 @@ final class SupportTicket
                 DATE_FORMAT(t.created_at, '%b %d, %Y %h:%i %p') AS submitted_at,
                 DATE_FORMAT(t.updated_at, '%b %d, %Y %h:%i %p') AS updated_label
             FROM support_tickets t
-            JOIN users u ON u.id = t.reporter_id
+            LEFT JOIN users u ON u.id = t.reporter_id
             ORDER BY t.created_at DESC, t.id DESC
         ";
 
@@ -79,7 +80,7 @@ final class SupportTicket
         $stmt = Database::connection()->prepare("
             SELECT t.*, u.full_name AS reporter_name
             FROM support_tickets t
-            JOIN users u ON u.id = t.reporter_id
+            LEFT JOIN users u ON u.id = t.reporter_id
             WHERE {$where}
             LIMIT 1
         ");
@@ -184,7 +185,7 @@ final class SupportTicket
         $db->exec("
             CREATE TABLE IF NOT EXISTS support_tickets (
                 id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-                reporter_id BIGINT UNSIGNED NOT NULL,
+                reporter_id BIGINT UNSIGNED NULL,
                 title VARCHAR(180) NOT NULL,
                 category VARCHAR(80) NOT NULL,
                 description TEXT NOT NULL,
@@ -202,6 +203,7 @@ final class SupportTicket
                 FOREIGN KEY (resolved_by) REFERENCES users(id)
             )
         ");
+        $db->exec('ALTER TABLE support_tickets MODIFY reporter_id BIGINT UNSIGNED NULL');
         $db->exec("
             CREATE TABLE IF NOT EXISTS support_ticket_messages (
                 id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,

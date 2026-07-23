@@ -4,6 +4,11 @@ $canEncode = in_array($currentRole, ['Warehouse Personnel', 'System Admin'], tru
 $canReviewRecords = in_array($currentRole, ['Manager', 'Warehouse Personnel', 'System Admin'], true);
 $canManageLibraries = $canEncode;
 $isSystemAdmin = $currentRole === 'System Admin';
+$manualTitle = $isSystemAdmin ? 'System Administrator Manual' : "User's Manual";
+$manualLead = $isSystemAdmin
+    ? 'A complete administrator guide covering all modules, user access, support operations, display settings, database tools, and system upkeep.'
+    : 'A focused guide to the features available to your ' . $currentRole . ' account.';
+$printPreparedFor = $isSystemAdmin ? 'System Administrator users' : $currentRole . ' users';
 
 $allManualSections = [
     'system-overview' => 'System Overview',
@@ -60,11 +65,11 @@ $roleDescriptions = [
     <header class="manual-hero">
         <div>
             <p class="eyebrow">NFA Farmer-Seller Registry</p>
-            <h1>User's Manual</h1>
-            <p class="manual-lead">A focused guide to the features available to your <?= e($currentRole) ?> account.</p>
+            <h1><?= e($manualTitle) ?></h1>
+            <p class="manual-lead"><?= e($manualLead) ?></p>
             <div class="manual-print-meta manual-print-only">
                 <p>Official System Guide</p>
-                <p>Prepared for <?= e($currentRole) ?> users</p>
+                <p>Prepared for <?= e($printPreparedFor) ?></p>
                 <p>Printed <?= e(date('F j, Y')) ?></p>
             </div>
         </div>
@@ -140,6 +145,12 @@ $roleDescriptions = [
                     <li><span>3</span><div>When finished, select <strong>Logout</strong>. Always log out on shared computers.</div></li>
                 </ol>
                 <p>New users may select <strong>Register</strong>. Registration does not grant immediate access; a System Admin must activate the account and assign its role and organizational location.</p>
+                <?php if ($isSystemAdmin): ?>
+                <div class="manual-callout">
+                    <strong>Administrator starting point</strong>
+                    <p>After signing in as a System Admin, review pending notifications, open <strong>Help → User Control</strong> for access requests, check <strong>Help → Tech Support</strong> for unresolved concerns, and confirm that reference libraries remain current before users begin encoding.</p>
+                </div>
+                <?php endif; ?>
             </section>
 
             <section class="manual-section" id="roles">
@@ -147,13 +158,23 @@ $roleDescriptions = [
                 <h2>Roles and Access</h2>
                 <div class="manual-table-wrap">
                     <table class="manual-table">
-                        <thead><tr><th>Your role</th><th>Your access</th></tr></thead>
+                        <thead><tr><th><?= $isSystemAdmin ? 'Role' : 'Your role' ?></th><th><?= $isSystemAdmin ? 'Access and administrator notes' : 'Your access' ?></th></tr></thead>
                         <tbody>
+                            <?php if ($isSystemAdmin): ?>
+                            <?php foreach ($roleDescriptions as $roleName => $roleDescription): ?>
+                            <tr><td><strong><?= e($roleName) ?></strong></td><td><?= e($roleDescription) ?></td></tr>
+                            <?php endforeach; ?>
+                            <?php else: ?>
                             <tr><td><strong><?= e($currentRole) ?></strong></td><td><?= e($roleDescriptions[$currentRole] ?? 'Access is determined by your assigned role.') ?></td></tr>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
+                <?php if ($isSystemAdmin): ?>
+                <p>Use role assignments deliberately. A System Admin can see and manage all system areas; other users should receive only the minimum access needed for their official duties and assigned location.</p>
+                <?php else: ?>
                 <p>If a menu or action is not displayed, it is normally outside your assigned role. Contact your System Admin if your duties have changed.</p>
+                <?php endif; ?>
             </section>
 
             <?php if ($canEncode): ?>
@@ -166,7 +187,7 @@ $roleDescriptions = [
                     <div class="manual-feature"><strong>Records</strong><span>Search farmers, farmer organizations, and transactions.</span></div>
                     <div class="manual-feature"><strong>Library</strong><span>Maintain the operational location and Central Office reference lists.</span></div>
                     <div class="manual-feature"><strong>Reports</strong><span>Generate summary, full-list, and sex-disaggregated outputs.</span></div>
-                    <div class="manual-feature"><strong>Support</strong><span>Read this manual, submit a concern, or manage user access if authorized.</span></div>
+                    <div class="manual-feature"><strong>Help</strong><span>Read this manual, submit a concern, or manage user access if authorized.</span></div>
                 </div>
             </section>
             <?php endif; ?>
@@ -286,18 +307,54 @@ $roleDescriptions = [
                     <li><span>4</span><div>Return to the ticket list to read replies and status updates. Archive it when no longer needed.</div></li>
                 </ol>
                 <p>Do not include passwords or other unnecessary sensitive information in a ticket or screenshot.</p>
+                <?php if ($isSystemAdmin): ?>
+                <h3>Administrator ticket handling</h3>
+                <ul class="manual-list">
+                    <li>Review new, open, and replied tickets regularly from the admin support queue.</li>
+                    <li>Ask for exact page names, screenshots, filters, dates, farmer identifiers, or WSR numbers when a concern cannot be reproduced.</li>
+                    <li>Reply with the action taken or the next required step so the reporting user has a clear trail.</li>
+                    <li>Mark a ticket completed only after the concern has been answered, corrected, or transferred to the proper support process.</li>
+                    <li>Archive completed tickets to keep the working queue readable while preserving the support history.</li>
+                </ul>
+                <?php endif; ?>
             </section>
 
             <?php if ($isSystemAdmin): ?>
             <section class="manual-section" id="administration">
                 <p class="manual-kicker"><?= e($manualSectionNumbers['administration']) ?></p>
                 <h2>System Administration</h2>
-                <p>System Admins can open <strong>Help → User Control</strong> to review registered accounts, assign roles and locations, and activate or update access. The page also provides audit logs for reviewing significant system activity.</p>
+                <p>This section is shown only to System Admin accounts and is intended as the complete administrator operating guide for the system.</p>
+
+                <h3>User Control</h3>
+                <p>Open <strong>Help → User Control</strong> to review registered accounts, assign roles and locations, activate users, update access, and inspect audit activity.</p>
+                <ol class="manual-steps">
+                    <li><span>1</span><div>Review pending registrations and confirm the employee's official identity, designation, and office assignment before activation.</div></li>
+                    <li><span>2</span><div>Assign the correct role: System Admin for full administration, Warehouse Personnel for encoding and operations, Manager for review and reports, or Read-Only User for reports only.</div></li>
+                    <li><span>3</span><div>Set the user's organizational location carefully. This location controls default filters and the normal scope of records shown to the account.</div></li>
+                    <li><span>4</span><div>Save the account access update and review the activity log when you need to confirm who changed a user or system setting.</div></li>
+                </ol>
+
+                <h3>Password-reset approvals</h3>
+                <p>When a user requests a password reset, validate that the request is legitimate before approval. Do not ask users to send passwords through Tech Support. After approval, the user should complete the reset through the system-provided reset flow.</p>
+
+                <h3>Display Settings</h3>
+                <p>Open <strong>Help → Display Settings</strong> to manage landing-page photo submissions and display behavior. Approve only appropriate, official, and clear images; keep the public landing experience professional and relevant to NFA operations.</p>
+
+                <h3>Database Management</h3>
+                <p>Open <strong>Help → Database Management</strong> when you need to inspect the database structure. Treat this area as a sensitive administrative tool. Use it for verification and maintenance awareness, and avoid changing database-backed workflows without a tested update plan.</p>
+
+                <h3>Reference-data stewardship</h3>
+                <p>Before renaming or deleting regions, branches, provinces, facilities, departments, divisions, services, or units, check whether accounts or records already depend on them. Correct spelling errors where possible and avoid creating duplicate entries for the same official office.</p>
+
+                <h3>Administrator checklist</h3>
                 <ul class="manual-list">
                     <li>Grant the minimum role needed for the user's duties.</li>
                     <li>Confirm the correct location before activating an account.</li>
-                    <li>Review audit activity when investigating unexpected changes.</li>
+                    <li>Keep location and Central Office reference libraries clean, current, and non-duplicated.</li>
+                    <li>Review audit activity when investigating unexpected access, record, or support changes.</li>
                     <li>Use the Tech Support queue to reply to users, mark resolved tickets completed, and archive closed work.</li>
+                    <li>Use report filters and signatory settings to verify official printed outputs before release.</li>
+                    <li>Remind encoders to verify source documents, RSBSA numbers, WSR numbers, delivery dates, quantities, and receiving facilities before submission.</li>
                 </ul>
             </section>
 

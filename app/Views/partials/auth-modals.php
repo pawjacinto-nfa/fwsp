@@ -106,6 +106,16 @@
     </div>
 </div>
 
+<?php
+$registrationUsernameError = $_SESSION['registration_username_error'] ?? null;
+unset($_SESSION['registration_username_error']);
+$duplicateRegistrationUsername = is_array($registrationUsernameError)
+    ? (string) ($registrationUsernameError['username'] ?? '')
+    : '';
+$duplicateRegistrationMessage = is_array($registrationUsernameError)
+    ? (string) ($registrationUsernameError['message'] ?? '')
+    : '';
+?>
 <div class="modal fade auth-modal" id="registerModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <form method="post" class="modal-content">
@@ -122,8 +132,13 @@
                 </div>
                 <label class="form-label">Full Name</label>
                 <input required name="full_name" class="form-control mb-3">
-                <label class="form-label">Username (Employee Number)</label>
-                <input required name="username" class="form-control mb-3" inputmode="numeric" pattern="[0-9]{6}" minlength="6" maxlength="6" title="Enter your six digit employee number using numbers only.">
+                <div class="mb-3">
+                    <label class="form-label">Username (Employee Number)</label>
+                    <input required name="username" class="form-control<?= $duplicateRegistrationMessage !== '' ? ' is-invalid' : '' ?>" inputmode="numeric" pattern="[0-9]{6}" minlength="6" maxlength="6" value="<?= e($duplicateRegistrationUsername) ?>" title="Enter your six digit employee number using numbers only." data-registration-username<?= $duplicateRegistrationMessage !== '' ? ' aria-describedby="registrationUsernameError" aria-invalid="true"' : '' ?>>
+                    <?php if ($duplicateRegistrationMessage !== ''): ?>
+                        <div class="invalid-feedback d-block" id="registrationUsernameError" data-registration-username-error><?= e($duplicateRegistrationMessage) ?></div>
+                    <?php endif; ?>
+                </div>
                 <ul class="nav nav-tabs mb-3" role="tablist">
                     <li class="nav-item" role="presentation">
                         <button class="nav-link active" type="button" role="tab" data-bs-toggle="tab" data-bs-target="#registerFieldOffice" data-registration-scope-tab="field" aria-selected="true">Field Office</button>

@@ -54,6 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'farmer-update' => $controller->updateFarmer($_POST, $_FILES),
         'transaction' => $controller->storeTransaction($_POST),
         'offline-sync-transaction' => $controller->syncOfflineTransaction($_POST),
+        'error-report' => $controller->storeErrorReport($_POST),
         'support-ticket' => $controller->storeSupportTicket($_POST, $_FILES),
         'support-ticket-reply' => $controller->replySupportTicket($_POST),
         'support-ticket-complete' => $controller->completeSupportTicket($_POST),

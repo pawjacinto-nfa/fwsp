@@ -1,5 +1,82 @@
 const loader = document.getElementById("loaderScreen");
 
+/* One shared error prompt for browser, JavaScript, and unexpected server failures. */
+(() => {
+    const modalNode = document.querySelector("[data-system-error-modal]");
+    const config = window.FWSP_ERROR_REPORT || {};
+    if (!modalNode || !window.bootstrap) return;
+
+    const modal = bootstrap.Modal.getOrCreateInstance(modalNode);
+    const descriptionNode = modalNode.querySelector("[data-system-error-description]");
+    const sendButton = modalNode.querySelector("[data-send-error-report]");
+    let currentError = "";
+    let lastSignature = "";
+
+    const describe = (error, source = "") => {
+        if (error instanceof Error) return [error.message, error.stack].filter(Boolean).join("\n");
+        if (typeof error === "string") return error;
+        return source || "An unknown system error occurred.";
+    };
+    const show = (error, source = "") => {
+        const description = describe(error, source).trim();
+        const signature = `${source}|${description}`;
+        if (!description || signature === lastSignature) return;
+        lastSignature = signature;
+        currentError = description;
+        descriptionNode.textContent = `"An error occured: ${description}"`;
+        sendButton.disabled = false;
+        sendButton.textContent = "Send Error to System Administrator";
+        modal.show();
+    };
+
+    window.addEventListener("error", (event) => {
+        const location = event.filename ? `\n${event.filename}:${event.lineno || 0}:${event.colno || 0}` : "";
+        show(event.error || event.message, `${event.message || "Script error"}${location}`);
+    }, true);
+    window.addEventListener("unhandledrejection", (event) => show(event.reason, "Unhandled promise rejection"));
+
+    const nativeFetch = window.fetch.bind(window);
+    window.fetch = async (...args) => {
+        try {
+            const response = await nativeFetch(...args);
+            const requestUrl = String(args[0] || "");
+            if (response.status >= 500 && !requestUrl.includes("error-report")) {
+                show(`The server returned ${response.status} ${response.statusText}.`, requestUrl);
+            }
+            return response;
+        } catch (error) {
+            show(error, "Network request failed");
+            throw error;
+        }
+    };
+
+    sendButton.addEventListener("click", async () => {
+        if (!currentError || !window.confirm("Are you sure you want to send an error report?")) return;
+        sendButton.disabled = true;
+        sendButton.textContent = "Sending error report…";
+        try {
+            const response = await nativeFetch(config.url || "index.php", {
+                method: "POST",
+                headers: { "X-Requested-With": "fetch", "Content-Type": "application/x-www-form-urlencoded" },
+                body: new URLSearchParams({
+                    action: "error-report",
+                    csrf_token: config.csrfToken || "",
+                    description: currentError,
+                    page_url: window.location.href,
+                    browser: navigator.userAgent,
+                }),
+                credentials: "same-origin",
+            });
+            if (!response.ok) throw new Error("The error report could not be saved.");
+            sendButton.textContent = "Error report sent";
+        } catch (error) {
+            sendButton.disabled = false;
+            sendButton.textContent = "Send Error to System Administrator";
+            window.alert(describe(error, "The error report could not be sent."));
+        }
+    });
+})();
+
 /* The landing artwork is loaded one image ahead, keeping the initial visit light. */
 (() => {
     const slideshow = document.querySelector("[data-landing-slideshow]");
@@ -1350,6 +1427,14 @@ document.querySelectorAll("[data-location-add-stack]").forEach((stack) => {
 });
 
 document.querySelectorAll("form").forEach((form) => {
+    const registrationUsername = form.querySelector("[data-registration-username]");
+    registrationUsername?.addEventListener("input", () => {
+        registrationUsername.classList.remove("is-invalid");
+        registrationUsername.removeAttribute("aria-invalid");
+        registrationUsername.removeAttribute("aria-describedby");
+        form.querySelector("[data-registration-username-error]")?.remove();
+    }, { once: true });
+
     const scopeInput = form.querySelector("[data-registration-office-scope]");
     const tabs = Array.from(form.querySelectorAll("[data-registration-scope-tab]"));
     const panels = Array.from(form.querySelectorAll("[data-registration-scope-panel]"));

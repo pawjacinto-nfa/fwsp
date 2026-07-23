@@ -90,7 +90,7 @@ $archiveKey = $isSuperAdmin ? 'admin_archived' : 'reporter_archived';
                                 </button>
                                 <small><?= e($ticket['submitted_at'] ?? '') ?></small>
                             </td>
-                            <td><?= e($ticket['reporter_name'] ?? $_SESSION['user'] ?? '') ?></td>
+                            <td><?= e($ticket['reporter_name'] ?: 'Anonymous') ?></td>
                             <td><?= e($ticket['category']) ?></td>
                             <td><span class="support-status <?= $ticket['status'] === 'Completed' ? 'is-completed' : 'is-open' ?>"><?= e($ticket['status']) ?></span></td>
                             <td><?= e($ticket['updated_label'] ?? '') ?></td>

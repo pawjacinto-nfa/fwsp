@@ -84,11 +84,33 @@
     </div>
 </div>
 
+<div class="modal fade auth-modal" id="systemErrorModal" tabindex="-1" aria-labelledby="systemErrorModalTitle" aria-hidden="true" data-system-error-modal>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title fs-5" id="systemErrorModalTitle">System Error</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p data-system-error-description></p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Don't Send Error Report</button>
+                <button class="btn btn-danger" type="button" data-send-error-report>Send Error to System Administrator</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 window.FWSP_LOCATIONS = <?= json_encode(\App\Models\Location::hierarchy(), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;
 window.FWSP_CENTRAL_OFFICE = <?= json_encode(\App\Models\CentralOffice::hierarchy(), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;
 window.FWSP_IS_AUTHENTICATED = <?= !empty($_SESSION['user_id']) ? 'true' : 'false' ?>;
+window.FWSP_ERROR_REPORT = <?= json_encode([
+    'url' => 'index.php',
+    'csrfToken' => csrf_token(),
+], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;
 <?php $offlineUser = !empty($_SESSION['user_id']) ? \App\Models\User::find((int) $_SESSION['user_id']) : null; ?>
 window.FWSP_OFFLINE = <?= json_encode([
     'enabled' => !empty($offlineUser['offline_enabled']),
