@@ -15,6 +15,7 @@ use App\Models\Notification;
 use App\Models\Report;
 use App\Models\Signatory;
 use App\Models\SupportTicket;
+use App\Models\SystemSetting;
 use App\Models\Transaction;
 use App\Models\User;
 
@@ -322,6 +323,7 @@ final class DashboardController
             'users' => User::all(),
             'auditLogs' => Activity::auditLogs(),
             'roles' => self::ROLES,
+            'maintenanceModeEnabled' => SystemSetting::maintenanceModeEnabled(),
         ]);
     }
 
@@ -758,6 +760,18 @@ final class DashboardController
         if (
             $resetUser
             && (int) $resetUser['is_active'] === 1
+            && ($resetUser['role'] ?? '') !== 'System Admin'
+            && password_verify($password, (string) $resetUser['password_hash'])
+            && SystemSetting::maintenanceModeEnabled()
+        ) {
+            $this->flash('warning', 'The system is currently under maintenance. Please come back soon.');
+            $this->redirect('?show_login=1');
+            return;
+        }
+
+        if (
+            $resetUser
+            && (int) $resetUser['is_active'] === 1
             && ($resetUser['password_reset_status'] ?? '') === 'Requested'
         ) {
             $this->flash('warning', 'You still have a pending password change request.');
@@ -793,6 +807,54 @@ final class DashboardController
         Activity::add($_SESSION['user'] . ' logged in.');
         $this->flash('success', 'Welcome back, ' . $_SESSION['user'] . '.');
         $this->redirect();
+    }
+
+    public function enforceMaintenanceLogout(bool $jsonResponse = false): bool
+    {
+        if (
+            empty($_SESSION['user_id'])
+            || ($_SESSION['role'] ?? '') === 'System Admin'
+            || !SystemSetting::maintenanceModeEnabled()
+        ) {
+            return false;
+        }
+
+        Activity::add(($_SESSION['user'] ?? 'User') . ' was logged out for system maintenance.');
+        $this->clearAuthenticationSession();
+        $message = 'The system requires maintenance. You have been logged out. Please come back soon.';
+        $this->flash('warning', $message);
+
+        if ($jsonResponse) {
+            header('Content-Type: application/json');
+            echo json_encode([
+                'maintenance' => true,
+                'message' => $message,
+                'redirect' => 'index.php?show_login=1',
+            ]);
+        } else {
+            $this->redirect('?show_login=1');
+        }
+
+        return true;
+    }
+
+    public function maintenanceStatus(): void
+    {
+        header('Content-Type: application/json');
+        $maintenance = ($_SESSION['role'] ?? '') !== 'System Admin'
+            && SystemSetting::maintenanceModeEnabled();
+
+        if ($maintenance) {
+            $this->flash(
+                'warning',
+                'The system requires maintenance. You have been logged out. Please come back soon.'
+            );
+        }
+
+        echo json_encode([
+            'maintenance' => $maintenance,
+            'redirect' => $maintenance ? 'index.php?show_login=1' : null,
+        ]);
     }
 
     public function requestPasswordReset(array $payload): void
@@ -1091,6 +1153,21 @@ final class DashboardController
         );
         Activity::add('User access updated.');
         $this->flash('success', 'User access updated.');
+        $this->redirect('?page=users');
+    }
+
+    public function updateMaintenanceMode(array $payload): void
+    {
+        if (($_SESSION['role'] ?? '') !== 'System Admin') {
+            $this->flash('danger', 'Only System Admin can change maintenance mode.');
+            $this->redirect();
+            return;
+        }
+
+        $enabled = ($payload['maintenance_enabled'] ?? '0') === '1';
+        SystemSetting::setMaintenanceMode($enabled);
+        Activity::add('Maintenance mode ' . ($enabled ? 'enabled.' : 'disabled.'));
+        $this->flash('success', 'Maintenance mode is now ' . ($enabled ? 'ON.' : 'OFF.'));
         $this->redirect('?page=users');
     }
 
@@ -1743,6 +1820,20 @@ final class DashboardController
     private function flash(string $type, string $message): void
     {
         $_SESSION['flash'] = compact('type', 'message');
+    }
+
+    private function clearAuthenticationSession(): void
+    {
+        unset(
+            $_SESSION['user_id'],
+            $_SESSION['user'],
+            $_SESSION['role'],
+            $_SESSION['profile_image'],
+            $_SESSION['default_location'],
+            $_SESSION['password_reset_user_id'],
+            $_SESSION['password_reset_username']
+        );
+        session_regenerate_id(true);
     }
 
     private function rejectDuplicateRegistrationUsername(string $username): void

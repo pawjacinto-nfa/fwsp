@@ -1,5 +1,44 @@
 const loader = document.getElementById("loaderScreen");
 
+(() => {
+    const config = window.FWSP_MAINTENANCE || {};
+    if (!config.monitor) return;
+
+    let checking = false;
+    const checkMaintenance = () => {
+        if (checking) return;
+        checking = true;
+
+        const request = new XMLHttpRequest();
+        request.open("POST", config.url || "index.php");
+        request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+        request.setRequestHeader("X-Requested-With", "fetch");
+        request.onload = () => {
+            checking = false;
+            if (request.status < 200 || request.status >= 300) return;
+
+            try {
+                const result = JSON.parse(request.responseText);
+                if (result.maintenance && result.redirect) {
+                    window.location.replace(result.redirect);
+                }
+            } catch (error) {
+                // A background status check should never interrupt the user's work.
+            }
+        };
+        request.onerror = () => {
+            checking = false;
+        };
+        request.send(new URLSearchParams({
+            action: "maintenance-status",
+            csrf_token: config.csrfToken || "",
+        }).toString());
+    };
+
+    window.setInterval(checkMaintenance, 5000);
+    window.addEventListener("focus", checkMaintenance);
+})();
+
 /* One shared error prompt for browser, JavaScript, and unexpected server failures. */
 (() => {
     const modalNode = document.querySelector("[data-system-error-modal]");
@@ -1457,6 +1496,12 @@ document.querySelectorAll("form").forEach((form) => {
     });
 
     setScope(scopeInput.value || "field");
+});
+
+document.querySelector("[data-maintenance-toggle]")?.addEventListener("change", (event) => {
+    const toggle = event.currentTarget;
+    toggle.setAttribute("aria-busy", "true");
+    toggle.form?.requestSubmit();
 });
 
 const centralOfficeData = window.FWSP_CENTRAL_OFFICE || {};

@@ -107,6 +107,11 @@
 window.FWSP_LOCATIONS = <?= json_encode(\App\Models\Location::hierarchy(), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;
 window.FWSP_CENTRAL_OFFICE = <?= json_encode(\App\Models\CentralOffice::hierarchy(), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;
 window.FWSP_IS_AUTHENTICATED = <?= !empty($_SESSION['user_id']) ? 'true' : 'false' ?>;
+window.FWSP_MAINTENANCE = <?= json_encode([
+    'monitor' => !empty($_SESSION['user_id']) && ($_SESSION['role'] ?? '') !== 'System Admin',
+    'url' => 'index.php',
+    'csrfToken' => csrf_token(),
+], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;
 window.FWSP_ERROR_REPORT = <?= json_encode([
     'url' => 'index.php',
     'csrfToken' => csrf_token(),

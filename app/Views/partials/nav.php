@@ -103,7 +103,7 @@ $unreadNotifications = $currentUserId ? \App\Models\Notification::unreadCount($c
                                     <?php if ($notifications !== []): ?>
                                         <form method="post" data-notifications-clear-form>
                                             <input type="hidden" name="action" value="notifications-clear">
-                                            <input type="hidden" name="return_to" value="<?= e($_SERVER['QUERY_STRING'] ? '?' . $_SERVER['QUERY_STRING'] : '') ?>">
+                                            <input type="hidden" name="return_to" value="<?= e(!empty($_SERVER['QUERY_STRING']) ? '?' . $_SERVER['QUERY_STRING'] : '') ?>">
                                             <button type="submit">Clear all</button>
                                         </form>
                                     <?php endif; ?>

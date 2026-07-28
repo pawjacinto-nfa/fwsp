@@ -26,6 +26,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $controller = new DashboardController();
 
+if ($controller->enforceMaintenanceLogout($action === 'maintenance-status')) {
+    exit;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     match ($action) {
         'login' => $controller->login($_POST),
@@ -41,6 +45,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'display-settings-save' => $controller->saveDisplaySettings($_POST),
         'user-access' => $controller->updateUserAccess($_POST),
         'user-access-bulk' => $controller->updateUserAccessBulk($_POST),
+        'maintenance-mode' => $controller->updateMaintenanceMode($_POST),
+        'maintenance-status' => $controller->maintenanceStatus(),
         'location-add' => $controller->storeLocation($_POST),
         'location-update' => $controller->updateLocation($_POST),
         'location-delete' => $controller->deleteLocation($_POST),

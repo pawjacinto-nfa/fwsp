@@ -27,6 +27,14 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS system_settings (
+    setting_key VARCHAR(80) PRIMARY KEY,
+    setting_value VARCHAR(255) NOT NULL
+);
+
+INSERT IGNORE INTO system_settings (setting_key, setting_value)
+VALUES ('maintenance_mode', '0');
+
 CREATE TABLE IF NOT EXISTS report_signatories (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT UNSIGNED NOT NULL,

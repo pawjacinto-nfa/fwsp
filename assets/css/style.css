@@ -324,6 +324,43 @@ body.route-fade::before {
     margin-top: 36px;
 }
 
+.maintenance-control {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 16px 18px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--panel);
+}
+
+.maintenance-control-title,
+.maintenance-switch {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.maintenance-switch {
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.maintenance-switch .form-check-input {
+    width: 3rem;
+    height: 1.5rem;
+    margin: 0;
+    cursor: pointer;
+}
+
+@media (max-width: 575.98px) {
+    .maintenance-control {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
+
 .eyebrow {
     margin: 0 0 8px;
     color: var(--green-800);
