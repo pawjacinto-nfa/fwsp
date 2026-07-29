@@ -219,7 +219,7 @@ final class Report
                 DATE_FORMAT(t.delivery_date, '%Y-%m') AS period,
                 COUNT(t.id) AS people_count,
                 COALESCE(SUM(t.bags_50kg), 0) AS qty_bags,
-                COALESCE(SUM(t.net_kilogram * t.price_per_kilogram), 0) AS amount_paid
+                COALESCE(SUM(t.total_amount), 0) AS amount_paid
             FROM transactions t
             INNER JOIN farmers f ON f.id = t.farmer_id
             LEFT JOIN warehouse_offices w ON w.id = COALESCE(f.warehouse_id, t.warehouse_id)
@@ -247,7 +247,7 @@ final class Report
                     / NULLIF(COALESCE(member_sexes.male_count, 0) + COALESCE(member_sexes.female_count, 0), 0)
                 ), 0) AS qty_bags,
                 COALESCE(SUM(
-                    (t.net_kilogram * t.price_per_kilogram)
+                    t.total_amount
                     * (CASE WHEN sexes.sex = 'Male' THEN COALESCE(member_sexes.male_count, 0) ELSE COALESCE(member_sexes.female_count, 0) END)
                     / NULLIF(COALESCE(member_sexes.male_count, 0) + COALESCE(member_sexes.female_count, 0), 0)
                 ), 0) AS amount_paid
@@ -312,6 +312,7 @@ final class Report
                 t.warehouse_stock_receipt_number AS wsr,
                 t.price_per_kilogram,
                 t.net_kilogram,
+                t.total_amount,
                 t.bags_50kg,
                 t.verified_farm_area,
                 f.rsbsa_number AS rsbsa,
@@ -403,6 +404,7 @@ final class Report
                 t.warehouse_stock_receipt_number AS wsr,
                 t.price_per_kilogram,
                 t.net_kilogram,
+                t.total_amount,
                 t.bags_50kg,
                 t.verified_farm_area,
                 COALESCE(fo.name, '') AS organization_name,
@@ -581,18 +583,18 @@ final class Report
         return "
             SUM(CASE WHEN t.seller_type = 'Individual' THEN 1 ELSE 0 END) AS individual_farmers,
             SUM(CASE WHEN t.seller_type = 'Individual' THEN t.bags_50kg ELSE 0 END) AS individual_qty,
-            SUM(CASE WHEN t.seller_type = 'Individual' THEN t.net_kilogram * t.price_per_kilogram ELSE 0 END) AS individual_amount,
+            SUM(CASE WHEN t.seller_type = 'Individual' THEN t.total_amount ELSE 0 END) AS individual_amount,
             SUM(CASE WHEN t.seller_type = 'Farmer Organization' AND COALESCE(fo.classification_type, 'Farmer Organization') = 'Farmer Organization' THEN 1 ELSE 0 END) AS farmer_organization_count,
             SUM(CASE WHEN t.seller_type = 'Farmer Organization' AND COALESCE(fo.classification_type, 'Farmer Organization') = 'Farmer Organization' THEN COALESCE(t.total_members, 0) ELSE 0 END) AS farmer_organization_members,
             SUM(CASE WHEN t.seller_type = 'Farmer Organization' AND COALESCE(fo.classification_type, 'Farmer Organization') = 'Farmer Organization' THEN t.bags_50kg ELSE 0 END) AS farmer_organization_qty,
-            SUM(CASE WHEN t.seller_type = 'Farmer Organization' AND COALESCE(fo.classification_type, 'Farmer Organization') = 'Farmer Organization' THEN t.net_kilogram * t.price_per_kilogram ELSE 0 END) AS farmer_organization_amount,
+            SUM(CASE WHEN t.seller_type = 'Farmer Organization' AND COALESCE(fo.classification_type, 'Farmer Organization') = 'Farmer Organization' THEN t.total_amount ELSE 0 END) AS farmer_organization_amount,
             SUM(CASE WHEN t.seller_type = 'Farmer Organization' AND fo.classification_type = 'Indigenous People Group' THEN 1 ELSE 0 END) AS ip_group_count,
             SUM(CASE WHEN t.seller_type = 'Farmer Organization' AND fo.classification_type = 'Indigenous People Group' THEN COALESCE(t.total_members, 0) ELSE 0 END) AS ip_group_members,
             SUM(CASE WHEN t.seller_type = 'Farmer Organization' AND fo.classification_type = 'Indigenous People Group' THEN t.bags_50kg ELSE 0 END) AS ip_group_qty,
-            SUM(CASE WHEN t.seller_type = 'Farmer Organization' AND fo.classification_type = 'Indigenous People Group' THEN t.net_kilogram * t.price_per_kilogram ELSE 0 END) AS ip_group_amount,
+            SUM(CASE WHEN t.seller_type = 'Farmer Organization' AND fo.classification_type = 'Indigenous People Group' THEN t.total_amount ELSE 0 END) AS ip_group_amount,
             COUNT(t.id) AS total_farmers,
             SUM(t.bags_50kg) AS total_qty,
-            SUM(t.net_kilogram * t.price_per_kilogram) AS total_amount
+            SUM(t.total_amount) AS total_amount
         ";
     }
 
@@ -601,13 +603,13 @@ final class Report
         return "
             SUM(CASE WHEN t.seller_type = 'Individual' AND f.sex = 'Male' THEN 1 ELSE 0 END) AS male_count,
             SUM(CASE WHEN t.seller_type = 'Individual' AND f.sex = 'Male' THEN t.bags_50kg ELSE 0 END) AS male_qty,
-            SUM(CASE WHEN t.seller_type = 'Individual' AND f.sex = 'Male' THEN t.net_kilogram * t.price_per_kilogram ELSE 0 END) AS male_amount,
+            SUM(CASE WHEN t.seller_type = 'Individual' AND f.sex = 'Male' THEN t.total_amount ELSE 0 END) AS male_amount,
             SUM(CASE WHEN t.seller_type = 'Individual' AND f.sex = 'Female' THEN 1 ELSE 0 END) AS female_count,
             SUM(CASE WHEN t.seller_type = 'Individual' AND f.sex = 'Female' THEN t.bags_50kg ELSE 0 END) AS female_qty,
-            SUM(CASE WHEN t.seller_type = 'Individual' AND f.sex = 'Female' THEN t.net_kilogram * t.price_per_kilogram ELSE 0 END) AS female_amount,
+            SUM(CASE WHEN t.seller_type = 'Individual' AND f.sex = 'Female' THEN t.total_amount ELSE 0 END) AS female_amount,
             SUM(CASE WHEN t.seller_type = 'Individual' AND f.sex IN ('Male', 'Female') THEN 1 ELSE 0 END) AS total_farmers,
             COALESCE(SUM(t.bags_50kg), 0) AS total_qty,
-            COALESCE(SUM(t.net_kilogram * t.price_per_kilogram), 0) AS total_amount,
+            COALESCE(SUM(t.total_amount), 0) AS total_amount,
             SUM(CASE WHEN t.seller_type = 'Farmer Organization' AND COALESCE(fo.classification_type, 'Farmer Organization') = 'Farmer Organization' THEN 1 ELSE 0 END) AS farmer_organization_count,
             SUM(CASE WHEN t.seller_type = 'Farmer Organization' AND COALESCE(fo.classification_type, 'Farmer Organization') = 'Farmer Organization' THEN COALESCE(t.total_members, 0) ELSE 0 END) AS farmer_organization_members,
             SUM(CASE WHEN t.seller_type = 'Farmer Organization' AND fo.classification_type = 'Indigenous People Group' THEN 1 ELSE 0 END) AS ip_group_count,

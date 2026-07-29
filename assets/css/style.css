@@ -1044,6 +1044,48 @@ body.route-fade::before {
     font-weight: 700;
 }
 
+.farm-location-card {
+    margin-top: 14px;
+    padding: 16px;
+    border: 1px solid rgba(35, 97, 63, 0.2);
+    border-radius: 12px;
+    background: rgba(250, 253, 250, 0.78);
+}
+
+.farm-location-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.farm-location-head h3 {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 700;
+}
+
+.farm-irrigated-options {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 38px;
+}
+
+.farm-irrigated-options label {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin: 0;
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+
+.farm-classification-grid {
+    margin-top: 14px;
+}
+
 .form-control,
 .form-select {
     border-color: var(--border);

@@ -15,6 +15,8 @@ final class Farmer
                 f.id,
                 f.farmer_key,
                 f.rsbsa_number AS rsbsa,
+                f.mao_certification,
+                f.no_available_control_number,
                 f.first_name,
                 f.middle_name,
                 f.last_name,
@@ -53,7 +55,7 @@ final class Farmer
                 , COALESCE(p.name, '') AS province_name
                 , COALESCE(w.name, '') AS warehouse_name
             FROM farmers f
-            LEFT JOIN landholdings l ON l.farmer_id = f.id
+            LEFT JOIN landholdings l ON l.id = (SELECT id FROM landholdings WHERE farmer_id = f.id ORDER BY id ASC LIMIT 1)
             LEFT JOIN farmer_organizations fo ON fo.id = f.farmer_organization_id
             LEFT JOIN warehouse_offices w ON w.id = f.warehouse_id
             LEFT JOIN province_offices p ON p.id = w.province_id
@@ -73,6 +75,8 @@ final class Farmer
                 f.id,
                 f.farmer_key,
                 f.rsbsa_number AS rsbsa,
+                f.mao_certification,
+                f.no_available_control_number,
                 f.first_name,
                 f.middle_name,
                 f.last_name,
@@ -102,7 +106,7 @@ final class Farmer
                 COALESCE(p.name, '') AS province_name,
                 COALESCE(w.name, '') AS warehouse_name
             FROM farmers f
-            LEFT JOIN landholdings l ON l.farmer_id = f.id
+            LEFT JOIN landholdings l ON l.id = (SELECT id FROM landholdings WHERE farmer_id = f.id ORDER BY id ASC LIMIT 1)
             LEFT JOIN farmer_organizations fo ON fo.id = f.farmer_organization_id
             LEFT JOIN warehouse_offices w ON w.id = f.warehouse_id
             LEFT JOIN province_offices p ON p.id = w.province_id
@@ -157,7 +161,11 @@ final class Farmer
     public static function find(int $id): ?array
     {
         $farmers = array_filter(self::all(), fn (array $farmer): bool => (int) $farmer['id'] === $id);
-        return array_values($farmers)[0] ?? null;
+        $farmer = array_values($farmers)[0] ?? null;
+        if ($farmer) {
+            $farmer['landholdings'] = self::landholdingsForFarmer($id);
+        }
+        return $farmer;
     }
 
     public static function create(array $farmer): void
@@ -173,17 +181,19 @@ final class Farmer
             $stmt = $db->prepare("
                 INSERT INTO farmers (
                     farmer_key, rsbsa_number, first_name, middle_name, last_name, address, birthdate, birthplace,
-                    civil_status, spouse_name, dependents, contact_number, email, sex,
+                    mao_certification, no_available_control_number, civil_status, spouse_name, dependents, contact_number, email, sex,
                     gender_orientation, sector, is_ip_group_member, farmer_organization_id, warehouse_id, photo_path
                 ) VALUES (
                     :farmer_key, :rsbsa, :first_name, :middle_name, :last_name, :address, :birthdate, :birthplace,
-                    :civil_status, :spouse, :dependents, :contact, :email, :sex,
+                    :mao_certification, :no_available_control_number, :civil_status, :spouse, :dependents, :contact, :email, :sex,
                     :gender_orientation, :sector, :is_ip_group_member, :farmer_organization_id, :warehouse_id, :photo_path
                 )
             ");
             $stmt->execute([
                 'farmer_key' => $farmerKey,
-                'rsbsa' => $farmer['rsbsa'],
+                'rsbsa' => self::nullable($farmer['rsbsa']),
+                'mao_certification' => self::nullable($farmer['mao_certification'] ?? ''),
+                'no_available_control_number' => !empty($farmer['no_available_control_number']) ? 1 : 0,
                 'first_name' => $farmer['first_name'],
                 'middle_name' => $farmer['middle_name'],
                 'last_name' => $farmer['last_name'],
@@ -205,23 +215,7 @@ final class Farmer
             ]);
 
             $farmerId = (int) $db->lastInsertId();
-            $landholding = $db->prepare("
-                INSERT INTO landholdings (
-                    farmer_id, classification, irrigated, palay_location,
-                    harvested_area_hectares, average_yield_per_hectare
-                ) VALUES (
-                    :farmer_id, :classification, :irrigated, :palay_location,
-                    :harvest_area, :average_yield
-                )
-            ");
-            $landholding->execute([
-                'farmer_id' => $farmerId,
-                'classification' => json_encode($farmer['landholding']),
-                'irrigated' => ($farmer['irrigated'] ?? '') === 'Yes' ? 1 : 0,
-                'palay_location' => $farmer['palay_location'],
-                'harvest_area' => self::nullable($farmer['harvest_area']),
-                'average_yield' => self::nullable($farmer['average_yield']),
-            ]);
+            self::saveLandholdings($db, $farmerId, $farmer['farms'] ?? []);
 
             $db->commit();
         } catch (\Throwable $exception) {
@@ -247,6 +241,8 @@ final class Farmer
                 UPDATE farmers
                 SET
                     rsbsa_number = :rsbsa,
+                    mao_certification = :mao_certification,
+                    no_available_control_number = :no_available_control_number,
                     first_name = :first_name,
                     middle_name = :middle_name,
                     last_name = :last_name,
@@ -269,7 +265,9 @@ final class Farmer
             ");
             $stmt->execute([
                 'id' => $id,
-                'rsbsa' => $farmer['rsbsa'],
+                'rsbsa' => self::nullable($farmer['rsbsa']),
+                'mao_certification' => self::nullable($farmer['mao_certification'] ?? ''),
+                'no_available_control_number' => !empty($farmer['no_available_control_number']) ? 1 : 0,
                 'first_name' => $farmer['first_name'],
                 'middle_name' => $farmer['middle_name'],
                 'last_name' => $farmer['last_name'],
@@ -290,29 +288,8 @@ final class Farmer
                 'photo_path' => $farmer['photo_path'],
             ]);
 
-            $landholding = $db->prepare("
-                INSERT INTO landholdings (
-                    farmer_id, classification, irrigated, palay_location,
-                    harvested_area_hectares, average_yield_per_hectare
-                ) VALUES (
-                    :farmer_id, :classification, :irrigated, :palay_location,
-                    :harvest_area, :average_yield
-                )
-                ON DUPLICATE KEY UPDATE
-                    classification = VALUES(classification),
-                    irrigated = VALUES(irrigated),
-                    palay_location = VALUES(palay_location),
-                    harvested_area_hectares = VALUES(harvested_area_hectares),
-                    average_yield_per_hectare = VALUES(average_yield_per_hectare)
-            ");
-            $landholding->execute([
-                'farmer_id' => $id,
-                'classification' => json_encode($farmer['landholding']),
-                'irrigated' => ($farmer['irrigated'] ?? '') === 'Yes' ? 1 : 0,
-                'palay_location' => $farmer['palay_location'],
-                'harvest_area' => self::nullable($farmer['harvest_area']),
-                'average_yield' => self::nullable($farmer['average_yield']),
-            ]);
+            $db->prepare('DELETE FROM landholdings WHERE farmer_id = :farmer_id')->execute(['farmer_id' => $id]);
+            self::saveLandholdings($db, $id, $farmer['farms'] ?? []);
 
             $db->commit();
         } catch (\Throwable $exception) {
@@ -324,8 +301,11 @@ final class Farmer
     public static function idFromRsbsa(string $rsbsa): ?int
     {
         self::ensureFarmerKeySchema();
-        $stmt = Database::connection()->prepare('SELECT id FROM farmers WHERE rsbsa_number = :rsbsa LIMIT 1');
-        $stmt->execute(['rsbsa' => self::extractRsbsa($rsbsa)]);
+        if (self::extractRsbsa($rsbsa) === '') {
+            return null;
+        }
+        $stmt = Database::connection()->prepare('SELECT id FROM farmers WHERE rsbsa_number = :identifier OR farmer_key = :identifier LIMIT 1');
+        $stmt->execute(['identifier' => self::extractRsbsa($rsbsa)]);
         $id = $stmt->fetchColumn();
 
         return $id ? (int) $id : null;
@@ -400,6 +380,29 @@ final class Farmer
         return sprintf('NFAFWSP-%s-%07d', $period ?: date('ym'), $sequence);
     }
 
+    private static function landholdingsForFarmer(int $farmerId): array
+    {
+        $stmt = Database::connection()->prepare("SELECT id, classification AS landholding, CASE WHEN irrigated = 1 THEN 'Yes' ELSE 'No' END AS irrigated, COALESCE(palay_location, '') AS palay_location, COALESCE(harvested_area_hectares, '') AS harvest_area, COALESCE(average_yield_per_hectare, '') AS main_crop_yield, COALESCE(summer_yield_per_hectare, '') AS summer_crop_yield FROM landholdings WHERE farmer_id = :farmer_id ORDER BY id ASC");
+        $stmt->execute(['farmer_id' => $farmerId]);
+        return array_map([self::class, 'decodeJsonFields'], $stmt->fetchAll());
+    }
+
+    private static function saveLandholdings(\PDO $db, int $farmerId, array $farms): void
+    {
+        $statement = $db->prepare('INSERT INTO landholdings (farmer_id, classification, irrigated, palay_location, harvested_area_hectares, average_yield_per_hectare, summer_yield_per_hectare) VALUES (:farmer_id, :classification, :irrigated, :palay_location, :harvest_area, :main_crop_yield, :summer_crop_yield)');
+        foreach ($farms as $farm) {
+            $statement->execute([
+                'farmer_id' => $farmerId,
+                'classification' => json_encode($farm['landholding'] ?? []),
+                'irrigated' => ($farm['irrigated'] ?? '') === 'Yes' ? 1 : 0,
+                'palay_location' => $farm['palay_location'] ?? '',
+                'harvest_area' => self::nullable($farm['harvest_area'] ?? null),
+                'main_crop_yield' => self::nullable($farm['main_crop_yield'] ?? null),
+                'summer_crop_yield' => self::nullable($farm['summer_crop_yield'] ?? null),
+            ]);
+        }
+    }
+
     private static function ensureFarmerKeySchema(): void
     {
         static $ready = false;
@@ -416,6 +419,17 @@ final class Farmer
         ");
         $db->exec('ALTER TABLE farmers ADD COLUMN IF NOT EXISTS farmer_key VARCHAR(32) NULL AFTER id');
         $db->exec('ALTER TABLE farmers ADD COLUMN IF NOT EXISTS is_ip_group_member TINYINT(1) NOT NULL DEFAULT 0');
+        $db->exec('ALTER TABLE farmers ADD COLUMN IF NOT EXISTS mao_certification VARCHAR(60) NULL');
+        $db->exec('ALTER TABLE farmers ADD COLUMN IF NOT EXISTS no_available_control_number TINYINT(1) NOT NULL DEFAULT 0');
+        $db->exec('ALTER TABLE farmers MODIFY rsbsa_number VARCHAR(60) NULL');
+        $db->exec('ALTER TABLE landholdings ADD COLUMN IF NOT EXISTS summer_yield_per_hectare DECIMAL(10,3) NULL AFTER average_yield_per_hectare');
+        $db->exec('ALTER TABLE landholdings MODIFY harvested_area_hectares DECIMAL(10,3) NULL, MODIFY average_yield_per_hectare DECIMAL(10,3) NULL, MODIFY summer_yield_per_hectare DECIMAL(10,3) NULL');
+        $db->exec('CREATE INDEX IF NOT EXISTS landholdings_farmer_idx ON landholdings (farmer_id)');
+        $uniqueStmt = $db->prepare("SELECT COUNT(*) FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'landholdings' AND INDEX_NAME = 'farmer_landholding_unique'");
+        $uniqueStmt->execute();
+        if ((int) $uniqueStmt->fetchColumn() > 0) {
+            $db->exec('ALTER TABLE landholdings DROP INDEX farmer_landholding_unique');
+        }
 
         $indexStmt = $db->prepare("
             SELECT COUNT(*)

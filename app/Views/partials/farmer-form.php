@@ -6,7 +6,9 @@
     <div class="form-section-title">Personal Details</div>
     <div class="row g-3">
         <div class="col-md-3"><label class="form-label">Farmer Key</label><input value="<?= e($nextFarmerKey ?? '') ?>" class="form-control" disabled></div>
-        <div class="col-md-3"><label class="form-label">RSBSA Number</label><input required name="rsbsa" class="form-control"></div>
+        <div class="col-md-3"><label class="form-label">RSBSA Number</label><input name="rsbsa" class="form-control"></div>
+        <div class="col-md-3"><label class="form-label">MAO Certification</label><input name="mao_certification" class="form-control"></div>
+        <div class="col-md-3 pt-4"><label><input type="checkbox" name="no_available_control_number" value="1"> No available control number</label></div>
         <div class="w-100 d-none d-md-block"></div>
         <div class="col-md-4"><label class="form-label">First Name</label><input required name="first_name" class="form-control"></div>
         <div class="col-md-4"><label class="form-label">Middle Name</label><input name="middle_name" class="form-control"></div>
@@ -74,24 +76,12 @@
         </section>
     </div>
     <div class="form-section-title">Landholding Data</div>
-    <div class="check-grid">
-        <?php foreach (['Riceland', 'Cornland', 'Owner-Tiller', 'Landowner/Lessor', 'CLT Holder/Recipient'] as $item): ?>
-            <label><input type="checkbox" name="landholding[]" value="<?= e($item) ?>"> <?= e($item) ?></label>
-        <?php endforeach; ?>
+    <div data-farm-locations>
+        <?php $farmIndex = 0; $farm = []; require BASE_PATH . '/app/Views/partials/landholding-fields.php'; ?>
     </div>
-    <div class="row g-3">
-        <div class="col-md-3"><label class="form-label">Irrigated</label><select name="irrigated" class="form-select"><option>Yes</option><option>No</option></select></div>
-        <div class="col-md-3"><label class="form-label">Palay Location</label><input name="palay_location" class="form-control"></div>
-        <div class="col-md-3"><label class="form-label">Harvested Area (ha)</label><input type="number" step="0.01" name="harvest_area" class="form-control"></div>
-        <div class="col-md-3"><label class="form-label">Average Yield/ha</label><input type="number" step="0.01" name="average_yield" class="form-control"></div>
-        <div class="col-md-6">
-            <label class="form-label">Farmer Organization</label>
-            <div class="autocomplete-field" data-autocomplete-field>
-                <input name="organization" class="form-control" autocomplete="off" placeholder="Type to search farmer organization" data-autocomplete-input data-autocomplete-source='<?= e(json_encode(array_column($farmerOrganizations ?? [], 'name'), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT)) ?>'>
-                <div class="autocomplete-menu" data-autocomplete-menu></div>
-            </div>
-        </div>
-    </div>
+    <template data-farm-location-template><?php $farmIndex = '__INDEX__'; $farm = []; require BASE_PATH . '/app/Views/partials/landholding-fields.php'; ?></template>
+    <button class="btn btn-outline-success btn-sm mt-3" type="button" data-add-farm-location>Add New Farm Location</button>
+    <div class="row g-3 mt-1"><div class="col-md-6"><label class="form-label">Farmer Organization</label><div class="autocomplete-field" data-autocomplete-field><input name="organization" class="form-control" autocomplete="off" placeholder="Type to search farmer organization" data-autocomplete-input data-autocomplete-source='<?= e(json_encode(array_column($farmerOrganizations ?? [], 'name'), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT)) ?>'><div class="autocomplete-menu" data-autocomplete-menu></div></div></div></div>
     <div class="form-actions">
         <button class="btn btn-success" type="submit">Save Farmer</button>
     </div>

@@ -1,5 +1,47 @@
 const loader = document.getElementById("loaderScreen");
 
+// Every regular form post must carry the session CSRF token. Keeping this here
+// also covers forms added inside record-detail modals.
+document.querySelectorAll("form[method='post'], form:not([method])").forEach((form) => {
+    if (form.querySelector("input[name='csrf_token']")) return;
+    const input = document.createElement("input");
+    input.type = "hidden";
+    input.name = "csrf_token";
+    input.value = window.FWSP_MAINTENANCE?.csrfToken || "";
+    form.append(input);
+});
+
+document.querySelectorAll("form").forEach((form) => {
+    const locations = form.querySelector("[data-farm-locations]");
+    const template = form.querySelector("template[data-farm-location-template]");
+    const addButton = form.querySelector("[data-add-farm-location]");
+    if (!locations || !template || !addButton) return;
+    const refresh = () => {
+        const rows = [...locations.querySelectorAll("[data-farm-location]")];
+        rows.forEach((row, index) => {
+            const number = row.querySelector("[data-farm-number]");
+            if (number) number.textContent = index + 1;
+            const remove = row.querySelector("[data-remove-farm-location]");
+            if (remove) remove.hidden = rows.length === 1;
+        });
+    };
+    addButton.addEventListener("click", () => {
+        const index = locations.querySelectorAll("[data-farm-location]").length;
+        const fragment = template.content.cloneNode(true);
+        fragment.querySelectorAll("[name]").forEach((field) => { field.name = field.name.replaceAll("__INDEX__", String(index)); });
+        locations.append(fragment);
+        refresh();
+        locations.querySelectorAll("[data-farm-location]")[index]?.querySelector("input")?.focus();
+    });
+    locations.addEventListener("click", (event) => {
+        const remove = event.target.closest("[data-remove-farm-location]");
+        if (!remove) return;
+        remove.closest("[data-farm-location]")?.remove();
+        refresh();
+    });
+    refresh();
+});
+
 (() => {
     const config = window.FWSP_MAINTENANCE || {};
     if (!config.monitor) return;
@@ -402,11 +444,8 @@ document.querySelectorAll("[data-delivery-total-cost]").forEach((output) => {
     const updateTotalCost = () => {
         const priceValue = Number.parseFloat(price.value) || 0;
         const netKilogramValue = Number.parseFloat(netKilogram.value) || 0;
-        const totalCost = Math.round((priceValue * netKilogramValue + Number.EPSILON) * 100) / 100;
-        output.textContent = `Total Cost: ${totalCost.toLocaleString("en-PH", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-        })}`;
+        const totalCost = Math.round((priceValue * netKilogramValue + Number.EPSILON) * 1000) / 1000;
+        output.value = totalCost.toFixed(3);
     };
 
     price.addEventListener("input", updateTotalCost);

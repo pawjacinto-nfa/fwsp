@@ -28,6 +28,7 @@ final class Transaction
                 t.price_per_kilogram AS price,
                 t.net_kilogram AS net_kg,
                 t.total_cost,
+                t.total_amount,
                 t.bags_50kg AS bags
                 , CASE WHEN fo.classification_type = 'Indigenous People Group' THEN 1 ELSE 0 END AS is_ip_group_delivery
                 , COALESCE(r.name, '') AS region_name
@@ -65,6 +66,7 @@ final class Transaction
                 t.price_per_kilogram AS price,
                 t.net_kilogram AS net_kg,
                 t.total_cost,
+                t.total_amount,
                 t.bags_50kg AS bags,
                 CASE WHEN fo.classification_type = 'Indigenous People Group' THEN 1 ELSE 0 END AS is_ip_group_delivery,
                 COALESCE(r.name, '') AS region_name,
@@ -194,13 +196,34 @@ final class Transaction
             : count($deliveredFarmerIds);
         $deliveryDate = self::nullable($transaction['delivery_date']) ?? date('Y-m-d');
         $deliveryYear = (int) substr((string) $deliveryDate, 0, 4);
-        $bags = (int) ($transaction['bags'] ?: 0);
+        $bags = (float) ($transaction['bags'] ?: 0);
         $annualBagsAfterDelivery = 0;
         $reachedAnnualLimit = false;
         $isIpGroupDelivery = ($transaction['type'] ?? '') === 'Farmer Organization'
             && FarmerOrganization::isIndigenousSectorGroup($transaction['fo_name'] ?? '');
 
+        if (($transaction['type'] ?? '') === 'Individual' && $farmerId === null) {
+            throw new \DomainException('Select a valid farmer record before recording a transaction.');
+        }
+
+        if (($transaction['type'] ?? '') === 'Farmer Organization' && $deliveredFarmerIds !== []) {
+            $db = Database::connection();
+            $flagged = $db->prepare('SELECT id FROM farmers WHERE id = :id AND no_available_control_number = 1');
+            foreach ($deliveredFarmerIds as $memberId) {
+                $flagged->execute(['id' => $memberId]);
+                if ($flagged->fetchColumn() && self::farmerTransactionCount($memberId) > 0) {
+                    throw new \DomainException('Transaction declined');
+                }
+            }
+        }
+
         if (($transaction['type'] ?? '') === 'Individual' && $farmerId !== null) {
+            $db = Database::connection();
+            $flagStmt = $db->prepare('SELECT no_available_control_number FROM farmers WHERE id = :id');
+            $flagStmt->execute(['id' => $farmerId]);
+            if ((int) $flagStmt->fetchColumn() === 1 && self::farmerTransactionCount($farmerId) > 0) {
+                throw new \DomainException('Transaction declined');
+            }
             $existingBags = self::individualAnnualBags($farmerId, $deliveryYear);
             $annualBagsAfterDelivery = $existingBags + $bags;
             if ($annualBagsAfterDelivery > self::MAX_INDIVIDUAL_ANNUAL_BAGS) {
@@ -231,11 +254,11 @@ final class Transaction
                 INSERT INTO transactions (
                     seller_type, procurement_type, farmer_id, farmer_organization_id, warehouse_id,
                     representative_name, total_members, is_ip_group_delivery, verified_farm_area, delivery_date,
-                    warehouse_stock_receipt_number, price_per_kilogram, net_kilogram, bags_50kg, client_control_number, created_by
+                    warehouse_stock_receipt_number, price_per_kilogram, net_kilogram, total_amount, bags_50kg, client_control_number, created_by
                 ) VALUES (
                     :seller_type, :procurement_type, :farmer_id, :farmer_organization_id, :warehouse_id,
                     :representative, :members, :is_ip_group_delivery, :farm_area, :delivery_date,
-                    :wsr, :price, :net_kg, :bags, :client_control_number, :created_by
+                    :wsr, :price, :net_kg, :total_amount, :bags, :client_control_number, :created_by
                 )
             ");
             $stmt->execute([
@@ -252,6 +275,7 @@ final class Transaction
                 'wsr' => $transaction['wsr'],
                 'price' => (float) ($transaction['price'] ?: 0),
                 'net_kg' => (float) ($transaction['net_kg'] ?: 0),
+                'total_amount' => ($transaction['total_amount'] ?? '') !== '' ? (float) $transaction['total_amount'] : round((float) ($transaction['price'] ?: 0) * (float) ($transaction['net_kg'] ?: 0), 3),
                 'bags' => $bags,
                 'client_control_number' => $controlNumber ?: null,
                 'created_by' => $_SESSION['user_id'] ?? null,
@@ -303,6 +327,29 @@ final class Transaction
         ]);
 
         return (int) $stmt->fetchColumn();
+    }
+
+    public static function individualTransactionCount(int $farmerId): int
+    {
+        $stmt = Database::connection()->prepare("SELECT COUNT(*) FROM transactions WHERE seller_type = 'Individual' AND farmer_id = :farmer_id");
+        $stmt->execute(['farmer_id' => $farmerId]);
+        return (int) $stmt->fetchColumn();
+    }
+
+    public static function farmerTransactionCount(int $farmerId): int
+    {
+        $stmt = Database::connection()->prepare("SELECT COUNT(*) FROM transactions t WHERE t.farmer_id = :id OR EXISTS (SELECT 1 FROM transaction_farmer_members tfm WHERE tfm.transaction_id = t.id AND tfm.farmer_id = :id)");
+        $stmt->execute(['id' => $farmerId]);
+        return (int) $stmt->fetchColumn();
+    }
+
+    public static function update(int $id, array $transaction): void
+    {
+        self::ensureSchema();
+        $existing = self::find($id);
+        if (!$existing || strtotime((string) $existing['created_at']) < strtotime('-14 days')) throw new \DomainException('This transaction is no longer editable after two weeks.');
+        $stmt = Database::connection()->prepare('UPDATE transactions SET procurement_type=:procurement, representative_name=:representative, total_members=:members, verified_farm_area=:farm_area, delivery_date=:delivery_date, warehouse_stock_receipt_number=:wsr, price_per_kilogram=:price, net_kilogram=:net_kg, total_amount=:total_amount, bags_50kg=:bags WHERE id=:id');
+        $stmt->execute(['id'=>$id, 'procurement'=>$transaction['procurement'], 'representative'=>$transaction['representative'], 'members'=>$transaction['members'] ?: null, 'farm_area'=>self::nullable($transaction['farm_area']), 'delivery_date'=>$transaction['delivery_date'], 'wsr'=>$transaction['wsr'], 'price'=>(float)$transaction['price'], 'net_kg'=>(float)$transaction['net_kg'], 'total_amount'=>(float)$transaction['total_amount'], 'bags'=>(float)$transaction['bags']]);
     }
 
     public static function individualAnnualBagsForRsbsa(string $rsbsa, int $deliveryYear): int
@@ -367,11 +414,13 @@ final class Transaction
         FarmerOrganization::ensureSchema();
         Database::connection()->exec('ALTER TABLE transactions ADD COLUMN IF NOT EXISTS is_ip_group_delivery TINYINT(1) NOT NULL DEFAULT 0');
         Database::connection()->exec('ALTER TABLE transactions ADD COLUMN IF NOT EXISTS client_control_number VARCHAR(96) NULL');
+        Database::connection()->exec('ALTER TABLE transactions ADD COLUMN IF NOT EXISTS total_amount DECIMAL(20,3) NOT NULL DEFAULT 0');
+        Database::connection()->exec('ALTER TABLE transactions MODIFY verified_farm_area DECIMAL(10,3) NULL, MODIFY price_per_kilogram DECIMAL(10,3) NOT NULL, MODIFY net_kilogram DECIMAL(12,3) NOT NULL, MODIFY bags_50kg DECIMAL(12,3) NOT NULL');
+        Database::connection()->exec('UPDATE transactions SET total_amount = ROUND(price_per_kilogram * net_kilogram, 3) WHERE total_amount = 0');
         try { Database::connection()->exec('CREATE UNIQUE INDEX transactions_client_control_number_unique ON transactions (client_control_number)'); } catch (\Throwable) { }
         Database::connection()->exec('
             ALTER TABLE transactions
-            ADD COLUMN IF NOT EXISTS total_cost DECIMAL(20,2)
-            GENERATED ALWAYS AS (ROUND(price_per_kilogram * net_kilogram, 2)) STORED
+            ADD COLUMN IF NOT EXISTS total_amount DECIMAL(20,3) NOT NULL DEFAULT 0
         ');
         Database::connection()->exec("
             CREATE TABLE IF NOT EXISTS transaction_farmer_members (

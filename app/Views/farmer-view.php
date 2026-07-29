@@ -21,7 +21,14 @@
             $otherSogie = $farmer['gender_orientation'][1];
         }
         $currentSectors = $farmer['sector'] ?? [];
-        $currentLandholding = $farmer['landholding'] ?? [];
+        $farmLocations = $farmer['landholdings'] ?? [];
+        if ($farmLocations === []) {
+            $farmLocations = [[
+                'landholding' => $farmer['landholding'] ?? [], 'irrigated' => $farmer['irrigated'] ?? 'Yes',
+                'palay_location' => $farmer['palay_location'] ?? '', 'harvest_area' => $farmer['harvest_area'] ?? '',
+                'main_crop_yield' => $farmer['average_yield'] ?? '', 'summer_crop_yield' => '',
+            ]];
+        }
         ?>
         <form method="post" enctype="multipart/form-data" class="panel form-panel farmer-profile-edit" data-farmer-profile-form>
             <input type="hidden" name="action" value="farmer-update">
@@ -38,6 +45,7 @@
                 <div>
                     <h4><?= e(trim($farmer['first_name'] . ' ' . $farmer['middle_name'] . ' ' . $farmer['last_name'])) ?></h4>
                     <p class="farmer-key-label"><?= e($farmer['farmer_key'] ?? '') ?></p>
+                    <?php if (!empty($farmer['no_available_control_number'])): ?><p><span class="badge text-bg-warning">Orange tag: no available control number</span></p><?php endif; ?>
                     <p><?= e($farmer['region_name'] . ' / ' . $farmer['branch_name'] . ' / ' . $farmer['province_name'] . ' / ' . $farmer['warehouse_name']) ?></p>
                 </div>
             </div>
@@ -46,7 +54,9 @@
                 <div class="form-section-title">Personal Details</div>
                 <div class="row g-3">
                     <div class="col-md-3"><label class="form-label">Farmer Key</label><input value="<?= e($farmer['farmer_key'] ?? '') ?>" class="form-control" disabled></div>
-                    <div class="col-md-3"><label class="form-label">RSBSA Number</label><input required name="rsbsa" value="<?= e($farmer['rsbsa']) ?>" class="form-control"></div>
+                    <div class="col-md-3"><label class="form-label">RSBSA Number</label><input name="rsbsa" value="<?= e($farmer['rsbsa']) ?>" class="form-control"></div>
+                    <div class="col-md-3"><label class="form-label">MAO Certification</label><input name="mao_certification" value="<?= e($farmer['mao_certification'] ?? '') ?>" class="form-control"></div>
+                    <div class="col-md-3 pt-4"><label><input type="checkbox" name="no_available_control_number" value="1" <?= !empty($farmer['no_available_control_number']) ? 'checked' : '' ?>> No available control number</label></div>
                     <div class="col-md-3"><label class="form-label">First Name</label><input required name="first_name" value="<?= e($farmer['first_name']) ?>" class="form-control"></div>
                     <div class="col-md-3"><label class="form-label">Middle Name</label><input name="middle_name" value="<?= e($farmer['middle_name']) ?>" class="form-control"></div>
                     <div class="col-md-3"><label class="form-label">Last Name</label><input required name="last_name" value="<?= e($farmer['last_name']) ?>" class="form-control"></div>
@@ -126,31 +136,14 @@
                 </div>
 
                 <div class="form-section-title">Landholding Data</div>
-                <div class="check-grid">
-                    <?php foreach (['Riceland', 'Cornland', 'Owner-Tiller', 'Landowner/Lessor', 'CLT Holder/Recipient'] as $item): ?>
-                        <label><input type="checkbox" name="landholding[]" value="<?= e($item) ?>" <?= in_array($item, $currentLandholding, true) ? 'checked' : '' ?>> <?= e($item) ?></label>
+                <div data-farm-locations>
+                    <?php foreach ($farmLocations as $farmIndex => $farm): ?>
+                        <?php require BASE_PATH . '/app/Views/partials/landholding-fields.php'; ?>
                     <?php endforeach; ?>
                 </div>
-                <div class="row g-3">
-                    <div class="col-md-3">
-                        <label class="form-label">Irrigated</label>
-                        <select name="irrigated" class="form-select">
-                            <?php foreach (['Yes', 'No'] as $item): ?>
-                                <option <?= ($farmer['irrigated'] ?? '') === $item ? 'selected' : '' ?>><?= e($item) ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div class="col-md-3"><label class="form-label">Palay Location</label><input name="palay_location" value="<?= e($farmer['palay_location']) ?>" class="form-control"></div>
-                    <div class="col-md-3"><label class="form-label">Harvested Area (ha)</label><input type="number" step="0.01" name="harvest_area" value="<?= e($farmer['harvest_area']) ?>" class="form-control"></div>
-                    <div class="col-md-3"><label class="form-label">Average Yield/ha</label><input type="number" step="0.01" name="average_yield" value="<?= e($farmer['average_yield']) ?>" class="form-control"></div>
-                    <div class="col-md-6">
-                        <label class="form-label">Farmer Organization</label>
-                        <div class="autocomplete-field" data-autocomplete-field>
-                            <input name="organization" value="<?= e($farmer['organization']) ?>" class="form-control" autocomplete="off" placeholder="Type to search farmer organization" data-autocomplete-input data-autocomplete-source='<?= e(json_encode(array_column($farmerOrganizations ?? [], 'name'), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT)) ?>'>
-                            <div class="autocomplete-menu" data-autocomplete-menu></div>
-                        </div>
-                    </div>
-                </div>
+                <template data-farm-location-template><?php $farmIndex = '__INDEX__'; $farm = []; require BASE_PATH . '/app/Views/partials/landholding-fields.php'; ?></template>
+                <button class="btn btn-outline-success btn-sm mt-3" type="button" data-add-farm-location>Add New Farm Location</button>
+                <div class="row g-3 mt-1"><div class="col-md-6"><label class="form-label">Farmer Organization</label><div class="autocomplete-field" data-autocomplete-field><input name="organization" value="<?= e($farmer['organization']) ?>" class="form-control" autocomplete="off" placeholder="Type to search farmer organization" data-autocomplete-input data-autocomplete-source='<?= e(json_encode(array_column($farmerOrganizations ?? [], 'name'), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT)) ?>'><div class="autocomplete-menu" data-autocomplete-menu></div></div></div></div>
             </fieldset>
 
             <div class="form-actions farmer-profile-actions">

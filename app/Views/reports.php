@@ -234,10 +234,10 @@ $reportPageTitles = [
                 }
                 if ($metric === 'qty_bags') {
                     $bags = (float) ($values['qty_bags'] ?? 0);
-                    return number_format($bags, 2) . ' / ' . number_format($bags / 20, 2);
+                    return number_format($bags, 3) . ' / ' . number_format($bags / 20, 3);
                 }
 
-                return number_format((float) ($values['amount_paid'] ?? 0), 2);
+                return number_format((float) ($values['amount_paid'] ?? 0), 3);
             };
             ?>
             <article class="report-sheet monthly-sdd-report-sheet">
@@ -417,11 +417,11 @@ $reportPageTitles = [
                 $row['province_name'] ?? '',
                 $row['warehouse_name'] ?? '',
             ])));
-            $formatAmount = fn (array $row): string => number_format((float) ($row['net_kilogram'] ?? 0) * (float) ($row['price_per_kilogram'] ?? 0), 2);
+            $formatAmount = fn (array $row): string => number_format((float) ($row['total_amount'] ?? 0), 3);
             $individualTotals = ['bags_50kg' => 0, 'amount' => 0.0];
             foreach ($individualRows as $row) {
                 $individualTotals['bags_50kg'] += (float) ($row['bags_50kg'] ?? 0);
-                $individualTotals['amount'] += (float) ($row['net_kilogram'] ?? 0) * (float) ($row['price_per_kilogram'] ?? 0);
+                $individualTotals['amount'] += (float) ($row['total_amount'] ?? 0);
             }
             foreach ($organizationSections as &$organizationSection) {
                 $organizationSection['totals'] = ['bags_50kg' => 0, 'amount' => 0.0];
@@ -434,7 +434,7 @@ $reportPageTitles = [
 
                     $countedClassificationTransactions[$transactionId] = true;
                     $organizationSection['totals']['bags_50kg'] += (float) ($row['bags_50kg'] ?? 0);
-                    $organizationSection['totals']['amount'] += (float) ($row['net_kilogram'] ?? 0) * (float) ($row['price_per_kilogram'] ?? 0);
+                    $organizationSection['totals']['amount'] += (float) ($row['total_amount'] ?? 0);
                 }
             }
             unset($organizationSection);
@@ -494,13 +494,13 @@ $reportPageTitles = [
                                         <td><?= e($row['rsbsa'] ?? '') ?></td>
                                         <td><?= e($row['sex'] ?? '') ?></td>
                                         <td class="report-address-cell"><?= e($formatLocation($row)) ?></td>
-                                        <td><?= number_format((float) ($row['verified_farm_area'] ?? 0), 2) ?></td>
+                                        <td><?= number_format((float) ($row['verified_farm_area'] ?? 0), 3) ?></td>
                                         <td><?= e($row['procurement_type'] ?? '') ?></td>
                                         <td><?= e($row['delivery_date'] ?? '') ?></td>
                                         <td><?= e($row['wsr'] ?? '') ?></td>
-                                        <td><?= number_format((float) ($row['price_per_kilogram'] ?? 0), 2) ?></td>
-                                        <td><?= number_format((float) ($row['bags_50kg'] ?? 0)) ?></td>
-                                        <td><?= number_format((float) ($row['bags_50kg'] ?? 0) / 20, 2) ?></td>
+                                        <td><?= number_format((float) ($row['price_per_kilogram'] ?? 0), 3) ?></td>
+                                        <td><?= number_format((float) ($row['bags_50kg'] ?? 0), 3) ?></td>
+                                        <td><?= number_format((float) ($row['bags_50kg'] ?? 0) / 20, 3) ?></td>
                                         <td><?= $formatAmount($row) ?></td>
                                     </tr>
                                 <?php endforeach; ?>
@@ -511,9 +511,9 @@ $reportPageTitles = [
                             <tfoot>
                                 <tr>
                                     <th colspan="10">TOTAL</th>
-                                    <td><?= number_format($individualTotals['bags_50kg']) ?></td>
-                                    <td><?= number_format($individualTotals['bags_50kg'] / 20, 2) ?></td>
-                                    <td><?= number_format($individualTotals['amount'], 2) ?></td>
+                                    <td><?= number_format($individualTotals['bags_50kg'], 3) ?></td>
+                                    <td><?= number_format($individualTotals['bags_50kg'] / 20, 3) ?></td>
+                                    <td><?= number_format($individualTotals['amount'], 3) ?></td>
                                 </tr>
                             </tfoot>
                         </table>
@@ -607,13 +607,13 @@ $reportPageTitles = [
                                         <td><?= e($row['member_sex'] ?? '') ?></td>
                                         <td><?= e($row['member_rsbsa'] ?? '') ?></td>
                                         <td class="report-address-cell"><?= e($formatLocation($row)) ?></td>
-                                        <td><?= number_format((float) ($row['verified_farm_area'] ?? 0), 2) ?></td>
+                                        <td><?= number_format((float) ($row['verified_farm_area'] ?? 0), 3) ?></td>
                                         <td><?= e($row['procurement_type'] ?? '') ?></td>
                                         <td><?= e($row['delivery_date'] ?? '') ?></td>
                                         <td><?= e($row['wsr'] ?? '') ?></td>
-                                        <td><?= number_format((float) ($row['price_per_kilogram'] ?? 0), 2) ?></td>
-                                        <td><?= number_format((float) ($row['bags_50kg'] ?? 0)) ?></td>
-                                        <td><?= number_format((float) ($row['bags_50kg'] ?? 0) / 20, 2) ?></td>
+                                        <td><?= number_format((float) ($row['price_per_kilogram'] ?? 0), 3) ?></td>
+                                        <td><?= number_format((float) ($row['bags_50kg'] ?? 0), 3) ?></td>
+                                        <td><?= number_format((float) ($row['bags_50kg'] ?? 0) / 20, 3) ?></td>
                                         <td><?= $formatAmount($row) ?></td>
                                     </tr>
                                 <?php endforeach; ?>
@@ -624,9 +624,9 @@ $reportPageTitles = [
                             <tfoot>
                                 <tr>
                                     <th colspan="13">TOTAL</th>
-                                    <td><?= number_format($organizationTotals['bags_50kg']) ?></td>
-                                    <td><?= number_format($organizationTotals['bags_50kg'] / 20, 2) ?></td>
-                                    <td><?= number_format($organizationTotals['amount'], 2) ?></td>
+                                    <td><?= number_format($organizationTotals['bags_50kg'], 3) ?></td>
+                                    <td><?= number_format($organizationTotals['bags_50kg'] / 20, 3) ?></td>
+                                    <td><?= number_format($organizationTotals['amount'], 3) ?></td>
                                 </tr>
                             </tfoot>
                         </table>
@@ -702,16 +702,16 @@ $reportPageTitles = [
                                 <th>Philippines</th>
                                 <td><?= number_format($grandTotals['male_count']) ?></td>
                                 <td><?= number_format($grandTotals['male_qty']) ?></td>
-                                <td><?= number_format($grandTotals['male_qty'] / 20, 2) ?></td>
-                                <td><?= number_format($grandTotals['male_amount'], 2) ?></td>
+                                <td><?= number_format($grandTotals['male_qty'] / 20, 3) ?></td>
+                                <td><?= number_format($grandTotals['male_amount'], 3) ?></td>
                                 <td><?= number_format($grandTotals['female_count']) ?></td>
                                 <td><?= number_format($grandTotals['female_qty']) ?></td>
-                                <td><?= number_format($grandTotals['female_qty'] / 20, 2) ?></td>
-                                <td><?= number_format($grandTotals['female_amount'], 2) ?></td>
+                                <td><?= number_format($grandTotals['female_qty'] / 20, 3) ?></td>
+                                <td><?= number_format($grandTotals['female_amount'], 3) ?></td>
                                 <td><?= number_format($grandTotals['total_farmers']) ?></td>
                                 <td><?= number_format($grandTotals['total_qty']) ?></td>
-                                <td><?= number_format($grandTotals['total_qty'] / 20, 2) ?></td>
-                                <td><?= number_format($grandTotals['total_amount'], 2) ?></td>
+                                <td><?= number_format($grandTotals['total_qty'] / 20, 3) ?></td>
+                                <td><?= number_format($grandTotals['total_amount'], 3) ?></td>
                                 <td><?= number_format($grandTotals['farmer_organization_count']) ?></td>
                                 <td><?= number_format($grandTotals['farmer_organization_members']) ?></td>
                                 <td><?= number_format($grandTotals['ip_group_count']) ?></td>

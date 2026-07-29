@@ -80,6 +80,8 @@ if ($mode === 'transactions') {
                         <a class="btn-close" href="index.php?page=transactions" aria-label="Close"></a>
                     </div>
                     <div class="modal-body">
+                        <?php $editable = strtotime((string) ($selectedTransaction['created_at'] ?? '')) >= strtotime('-14 days'); ?>
+                        <div class="alert <?= $editable ? 'alert-info' : 'alert-secondary' ?>">Transactions are editable only within two weeks of encoding. <?= $editable ? 'This transaction can still be edited.' : 'This transaction is no longer editable.' ?></div>
                         <dl class="detail-grid">
                             <div><dt>WSR Number</dt><dd><?= e($selectedTransaction['wsr']) ?></dd></div>
                             <div><dt>Seller</dt><dd><?= e(trim($selectedTransaction['farmer_name']) ?: $selectedTransaction['fo_name']) ?></dd></div>
@@ -90,11 +92,11 @@ if ($mode === 'transactions') {
                             <div><dt>Delivery Date</dt><dd><?= e($selectedTransaction['delivery_date']) ?></dd></div>
                             <div><dt>Representative</dt><dd><?= e($selectedTransaction['representative_name'] ?: 'N/A') ?></dd></div>
                             <div><dt>Total Farmer-Members</dt><dd><?= number_format((int) ($selectedTransaction['total_members'] ?? 0)) ?></dd></div>
-                            <div><dt>Verified Farm Area</dt><dd><?= e($selectedTransaction['verified_farm_area'] ?? 'N/A') ?></dd></div>
-                            <div><dt>Bags</dt><dd><?= number_format((float) $selectedTransaction['bags_50kg']) ?></dd></div>
-                            <div><dt>Net Kilogram</dt><dd><?= number_format((float) $selectedTransaction['net_kilogram'], 2) ?></dd></div>
-                            <div><dt>Price/Kg</dt><dd><?= number_format((float) $selectedTransaction['price_per_kilogram'], 2) ?></dd></div>
-                            <div><dt>Amount Paid</dt><dd><?= number_format((float) ($selectedTransaction['total_cost'] ?? ((float) $selectedTransaction['net_kilogram'] * (float) $selectedTransaction['price_per_kilogram'])), 2) ?></dd></div>
+                            <div><dt>Verified Farm Area</dt><dd><?= number_format((float) ($selectedTransaction['verified_farm_area'] ?? 0), 3) ?></dd></div>
+                            <div><dt>Bags (50kg)</dt><dd><?= number_format((float) $selectedTransaction['bags_50kg'], 3) ?></dd></div>
+                            <div><dt>Net Kilogram</dt><dd><?= number_format((float) $selectedTransaction['net_kilogram'], 3) ?></dd></div>
+                            <div><dt>Price/Kg</dt><dd><?= number_format((float) $selectedTransaction['price_per_kilogram'], 3) ?></dd></div>
+                            <div><dt>Amount Paid</dt><dd><?= number_format((float) ($selectedTransaction['total_amount'] ?? $selectedTransaction['total_cost']), 3) ?></dd></div>
                             <div><dt>Location</dt><dd><?= e($selectedTransaction['region_name'] . ' / ' . $selectedTransaction['branch_name'] . ' / ' . $selectedTransaction['province_name'] . ' / ' . $selectedTransaction['warehouse_name']) ?></dd></div>
                         </dl>
                         <?php if (($selectedTransaction['seller_type'] ?? '') === 'Farmer Organization'): ?>
@@ -121,8 +123,10 @@ if ($mode === 'transactions') {
                         <?php endif; ?>
                     </div>
                     <div class="modal-footer">
+                        <?php if ($editable): ?><button class="btn btn-success" type="button" data-bs-toggle="collapse" data-bs-target="#transactionEditForm">Edit Transaction</button><?php endif; ?>
                         <a class="btn btn-outline-success" href="index.php?page=transactions">Close</a>
                     </div>
+                    <?php if ($editable): ?><form method="post" id="transactionEditForm" class="collapse p-3 border-top"><input type="hidden" name="action" value="transaction-update"><input type="hidden" name="transaction_id" value="<?= e($selectedTransaction['id']) ?>"><div class="row g-2"><div class="col-md-3"><label>Procurement</label><select name="procurement" class="form-select"><option <?= $selectedTransaction['procurement_type']==='In-Warehouse'?'selected':'' ?>>In-Warehouse</option><option <?= $selectedTransaction['procurement_type']==='Mobile Procurement'?'selected':'' ?>>Mobile Procurement</option></select></div><div class="col-md-3"><label>Delivery Date</label><input type="date" name="delivery_date" class="form-control" value="<?= e($selectedTransaction['delivery_date']) ?>"></div><div class="col-md-3"><label>WSR</label><input name="wsr" class="form-control" value="<?= e($selectedTransaction['wsr']) ?>"></div><div class="col-md-3"><label>Farm Area</label><input step="0.001" type="number" name="farm_area" class="form-control" value="<?= e($selectedTransaction['verified_farm_area']) ?>"></div><div class="col-md-3"><label>Price/Kg</label><input step="0.001" type="number" name="price" class="form-control" value="<?= e($selectedTransaction['price_per_kilogram']) ?>"></div><div class="col-md-3"><label>Net Kg</label><input step="0.001" type="number" name="net_kg" class="form-control" value="<?= e($selectedTransaction['net_kilogram']) ?>"></div><div class="col-md-3"><label>Bags (50kg)</label><input step="0.001" type="number" name="bags" class="form-control" value="<?= e($selectedTransaction['bags_50kg']) ?>"></div><div class="col-md-3"><label>Total Amount</label><input step="0.001" type="number" name="total_amount" class="form-control" value="<?= e($selectedTransaction['total_amount'] ?? $selectedTransaction['total_cost']) ?>"></div><input type="hidden" name="representative" value="<?= e($selectedTransaction['representative_name']) ?>"><input type="hidden" name="members" value="<?= e($selectedTransaction['total_members']) ?>"><div class="col-12"><button class="btn btn-success" type="submit">Save Transaction</button></div></div></form><?php endif; ?>
                 </div>
             </div>
         </div>
@@ -153,9 +157,9 @@ if ($mode === 'transactions') {
                         $sogie = implode(', ', array_filter($farmer['gender_orientation'] ?? []));
                         $sectors = implode(', ', array_filter($farmer['sector'] ?? []));
                         ?>
-                        <tr>
+                        <tr class="<?= !empty($farmer['no_available_control_number']) ? 'table-warning' : '' ?>">
                             <td><?= e($farmer['farmer_key'] ?? '') ?></td>
-                            <td><?= e($farmer['rsbsa']) ?></td>
+                            <td><?= e($farmer['rsbsa'] ?: ($farmer['mao_certification'] ?: 'Orange tag')) ?></td>
                             <td>
                                 <span class="farmer-name-with-limit">
                                     <a class="table-profile-link" href="index.php?page=farmer-view&id=<?= e($farmer['id']) ?>"><?= e($fullName) ?></a>
@@ -199,10 +203,10 @@ if ($mode === 'transactions') {
                             <td><?= e($transaction['delivery_date']) ?></td>
                             <td><?= e($transaction['province_name']) ?></td>
                             <td><?= e($transaction['warehouse_name']) ?></td>
-                            <td><?= number_format((float) $transaction['bags']) ?></td>
-                            <td><?= number_format((float) $transaction['bags'] / 20, 2) ?></td>
-                            <td><?= number_format((float) $transaction['net_kg'] * (float) $transaction['price'], 2) ?></td>
-                            <td class="print-exclude"><a class="btn btn-sm btn-outline-success" href="index.php?page=transactions&transaction_id=<?= e($transaction['id']) ?>">View</a></td>
+                            <td><?= number_format((float) $transaction['bags'], 3) ?></td>
+                            <td><?= number_format((float) $transaction['bags'] / 20, 3) ?></td>
+                            <td><?= number_format((float) ($transaction['total_amount'] ?? $transaction['total_cost']), 3) ?></td>
+                            <td class="print-exclude"><a class="btn btn-sm btn-outline-success" href="index.php?page=transactions&transaction_id=<?= e($transaction['id']) ?>">View / Edit</a></td>
                         </tr>
                     <?php endforeach; ?>
                     <?php if ($individualTransactions === []): ?>
@@ -233,10 +237,10 @@ if ($mode === 'transactions') {
                             <td><?= e($transaction['delivery_date']) ?></td>
                             <td><?= e($transaction['province_name']) ?></td>
                             <td><?= e($transaction['warehouse_name']) ?></td>
-                            <td><?= number_format((float) $transaction['bags']) ?></td>
-                            <td><?= number_format((float) $transaction['bags'] / 20, 2) ?></td>
-                            <td><?= number_format((float) $transaction['net_kg'] * (float) $transaction['price'], 2) ?></td>
-                            <td class="print-exclude"><a class="btn btn-sm btn-outline-success" href="index.php?page=transactions&transaction_id=<?= e($transaction['id']) ?>">View</a></td>
+                            <td><?= number_format((float) $transaction['bags'], 3) ?></td>
+                            <td><?= number_format((float) $transaction['bags'] / 20, 3) ?></td>
+                            <td><?= number_format((float) ($transaction['total_amount'] ?? $transaction['total_cost']), 3) ?></td>
+                            <td class="print-exclude"><a class="btn btn-sm btn-outline-success" href="index.php?page=transactions&transaction_id=<?= e($transaction['id']) ?>">View / Edit</a></td>
                         </tr>
                     <?php endforeach; ?>
                     <?php if ($organizationTransactions === []): ?>

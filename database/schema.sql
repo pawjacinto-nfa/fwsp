@@ -123,7 +123,9 @@ CREATE TABLE IF NOT EXISTS farmer_key_sequences (
 CREATE TABLE IF NOT EXISTS farmers (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     farmer_key VARCHAR(32) UNIQUE,
-    rsbsa_number VARCHAR(60) NOT NULL UNIQUE,
+    rsbsa_number VARCHAR(60) NULL UNIQUE,
+    mao_certification VARCHAR(60) NULL,
+    no_available_control_number BOOLEAN NOT NULL DEFAULT FALSE,
     first_name VARCHAR(100) NOT NULL,
     middle_name VARCHAR(100),
     last_name VARCHAR(100) NOT NULL,
@@ -155,9 +157,10 @@ CREATE TABLE IF NOT EXISTS landholdings (
     harvest_sharing_lessor DECIMAL(5,2),
     harvest_sharing_lessee DECIMAL(5,2),
     palay_location VARCHAR(180),
-    harvested_area_hectares DECIMAL(10,2),
-    average_yield_per_hectare DECIMAL(10,2),
-    UNIQUE KEY farmer_landholding_unique (farmer_id),
+    harvested_area_hectares DECIMAL(10,3),
+    average_yield_per_hectare DECIMAL(10,3),
+    summer_yield_per_hectare DECIMAL(10,3),
+    INDEX landholdings_farmer_idx (farmer_id),
     FOREIGN KEY (farmer_id) REFERENCES farmers(id)
 );
 
@@ -170,13 +173,14 @@ CREATE TABLE IF NOT EXISTS transactions (
     representative_name VARCHAR(180),
     total_members INT UNSIGNED,
     is_ip_group_delivery BOOLEAN NOT NULL DEFAULT FALSE,
-    verified_farm_area DECIMAL(10,2),
+    verified_farm_area DECIMAL(10,3),
     delivery_date DATE NOT NULL,
     warehouse_stock_receipt_number VARCHAR(80) NOT NULL UNIQUE,
-    price_per_kilogram DECIMAL(10,2) NOT NULL,
-    net_kilogram DECIMAL(12,2) NOT NULL,
-    total_cost DECIMAL(20,2) GENERATED ALWAYS AS (ROUND(price_per_kilogram * net_kilogram, 2)) STORED,
-    bags_50kg INT UNSIGNED NOT NULL,
+    price_per_kilogram DECIMAL(10,3) NOT NULL,
+    net_kilogram DECIMAL(12,3) NOT NULL,
+    total_amount DECIMAL(20,3) NOT NULL DEFAULT 0,
+    total_cost DECIMAL(20,3) GENERATED ALWAYS AS (total_amount) STORED,
+    bags_50kg DECIMAL(12,3) NOT NULL,
     warehouse_id BIGINT UNSIGNED,
       created_by BIGINT UNSIGNED,
       client_control_number VARCHAR(96) NULL UNIQUE,
@@ -209,6 +213,9 @@ ALTER TABLE farmers ADD COLUMN IF NOT EXISTS warehouse_id BIGINT UNSIGNED NULL;
 ALTER TABLE farmers ADD COLUMN IF NOT EXISTS photo_path VARCHAR(255) NULL;
 ALTER TABLE farmers ADD COLUMN IF NOT EXISTS farmer_key VARCHAR(32) NULL AFTER id;
 ALTER TABLE farmers ADD COLUMN IF NOT EXISTS is_ip_group_member TINYINT(1) NOT NULL DEFAULT 0;
+ALTER TABLE farmers ADD COLUMN IF NOT EXISTS mao_certification VARCHAR(60) NULL;
+ALTER TABLE farmers ADD COLUMN IF NOT EXISTS no_available_control_number TINYINT(1) NOT NULL DEFAULT 0;
+ALTER TABLE farmers MODIFY rsbsa_number VARCHAR(60) NULL;
 ALTER TABLE farmer_organizations ADD COLUMN IF NOT EXISTS is_indigenous_sector_group TINYINT(1) NOT NULL DEFAULT 0;
 ALTER TABLE farmer_organizations ADD COLUMN IF NOT EXISTS classification_type VARCHAR(40) NOT NULL DEFAULT 'Farmer Organization';
 UPDATE farmer_organizations
@@ -218,6 +225,7 @@ SET classification_type = CASE
 END;
 ALTER TABLE transactions ADD COLUMN IF NOT EXISTS warehouse_id BIGINT UNSIGNED NULL;
 ALTER TABLE transactions ADD COLUMN IF NOT EXISTS is_ip_group_delivery TINYINT(1) NOT NULL DEFAULT 0;
+ALTER TABLE transactions ADD COLUMN IF NOT EXISTS total_amount DECIMAL(20,3) NOT NULL DEFAULT 0;
 ALTER TABLE warehouse_offices ADD COLUMN IF NOT EXISTS province_id BIGINT UNSIGNED NULL;
 
 CREATE TABLE IF NOT EXISTS province_offices (

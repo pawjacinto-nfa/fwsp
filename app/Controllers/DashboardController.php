@@ -1390,6 +1390,8 @@ final class DashboardController
 
         $farmer = [
             'rsbsa' => $this->clean($payload['rsbsa'] ?? ''),
+            'mao_certification' => $this->clean($payload['mao_certification'] ?? ''),
+            'no_available_control_number' => !empty($payload['no_available_control_number']),
             'first_name' => $this->clean($payload['first_name'] ?? ''),
             'middle_name' => $this->clean($payload['middle_name'] ?? ''),
             'last_name' => $this->clean($payload['last_name'] ?? ''),
@@ -1405,11 +1407,7 @@ final class DashboardController
             'gender_orientation' => $genderOrientation,
             'sector' => $this->arrayValue($payload['sector'] ?? []),
             'is_ip_group_member' => !empty($payload['is_ip_group_member']),
-            'landholding' => $this->arrayValue($payload['landholding'] ?? []),
-            'irrigated' => $this->clean($payload['irrigated'] ?? ''),
-            'palay_location' => $this->clean($payload['palay_location'] ?? ''),
-            'harvest_area' => $this->clean($payload['harvest_area'] ?? ''),
-            'average_yield' => $this->clean($payload['average_yield'] ?? ''),
+            'farms' => $this->farmEntries($payload),
             'organization' => $this->clean($payload['organization'] ?? ''),
             'warehouse_id' => $this->clean($payload['warehouse_id'] ?? ''),
             'photo_path' => $photoPath,
@@ -1417,6 +1415,14 @@ final class DashboardController
 
         if ($farmer['is_ip_group_member'] && !in_array('Indigenous People', $farmer['sector'], true)) {
             $farmer['sector'][] = 'Indigenous People';
+        }
+        if ($farmer['no_available_control_number']) {
+            $farmer['rsbsa'] = '';
+            $farmer['mao_certification'] = '';
+        } elseif ($farmer['rsbsa'] === '' && $farmer['mao_certification'] === '') {
+            $this->flash('danger', 'Enter an RSBSA number or MAO Certification, or mark No available control number.');
+            $this->redirect('?page=encode-farmer');
+            return;
         }
 
         Farmer::create($farmer);
@@ -1446,6 +1452,8 @@ final class DashboardController
 
         $farmer = [
             'rsbsa' => $this->clean($payload['rsbsa'] ?? ''),
+            'mao_certification' => $this->clean($payload['mao_certification'] ?? ''),
+            'no_available_control_number' => !empty($payload['no_available_control_number']),
             'first_name' => $this->clean($payload['first_name'] ?? ''),
             'middle_name' => $this->clean($payload['middle_name'] ?? ''),
             'last_name' => $this->clean($payload['last_name'] ?? ''),
@@ -1461,11 +1469,7 @@ final class DashboardController
             'gender_orientation' => $genderOrientation,
             'sector' => $this->arrayValue($payload['sector'] ?? []),
             'is_ip_group_member' => !empty($payload['is_ip_group_member']),
-            'landholding' => $this->arrayValue($payload['landholding'] ?? []),
-            'irrigated' => $this->clean($payload['irrigated'] ?? ''),
-            'palay_location' => $this->clean($payload['palay_location'] ?? ''),
-            'harvest_area' => $this->clean($payload['harvest_area'] ?? ''),
-            'average_yield' => $this->clean($payload['average_yield'] ?? ''),
+            'farms' => $this->farmEntries($payload),
             'organization' => $this->clean($payload['organization'] ?? ''),
             'warehouse_id' => $this->clean($payload['warehouse_id'] ?? ''),
             'photo_path' => $photoPath,
@@ -1473,6 +1477,14 @@ final class DashboardController
 
         if ($farmer['is_ip_group_member'] && !in_array('Indigenous People', $farmer['sector'], true)) {
             $farmer['sector'][] = 'Indigenous People';
+        }
+        if ($farmer['no_available_control_number']) {
+            $farmer['rsbsa'] = '';
+            $farmer['mao_certification'] = '';
+        } elseif ($farmer['rsbsa'] === '' && $farmer['mao_certification'] === '') {
+            $this->flash('danger', 'Enter an RSBSA number or MAO Certification, or mark No available control number.');
+            $this->redirect('?page=farmer-view&id=' . $id);
+            return;
         }
 
         Farmer::update($id, $farmer);
@@ -1499,6 +1511,7 @@ final class DashboardController
             'wsr' => $this->clean($payload['wsr'] ?? ''),
             'price' => $this->clean($payload['price'] ?? ''),
             'net_kg' => $this->clean($payload['net_kg'] ?? ''),
+            'total_amount' => $this->clean($payload['total_amount'] ?? ''),
             'bags' => $this->clean($payload['bags'] ?? ''),
             'warehouse_id' => $this->clean($payload['warehouse_id'] ?? ''),
             'delivered_farmer_ids' => array_map('intval', (array) ($payload['delivered_farmer_ids'] ?? [])),
@@ -1549,12 +1562,30 @@ final class DashboardController
             'farm_area' => $this->clean($payload['farm_area'] ?? ''), 'delivery_date' => $this->clean($payload['delivery_date'] ?? ''),
             'wsr' => $this->clean($payload['wsr'] ?? ''), 'price' => $this->clean($payload['price'] ?? ''),
             'net_kg' => $this->clean($payload['net_kg'] ?? ''), 'bags' => $this->clean($payload['bags'] ?? ''),
+            'total_amount' => $this->clean($payload['total_amount'] ?? ''),
             'warehouse_id' => $this->clean($payload['warehouse_id'] ?? ''), 'client_control_number' => $this->clean($payload['client_control_number'] ?? ''),
             'delivered_farmer_ids' => array_map('intval', (array) ($payload['delivered_farmer_ids'] ?? [])),
         ];
         if ($transaction['client_control_number'] === '') { http_response_code(422); echo json_encode(['success' => false, 'message' => 'Offline control number is missing.']); return; }
         try { $result = Transaction::create($transaction); Activity::add('Offline delivery uploaded: ' . $transaction['client_control_number'] . '.'); echo json_encode(['success' => true, 'duplicate' => $result['duplicate'] ?? false, 'id' => $result['transaction_id'] ?? null]); }
         catch (\Throwable $e) { http_response_code(422); echo json_encode(['success' => false, 'message' => $e->getMessage()]); }
+    }
+
+    public function updateTransaction(array $payload): void
+    {
+        if (!$this->authorizeRecords()) return;
+        $id = (int) ($payload['transaction_id'] ?? 0);
+        try {
+            Transaction::update($id, [
+                'procurement' => $this->clean($payload['procurement'] ?? ''), 'representative' => $this->clean($payload['representative'] ?? ''),
+                'members' => $this->clean($payload['members'] ?? ''), 'farm_area' => $this->clean($payload['farm_area'] ?? ''),
+                'delivery_date' => $this->clean($payload['delivery_date'] ?? ''), 'wsr' => $this->clean($payload['wsr'] ?? ''),
+                'price' => $this->clean($payload['price'] ?? ''), 'net_kg' => $this->clean($payload['net_kg'] ?? ''),
+                'total_amount' => $this->clean($payload['total_amount'] ?? ''), 'bags' => $this->clean($payload['bags'] ?? ''),
+            ]);
+            $this->flash('success', 'Transaction updated.');
+        } catch (\DomainException $e) { $this->flash('danger', $e->getMessage()); }
+        $this->redirect('?page=transactions&transaction_id=' . $id);
     }
 
     public function redirect(string $fragment = ''): void
@@ -1865,6 +1896,36 @@ final class DashboardController
         }
 
         return array_map(fn (mixed $item): string => $this->clean($item), $value);
+    }
+
+    private function farmEntries(array $payload): array
+    {
+        $farms = [];
+        foreach ((array) ($payload['farms'] ?? []) as $farm) {
+            if (!is_array($farm)) {
+                continue;
+            }
+            $entry = [
+                'landholding' => $this->arrayValue($farm['landholding'] ?? []),
+                'irrigated' => $this->clean($farm['irrigated'] ?? ''),
+                'palay_location' => $this->clean($farm['palay_location'] ?? ''),
+                'harvest_area' => $this->clean($farm['harvest_area'] ?? ''),
+                'main_crop_yield' => $this->clean($farm['main_crop_yield'] ?? $farm['average_yield'] ?? ''),
+                'summer_crop_yield' => $this->clean($farm['summer_crop_yield'] ?? ''),
+            ];
+            if (array_filter($entry, static fn (mixed $value): bool => $value !== '' && $value !== [])) {
+                $farms[] = $entry;
+            }
+        }
+
+        return $farms === [] ? [[
+            'landholding' => $this->arrayValue($payload['landholding'] ?? []),
+            'irrigated' => $this->clean($payload['irrigated'] ?? ''),
+            'palay_location' => $this->clean($payload['palay_location'] ?? ''),
+            'harvest_area' => $this->clean($payload['harvest_area'] ?? ''),
+            'main_crop_yield' => $this->clean($payload['main_crop_yield'] ?? $payload['average_yield'] ?? ''),
+            'summer_crop_yield' => $this->clean($payload['summer_crop_yield'] ?? ''),
+        ]] : $farms;
     }
 
     private function saveProfileImage(?array $file): ?string

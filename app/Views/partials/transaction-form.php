@@ -20,15 +20,15 @@
         <div class="col-md-3"><label class="form-label">Procurement</label><select name="procurement" class="form-select"><option>In-Warehouse</option><option>Mobile Procurement</option></select></div>
         <?php if ($sellerType === 'Individual'): ?>
             <div class="col-md-6">
-                <label class="form-label">Farmer Name / RSBSA</label>
+                <label class="form-label">Farmer Name / Control Number</label>
                 <div class="autocomplete-field" data-autocomplete-field>
                     <?php
                     $farmerOptions = array_map(
-                        fn (array $farmer): string => $farmer['rsbsa'] . ' - ' . trim(($farmer['first_name'] ?? '') . ' ' . ($farmer['middle_name'] ?? '') . ' ' . ($farmer['last_name'] ?? '')),
+                        fn (array $farmer): string => ($farmer['farmer_key'] ?? $farmer['rsbsa']) . ' - ' . trim(($farmer['first_name'] ?? '') . ' ' . ($farmer['middle_name'] ?? '') . ' ' . ($farmer['last_name'] ?? '') . (!empty($farmer['no_available_control_number']) ? ' (Orange tag)' : '')),
                         $farmers
                     );
                     ?>
-                    <input required name="rsbsa" class="form-control" autocomplete="off" placeholder="Type farmer name or RSBSA" data-autocomplete-input data-autocomplete-source='<?= e(json_encode($farmerOptions, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT)) ?>'>
+                    <input required name="rsbsa" class="form-control" autocomplete="off" placeholder="Type farmer name or control number" data-autocomplete-input data-autocomplete-source='<?= e(json_encode($farmerOptions, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT)) ?>'>
                     <div class="autocomplete-menu" data-autocomplete-menu></div>
                 </div>
             </div>
@@ -53,15 +53,15 @@
             require BASE_PATH . '/app/Views/partials/location-selects.php';
             ?>
         <?php endif; ?>
-        <div class="col-md-3"><label class="form-label">Verified Farm Area (ha)</label><input type="number" step="0.01" name="farm_area" class="form-control"></div>
+        <div class="col-md-3"><label class="form-label">Verified Farm Area (ha)</label><input type="number" step="0.001" name="farm_area" class="form-control"></div>
         <div class="col-md-3"><label class="form-label">Delivery Date</label><input type="date" name="delivery_date" value="<?= date('Y-m-d') ?>" class="form-control"></div>
         <div class="col-md-3"><label class="form-label">WSR Number</label><input required name="wsr" class="form-control"></div>
-        <div class="col-md-3"><label class="form-label">Price/Kg</label><input type="number" step="0.01" name="price" class="form-control" data-delivery-price></div>
-        <div class="col-md-3"><label class="form-label">Net Kilogram</label><input type="number" step="0.01" name="net_kg" class="form-control" data-delivery-net-kg></div>
-        <div class="col-md-3"><label class="form-label">Bags Delivered (50kg)</label><input type="number" min="0" name="bags" class="form-control"></div>
+        <div class="col-md-3"><label class="form-label">Price/Kg</label><input type="number" step="0.001" name="price" class="form-control" data-delivery-price></div>
+        <div class="col-md-3"><label class="form-label">Net Kilogram</label><input type="number" step="0.001" name="net_kg" class="form-control" data-delivery-net-kg></div>
+        <div class="col-md-3"><label class="form-label">Bags Delivered (50kg)</label><input type="number" min="0" step="0.001" name="bags" class="form-control"></div>
         <div class="col-md-3 delivery-total-field">
-            <span class="form-label">Calculated Amount</span>
-            <output class="delivery-total-cost" data-delivery-total-cost>Total Cost: 0.00</output>
+            <label class="form-label">Total Amount</label>
+            <input type="number" step="0.001" name="total_amount" class="form-control" data-delivery-total-cost value="0.000">
         </div>
         <?php if ($sellerType === 'Farmer Organization'): ?>
             <div class="col-12">
