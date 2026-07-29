@@ -304,8 +304,9 @@ final class Farmer
         if (self::extractRsbsa($rsbsa) === '') {
             return null;
         }
-        $stmt = Database::connection()->prepare('SELECT id FROM farmers WHERE rsbsa_number = :identifier OR farmer_key = :identifier LIMIT 1');
-        $stmt->execute(['identifier' => self::extractRsbsa($rsbsa)]);
+        $stmt = Database::connection()->prepare('SELECT id FROM farmers WHERE rsbsa_number = :rsbsa OR farmer_key = :farmer_key LIMIT 1');
+        $identifier = self::extractRsbsa($rsbsa);
+        $stmt->execute(['rsbsa' => $identifier, 'farmer_key' => $identifier]);
         $id = $stmt->fetchColumn();
 
         return $id ? (int) $id : null;
