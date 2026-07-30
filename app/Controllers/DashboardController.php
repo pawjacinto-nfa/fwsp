@@ -13,6 +13,7 @@ use App\Models\FarmerOrganization;
 use App\Models\Location;
 use App\Models\Notification;
 use App\Models\Report;
+use App\Models\RecordVersion;
 use App\Models\Signatory;
 use App\Models\SupportTicket;
 use App\Models\SystemSetting;
@@ -93,6 +94,7 @@ final class DashboardController
             'title' => 'Farmer Profile',
             'alert' => $this->pullFlash(),
             'farmer' => $farmer,
+            'versions' => $farmer ? RecordVersion::forRecord('farmer', (int) $farmer['id']) : [],
             'farmerOrganizations' => FarmerOrganization::all(),
         ]);
     }
@@ -111,6 +113,7 @@ final class DashboardController
             'mode' => 'transactions',
             'transactions' => Transaction::search($filters),
             'selectedTransaction' => !empty($filters['transaction_id']) ? Transaction::find((int) $filters['transaction_id']) : null,
+            'versions' => !empty($filters['transaction_id']) ? RecordVersion::forRecord('transaction', (int) $filters['transaction_id']) : [],
             'filters' => $filters,
             'regions' => Location::regions(),
             'branches' => Location::branches(),
@@ -140,11 +143,14 @@ final class DashboardController
             return;
         }
 
+        $transaction = !empty($_GET['transaction_id']) ? Transaction::find((int) $_GET['transaction_id']) : null;
         View::render('delivery-individual', [
             'title' => 'Individual Delivery',
             'alert' => $this->pullFlash(),
             'farmers' => Farmer::all(),
-            'locationDefaults' => $this->currentUserLocationValues(),
+            'locationDefaults' => $this->transactionLocationValues($transaction),
+            'transaction' => $transaction,
+            'versions' => $transaction ? RecordVersion::forRecord('transaction', (int) $transaction['id']) : [],
         ]);
     }
 
@@ -154,12 +160,15 @@ final class DashboardController
             return;
         }
 
+        $transaction = !empty($_GET['transaction_id']) ? Transaction::find((int) $_GET['transaction_id']) : null;
         View::render('delivery-organization', [
             'title' => 'Farmers Organization Delivery',
             'alert' => $this->pullFlash(),
             'farmers' => Farmer::all(),
             'farmerOrganizations' => FarmerOrganization::all(),
-            'locationDefaults' => $this->currentUserLocationValues(),
+            'locationDefaults' => $this->transactionLocationValues($transaction),
+            'transaction' => $transaction,
+            'versions' => $transaction ? RecordVersion::forRecord('transaction', (int) $transaction['id']) : [],
         ]);
     }
 
@@ -173,7 +182,7 @@ final class DashboardController
         $filters = $this->withUserLocationDefaults($filters);
         $filters = $this->withCurrentYearDateDefaults($filters);
         $scope = $filters['scope'] ?? 'region';
-        $allowedReportFormats = ['default', 'branch_region', 'sdd_summary', 'monthly_sdd_summary', 'full_list_fwsp', 'ip_group_delivery'];
+        $allowedReportFormats = ['default', 'branch_region', 'province_summary', 'sdd_summary', 'monthly_sdd_summary', 'full_list_fwsp', 'ip_group_delivery'];
         $requestedReportFormat = $filters['report_format'] ?? 'default';
         $reportFormat = in_array($requestedReportFormat, $allowedReportFormats, true)
             ? $requestedReportFormat
@@ -187,6 +196,7 @@ final class DashboardController
             'reportFormat' => $reportFormat,
             'rows' => match ($reportFormat) {
                 'branch_region' => Report::summaryByBranchRegion($filters),
+                'province_summary' => Report::summaryByProvince($filters),
                 'sdd_summary' => Report::sddSummary($filters),
                 'monthly_sdd_summary' => Report::monthlySddSummary($filters),
                 'full_list_fwsp' => [
@@ -612,7 +622,7 @@ final class DashboardController
         ));
 
         View::render('farmer-organization-library', [
-            'title' => 'Farmer Classifications',
+            'title' => 'Farmer Groups',
             'alert' => $this->pullFlash(),
             'farmerOrganizations' => $organizations,
             'editOrganization' => $editOrganization,
@@ -635,7 +645,7 @@ final class DashboardController
             : 'organizations';
 
         View::render('farmer-organization-view', [
-            'title' => 'Farmer Classification Members',
+            'title' => 'Farmer Group Members',
             'alert' => $this->pullFlash(),
             'organization' => $organization,
             'members' => $id > 0 ? FarmerOrganization::members($id) : [],
@@ -671,8 +681,8 @@ final class DashboardController
             $classification === 'indigenous',
             !empty($payload['organization_warehouse_id']) ? (int) $payload['organization_warehouse_id'] : null
         );
-        Activity::add('Farmer classification added: ' . $name . '.');
-        $this->flash('success', 'Farmer classification saved.');
+        Activity::add('Farmer group added: ' . $name . '.');
+        $this->flash('success', 'Farmer group saved.');
         $this->redirect($redirectUrl);
     }
 
@@ -705,8 +715,8 @@ final class DashboardController
             $classification === 'indigenous',
             !empty($payload['organization_warehouse_id']) ? (int) $payload['organization_warehouse_id'] : null
         );
-        Activity::add('Farmer classification edited: ' . $name . '.');
-        $this->flash('success', 'Farmer classification updated.');
+        Activity::add('Farmer group edited: ' . $name . '.');
+        $this->flash('success', 'Farmer group updated.');
         $this->redirect($redirectUrl);
     }
 
@@ -742,6 +752,16 @@ final class DashboardController
         $username = $this->clean($payload['username'] ?? '');
         $password = (string) ($payload['password'] ?? '');
         $resetUser = User::findByUsername($username);
+
+        if (
+            $resetUser
+            && ($resetUser['status'] ?? '') === 'Deleted'
+            && password_verify($password, (string) $resetUser['password_hash'])
+        ) {
+            $this->flash('danger', 'This account no longer exists. Please contact the system administrator if you need assistance.');
+            $this->redirect('?show_login=1');
+            return;
+        }
 
         if (
             $resetUser
@@ -1062,6 +1082,33 @@ final class DashboardController
         $this->redirect('?page=account');
     }
 
+    public function deactivateAccount(array $payload): void
+    {
+        if (empty($_SESSION['user_id'])) {
+            $this->redirect('?show_login=1');
+            return;
+        }
+
+        $reason = $this->clean($payload['deactivation_reason'] ?? '');
+        if ($reason === '') {
+            $this->flash('danger', 'Please specify why you want to deactivate your account.');
+            $this->redirect('?page=account');
+            return;
+        }
+        if (($_SESSION['role'] ?? '') === 'System Admin' && User::activeSystemAdminCount() <= 1) {
+            $this->flash('danger', 'The final active System Admin account cannot be deactivated.');
+            $this->redirect('?page=account');
+            return;
+        }
+
+        $name = (string) ($_SESSION['user'] ?? 'User');
+        User::deactivate((int) $_SESSION['user_id'], mb_substr($reason, 0, 2000));
+        Activity::add($name . ' deactivated their account. Reason: ' . $reason);
+        $this->clearAuthenticationSession();
+        $this->flash('info', 'Your account has been deactivated and you have been signed out.');
+        $this->redirect('?show_login=1');
+    }
+
     public function submitDisplayPhoto(array $payload, array $files): void
     {
         if (!$this->authorizeAuthenticated()) return;
@@ -1140,16 +1187,29 @@ final class DashboardController
         }
 
         $role = $this->clean($payload['role'] ?? 'Read-Only User');
-        if (!in_array($role, self::ROLES, true)) {
-            $this->flash('danger', 'Select a valid user role.');
+        $status = $this->clean($payload['status'] ?? 'Pending');
+        if (!in_array($role, self::ROLES, true) || !in_array($status, ['Pending', 'Active', 'Disabled', 'Deleted'], true)) {
+            $this->flash('danger', 'Select a valid user role and status.');
+            $this->redirect('?page=users');
+            return;
+        }
+
+        $userId = (int) ($payload['user_id'] ?? 0);
+        $activeAdminIds = User::activeSystemAdminIds();
+        if (
+            in_array($userId, $activeAdminIds, true)
+            && ($role !== 'System Admin' || $status !== 'Active')
+            && count($activeAdminIds) <= 1
+        ) {
+            $this->flash('danger', 'The final active System Admin account must remain active.');
             $this->redirect('?page=users');
             return;
         }
 
         User::updateAccess(
-            (int) ($payload['user_id'] ?? 0),
+            $userId,
             $role,
-            $this->clean($payload['status'] ?? 'Pending')
+            $status
         );
         Activity::add('User access updated.');
         $this->flash('success', 'User access updated.');
@@ -1189,6 +1249,14 @@ final class DashboardController
         } elseif ($role === null && $status === null) {
             $this->flash('danger', 'Choose a status, role, or both to update.');
         } else {
+            $activeAdminIds = User::activeSystemAdminIds();
+            $removesAdminAccess = ($role !== null && $role !== 'System Admin')
+                || ($status !== null && $status !== 'Active');
+            if ($removesAdminAccess && array_diff($activeAdminIds, $ids) === []) {
+                $this->flash('danger', 'Bulk changes must leave at least one active System Admin account.');
+                $this->redirect('?page=users');
+                return;
+            }
             $updated = User::updateAccessBulk($ids, $role, $status);
             Activity::add('Bulk user access updated for ' . $updated . ' account(s).');
             $this->flash('success', 'User access updated for ' . $updated . ' account(s).');
@@ -1417,15 +1485,25 @@ final class DashboardController
             $farmer['sector'][] = 'Indigenous People';
         }
         if ($farmer['no_available_control_number']) {
-            $farmer['rsbsa'] = '';
-            $farmer['mao_certification'] = '';
+            if ($farmer['rsbsa'] !== '' || $farmer['mao_certification'] !== '') {
+                $this->flash('danger', 'RSBSA Number and MAO Certification must both be blank when No available control number is selected.');
+                $this->redirect('?page=encode-farmer');
+                return;
+            }
         } elseif ($farmer['rsbsa'] === '' && $farmer['mao_certification'] === '') {
             $this->flash('danger', 'Enter an RSBSA number or MAO Certification, or mark No available control number.');
             $this->redirect('?page=encode-farmer');
             return;
         }
 
-        Farmer::create($farmer);
+        try {
+            Farmer::create($farmer);
+        } catch (\Throwable $e) {
+            error_log('Farmer creation failed: ' . $e->getMessage());
+            $this->flash('danger', 'The farmer profile could not be saved. Check for duplicate identifiers and verify the required fields.');
+            $this->redirect('?page=encode-farmer');
+            return;
+        }
         Activity::add('Farmer profile added for ' . $farmer['first_name'] . ' ' . $farmer['last_name'] . '.');
         Notification::add('New farmer record uploaded: ' . $farmer['rsbsa'] . '.');
         $this->flash('success', 'Farmer profile saved.');
@@ -1434,7 +1512,7 @@ final class DashboardController
 
     public function updateFarmer(array $payload, array $files): void
     {
-        if (!$this->authorizeRecords()) {
+        if (!$this->authorizeEncode()) {
             return;
         }
 
@@ -1479,15 +1557,25 @@ final class DashboardController
             $farmer['sector'][] = 'Indigenous People';
         }
         if ($farmer['no_available_control_number']) {
-            $farmer['rsbsa'] = '';
-            $farmer['mao_certification'] = '';
+            if ($farmer['rsbsa'] !== '' || $farmer['mao_certification'] !== '') {
+                $this->flash('danger', 'RSBSA Number and MAO Certification must both be blank when No available control number is selected.');
+                $this->redirect('?page=farmer-view&id=' . $id);
+                return;
+            }
         } elseif ($farmer['rsbsa'] === '' && $farmer['mao_certification'] === '') {
             $this->flash('danger', 'Enter an RSBSA number or MAO Certification, or mark No available control number.');
             $this->redirect('?page=farmer-view&id=' . $id);
             return;
         }
 
-        Farmer::update($id, $farmer);
+        try {
+            Farmer::update($id, $farmer);
+        } catch (\Throwable $e) {
+            error_log('Farmer update failed: ' . $e->getMessage());
+            $this->flash('danger', 'The farmer profile could not be updated. Check for duplicate identifiers and verify the required fields.');
+            $this->redirect('?page=farmer-view&id=' . $id);
+            return;
+        }
         Activity::add('Farmer profile updated for ' . $farmer['first_name'] . ' ' . $farmer['last_name'] . '.');
         $this->flash('success', 'Farmer profile updated.');
         $this->redirect('?page=farmer-view&id=' . $id);
@@ -1509,6 +1597,7 @@ final class DashboardController
             'farm_area' => $this->clean($payload['farm_area'] ?? ''),
             'delivery_date' => $this->clean($payload['delivery_date'] ?? ''),
             'wsr' => $this->clean($payload['wsr'] ?? ''),
+            'palay_variety' => $this->clean($payload['palay_variety'] ?? 'PD1'),
             'price' => $this->clean($payload['price'] ?? ''),
             'net_kg' => $this->clean($payload['net_kg'] ?? ''),
             'total_amount' => $this->clean($payload['total_amount'] ?? ''),
@@ -1522,6 +1611,11 @@ final class DashboardController
             $transactionResult = Transaction::create($transaction);
         } catch (\DomainException $exception) {
             $this->flash('danger', $exception->getMessage());
+            $this->redirect(($transaction['type'] === 'Farmer Organization') ? '?page=organization-delivery' : '?page=individual-delivery');
+            return;
+        } catch (\Throwable $exception) {
+            error_log('Transaction creation failed: ' . $exception->getMessage());
+            $this->flash('danger', 'The transaction could not be recorded. Check for a duplicate WSR number and verify all required values.');
             $this->redirect(($transaction['type'] === 'Farmer Organization') ? '?page=organization-delivery' : '?page=individual-delivery');
             return;
         }
@@ -1561,6 +1655,7 @@ final class DashboardController
             'representative' => $this->clean($payload['representative'] ?? ''), 'members' => $this->clean($payload['members'] ?? ''),
             'farm_area' => $this->clean($payload['farm_area'] ?? ''), 'delivery_date' => $this->clean($payload['delivery_date'] ?? ''),
             'wsr' => $this->clean($payload['wsr'] ?? ''), 'price' => $this->clean($payload['price'] ?? ''),
+            'palay_variety' => $this->clean($payload['palay_variety'] ?? 'PD1'),
             'net_kg' => $this->clean($payload['net_kg'] ?? ''), 'bags' => $this->clean($payload['bags'] ?? ''),
             'total_amount' => $this->clean($payload['total_amount'] ?? ''),
             'warehouse_id' => $this->clean($payload['warehouse_id'] ?? ''), 'client_control_number' => $this->clean($payload['client_control_number'] ?? ''),
@@ -1573,19 +1668,34 @@ final class DashboardController
 
     public function updateTransaction(array $payload): void
     {
-        if (!$this->authorizeRecords()) return;
+        if (!$this->authorizeEncode()) return;
         $id = (int) ($payload['transaction_id'] ?? 0);
+        $existing = Transaction::find($id);
+        if (!$existing) {
+            $this->flash('danger', 'Transaction was not found.');
+            $this->redirect('?page=transactions');
+            return;
+        }
         try {
             Transaction::update($id, [
                 'procurement' => $this->clean($payload['procurement'] ?? ''), 'representative' => $this->clean($payload['representative'] ?? ''),
                 'members' => $this->clean($payload['members'] ?? ''), 'farm_area' => $this->clean($payload['farm_area'] ?? ''),
                 'delivery_date' => $this->clean($payload['delivery_date'] ?? ''), 'wsr' => $this->clean($payload['wsr'] ?? ''),
+                'palay_variety' => $this->clean($payload['palay_variety'] ?? 'PD1'),
                 'price' => $this->clean($payload['price'] ?? ''), 'net_kg' => $this->clean($payload['net_kg'] ?? ''),
                 'total_amount' => $this->clean($payload['total_amount'] ?? ''), 'bags' => $this->clean($payload['bags'] ?? ''),
+                'warehouse_id' => $this->clean($payload['warehouse_id'] ?? ''),
+                'fo_name' => $this->clean($payload['fo_name'] ?? ''),
+                'delivered_farmer_ids' => array_map('intval', (array) ($payload['delivered_farmer_ids'] ?? [])),
             ]);
             $this->flash('success', 'Transaction updated.');
-        } catch (\DomainException $e) { $this->flash('danger', $e->getMessage()); }
-        $this->redirect('?page=transactions&transaction_id=' . $id);
+        } catch (\DomainException $e) {
+            $this->flash('danger', $e->getMessage());
+        } catch (\Throwable $e) {
+            error_log('Transaction update failed: ' . $e->getMessage());
+            $this->flash('danger', 'The transaction could not be updated. Verify the values and try again.');
+        }
+        $this->redirect('?page=' . (($existing['seller_type'] ?? '') === 'Farmer Organization' ? 'organization-delivery' : 'individual-delivery') . '&transaction_id=' . $id);
     }
 
     public function redirect(string $fragment = ''): void
@@ -1698,6 +1808,21 @@ final class DashboardController
             'province_id' => $user['province_id'] ?? '',
             'warehouse_id' => $user['warehouse_id'] ?? '',
         ];
+    }
+
+    private function transactionLocationValues(?array $transaction): array
+    {
+        $values = $this->currentUserLocationValues();
+        if (!$transaction) return $values;
+
+        foreach (['region_id', 'branch_id', 'province_id', 'warehouse_id'] as $key) {
+            $resolvedKey = 'resolved_' . $key;
+            if (!empty($transaction[$resolvedKey])) {
+                $values[$key] = $transaction[$resolvedKey];
+            }
+        }
+
+        return $values;
     }
 
     private function withCurrentYearDateDefaults(array $filters): array

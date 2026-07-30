@@ -11,6 +11,56 @@ document.querySelectorAll("form[method='post'], form:not([method])").forEach((fo
     form.append(input);
 });
 
+document.querySelectorAll("input[name='no_available_control_number']").forEach((checkbox) => {
+    const form = checkbox.closest("form");
+    const rsbsa = form?.querySelector("input[name='rsbsa']");
+    const mao = form?.querySelector("input[name='mao_certification']");
+    if (!rsbsa || !mao) return;
+    const validate = () => {
+        const invalid = checkbox.checked && (rsbsa.value.trim() !== "" || mao.value.trim() !== "");
+        checkbox.setCustomValidity(invalid ? "RSBSA Number and MAO Certification must be blank when No available control number is selected." : "");
+    };
+    checkbox.addEventListener("change", validate);
+    rsbsa.addEventListener("input", validate);
+    mao.addEventListener("input", validate);
+    validate();
+});
+
+document.querySelectorAll("tr[data-row-link]").forEach((row) => {
+    const open = () => { window.location.href = row.dataset.rowLink; };
+    row.addEventListener("click", (event) => {
+        if (event.target.closest("a, button, input, select, textarea, label")) return;
+        open();
+    });
+    row.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            open();
+        }
+    });
+});
+
+document.querySelectorAll("[data-individual-farmer-input]").forEach((input) => {
+    let organizationMap = {};
+    try { organizationMap = JSON.parse(input.dataset.farmerOrganizationMap || "{}"); } catch (_) { organizationMap = {}; }
+    const form = input.closest("form");
+    const modalElement = form?.querySelector("#individualFarmerOrganizationPrompt");
+    const message = modalElement?.querySelector("[data-fo-delivery-prompt-message]");
+    const prompt = () => {
+        const identifier = input.value.split(" - ")[0].trim();
+        const organization = organizationMap[identifier];
+        if (!organization) return false;
+        input.setCustomValidity("Farmers belonging to a Farmer Group must use Farmer Organization Delivery.");
+        if (message) message.textContent = `This farmer belongs to the Farmer Group "${organization}". Record the delivery through Farmer Organization Delivery instead.`;
+        if (modalElement && window.bootstrap) window.bootstrap.Modal.getOrCreateInstance(modalElement).show();
+        return true;
+    };
+    input.addEventListener("change", prompt);
+    input.addEventListener("blur", prompt);
+    input.addEventListener("input", () => { input.setCustomValidity(""); });
+    form?.addEventListener("submit", (event) => { if (prompt()) event.preventDefault(); });
+});
+
 document.querySelectorAll("form").forEach((form) => {
     const locations = form.querySelector("[data-farm-locations]");
     const template = form.querySelector("template[data-farm-location-template]");
@@ -820,6 +870,7 @@ document.querySelectorAll("[data-autocomplete-field]").forEach((field) => {
     const choose = (value) => {
         input.value = value;
         input.dispatchEvent(new Event("input", { bubbles: true }));
+        input.dispatchEvent(new Event("change", { bubbles: true }));
         close();
     };
 
@@ -969,6 +1020,14 @@ document.querySelectorAll("[data-fo-member-picker]").forEach((picker) => {
 
     search?.addEventListener("input", renderOptions);
     foInput?.addEventListener("input", renderOptions);
+    options.forEach((option) => {
+        const checkbox = option.querySelector("input[type='checkbox']");
+        if (!checkbox?.checked) return;
+        selected.set(option.dataset.memberId, {
+            name: option.dataset.memberName || "Unnamed Farmer",
+            rsbsa: option.dataset.memberRsbsa || "",
+        });
+    });
     renderOptions();
     renderSelected();
 });

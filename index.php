@@ -39,6 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'password-reset-approve' => $controller->approvePasswordReset($_POST),
         'password-reset-complete' => $controller->completePasswordReset($_POST),
         'account' => $controller->updateAccount($_POST, $_FILES),
+        'account-deactivate' => $controller->deactivateAccount($_POST),
         'display-photo-submit' => $controller->submitDisplayPhoto($_POST, $_FILES),
         'display-photo-review' => $controller->reviewDisplayPhoto($_POST),
         'display-photo-position' => $controller->updateDisplayPhotoPosition($_POST),

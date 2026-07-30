@@ -1,7 +1,7 @@
 <section class="workspace-section">
     <div class="section-head compact">
         <div>
-            <p class="eyebrow">Farmer Classifications</p>
+            <p class="eyebrow">Farmer Groups</p>
             <h3><?= e($organization['name'] ?? 'Farmer Organization') ?></h3>
             <?php if ($organization): ?>
                 <?php $officeLocation = trim((string) ($organization['office_location'] ?? '')); ?>

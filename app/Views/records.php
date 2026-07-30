@@ -61,9 +61,9 @@ if ($mode === 'transactions') {
                         </div>
                     </div>
                 <?php endif; ?>
-                <div class="col-md-1"><label class="form-label">From</label><input type="date" name="date_from" value="<?= e($filters['date_from'] ?? '') ?>" class="form-control"></div>
-                <div class="col-md-1"><label class="form-label">To</label><input type="date" name="date_to" value="<?= e($filters['date_to'] ?? '') ?>" class="form-control"></div>
-                <div class="col-md-1"><button class="btn btn-success w-100" type="submit">Search</button></div>
+                <div class="col-12 col-sm-6 col-md-3 col-xl-2 records-date-filter"><label class="form-label">From</label><input type="date" name="date_from" value="<?= e($filters['date_from'] ?? '') ?>" class="form-control"></div>
+                <div class="col-12 col-sm-6 col-md-3 col-xl-2 records-date-filter"><label class="form-label">To</label><input type="date" name="date_to" value="<?= e($filters['date_to'] ?? '') ?>" class="form-control"></div>
+                <div class="col-12 col-sm-6 col-md-2 col-xl-1"><button class="btn btn-success w-100" type="submit">Search</button></div>
             </div>
         </form>
     <?php endif; ?>
@@ -80,14 +80,22 @@ if ($mode === 'transactions') {
                         <a class="btn-close" href="index.php?page=transactions" aria-label="Close"></a>
                     </div>
                     <div class="modal-body">
-                        <?php $editable = strtotime((string) ($selectedTransaction['created_at'] ?? '')) >= strtotime('-14 days'); ?>
-                        <div class="alert <?= $editable ? 'alert-info' : 'alert-secondary' ?>">Transactions are editable only within two weeks of encoding. <?= $editable ? 'This transaction can still be edited.' : 'This transaction is no longer editable.' ?></div>
+                        <?php
+                        $canEditTransactions = in_array($_SESSION['role'] ?? '', ['Warehouse Personnel', 'System Admin'], true);
+                        $editable = $canEditTransactions && strtotime((string) ($selectedTransaction['created_at'] ?? '')) >= strtotime('-14 days');
+                        ?>
+                        <?php if ($canEditTransactions): ?>
+                            <div class="alert <?= $editable ? 'alert-info' : 'alert-secondary' ?>">Transactions are editable only within two weeks of encoding. <?= $editable ? 'This transaction can still be edited.' : 'This transaction is no longer editable.' ?></div>
+                        <?php else: ?>
+                            <div class="alert alert-secondary">Your account has read-only access to transaction records.</div>
+                        <?php endif; ?>
                         <dl class="detail-grid">
                             <div><dt>WSR Number</dt><dd><?= e($selectedTransaction['wsr']) ?></dd></div>
+                            <div><dt>Palay Variety</dt><dd><?= e($selectedTransaction['palay_variety'] ?? 'PD1') ?></dd></div>
                             <div><dt>Seller</dt><dd><?= e(trim($selectedTransaction['farmer_name']) ?: $selectedTransaction['fo_name']) ?></dd></div>
                             <div><dt>Type</dt><dd><?= e($selectedTransaction['seller_type']) ?> / <?= e($selectedTransaction['procurement_type']) ?></dd></div>
                             <?php if (($selectedTransaction['seller_type'] ?? '') === 'Farmer Organization'): ?>
-                                <div><dt>Farmer Classification</dt><dd><?= !empty($selectedTransaction['is_ip_group_delivery']) ? 'Indigenous People Group' : 'Farmer Organization' ?></dd></div>
+                                <div><dt>Farmer Group</dt><dd><?= !empty($selectedTransaction['is_ip_group_delivery']) ? 'Indigenous People Group' : 'Farmer Organization' ?></dd></div>
                             <?php endif; ?>
                             <div><dt>Delivery Date</dt><dd><?= e($selectedTransaction['delivery_date']) ?></dd></div>
                             <div><dt>Representative</dt><dd><?= e($selectedTransaction['representative_name'] ?: 'N/A') ?></dd></div>
@@ -123,10 +131,9 @@ if ($mode === 'transactions') {
                         <?php endif; ?>
                     </div>
                     <div class="modal-footer">
-                        <?php if ($editable): ?><button class="btn btn-success" type="button" data-bs-toggle="collapse" data-bs-target="#transactionEditForm">Edit Transaction</button><?php endif; ?>
+                        <?php if ($editable): ?><a class="btn btn-success" href="index.php?page=<?= ($selectedTransaction['seller_type'] ?? '') === 'Farmer Organization' ? 'organization-delivery' : 'individual-delivery' ?>&transaction_id=<?= e($selectedTransaction['id']) ?>">Edit Transaction</a><?php endif; ?>
                         <a class="btn btn-outline-success" href="index.php?page=transactions">Close</a>
                     </div>
-                    <?php if ($editable): ?><form method="post" id="transactionEditForm" class="collapse p-3 border-top"><input type="hidden" name="action" value="transaction-update"><input type="hidden" name="transaction_id" value="<?= e($selectedTransaction['id']) ?>"><div class="row g-2"><div class="col-md-3"><label>Procurement</label><select name="procurement" class="form-select"><option <?= $selectedTransaction['procurement_type']==='In-Warehouse'?'selected':'' ?>>In-Warehouse</option><option <?= $selectedTransaction['procurement_type']==='Mobile Procurement'?'selected':'' ?>>Mobile Procurement</option></select></div><div class="col-md-3"><label>Delivery Date</label><input type="date" name="delivery_date" class="form-control" value="<?= e($selectedTransaction['delivery_date']) ?>"></div><div class="col-md-3"><label>WSR</label><input name="wsr" class="form-control" value="<?= e($selectedTransaction['wsr']) ?>"></div><div class="col-md-3"><label>Farm Area</label><input step="0.001" type="number" name="farm_area" class="form-control" value="<?= e($selectedTransaction['verified_farm_area']) ?>"></div><div class="col-md-3"><label>Price/Kg</label><input step="0.001" type="number" name="price" class="form-control" value="<?= e($selectedTransaction['price_per_kilogram']) ?>"></div><div class="col-md-3"><label>Net Kg</label><input step="0.001" type="number" name="net_kg" class="form-control" value="<?= e($selectedTransaction['net_kilogram']) ?>"></div><div class="col-md-3"><label>Bags (50kg)</label><input step="0.001" type="number" name="bags" class="form-control" value="<?= e($selectedTransaction['bags_50kg']) ?>"></div><div class="col-md-3"><label>Total Amount</label><input step="0.001" type="number" name="total_amount" class="form-control" value="<?= e($selectedTransaction['total_amount'] ?? $selectedTransaction['total_cost']) ?>"></div><input type="hidden" name="representative" value="<?= e($selectedTransaction['representative_name']) ?>"><input type="hidden" name="members" value="<?= e($selectedTransaction['total_members']) ?>"><div class="col-12"><button class="btn btn-success" type="submit">Save Transaction</button></div></div></form><?php endif; ?>
                 </div>
             </div>
         </div>
@@ -143,7 +150,7 @@ if ($mode === 'transactions') {
             </div>
             <div class="table-responsive">
                 <table class="table align-middle sortable-table" id="farmers-print-area">
-                    <thead><tr><th>Farmer Key</th><th>RSBSA</th><th>Full Name</th><th>Sex</th><th>Age</th><th>Location</th><th>SOGIE</th><th>Sector/s</th><th>Farmer Organization</th></tr></thead>
+                    <thead><tr><th>Farmer Key</th><th>RSBSA</th><th>Full Name</th><th>Sex</th><th>Age</th><th>Location</th><th>SOGIE</th><th>Sector/s</th><th>Farmer Organization</th><th class="print-exclude">Action</th></tr></thead>
                     <tbody>
                     <?php foreach ($farmers as $farmer): ?>
                         <?php
@@ -157,7 +164,7 @@ if ($mode === 'transactions') {
                         $sogie = implode(', ', array_filter($farmer['gender_orientation'] ?? []));
                         $sectors = implode(', ', array_filter($farmer['sector'] ?? []));
                         ?>
-                        <tr class="<?= !empty($farmer['no_available_control_number']) ? 'table-warning' : '' ?>">
+                        <tr class="<?= !empty($farmer['no_available_control_number']) ? 'table-warning' : '' ?>" data-row-link="index.php?page=farmer-view&id=<?= e($farmer['id']) ?>" tabindex="0" role="link" aria-label="View or edit <?= e($fullName) ?>">
                             <td><?= e($farmer['farmer_key'] ?? '') ?></td>
                             <td><?= e($farmer['rsbsa'] ?: ($farmer['mao_certification'] ?: 'Orange tag')) ?></td>
                             <td>
@@ -174,6 +181,7 @@ if ($mode === 'transactions') {
                             <td><?= e($sogie ?: 'N/A') ?></td>
                             <td><?= e($sectors ?: 'N/A') ?></td>
                             <td><?= e($farmer['organization'] ?: 'N/A') ?></td>
+                            <td class="print-exclude"><a class="btn btn-sm btn-outline-success" href="index.php?page=farmer-view&id=<?= e($farmer['id']) ?>">View / Edit</a></td>
                         </tr>
                     <?php endforeach; ?>
                     </tbody>
@@ -193,11 +201,12 @@ if ($mode === 'transactions') {
             </div>
             <div class="table-responsive">
                 <table class="table align-middle sortable-table" id="individual-transactions-print-area">
-                    <thead><tr><th>WSR</th><th>Seller</th><th>Type</th><th>Date</th><th>Province</th><th>Facility</th><th>No. of Bags</th><th>In MT</th><th>Amount</th><th class="print-exclude">Action</th></tr></thead>
+                    <thead><tr><th>WSR</th><th>Palay Variety</th><th>Seller</th><th>Type</th><th>Date</th><th>Province</th><th>Facility</th><th>No. of Bags</th><th>In MT</th><th>Amount</th><th class="print-exclude">Action</th></tr></thead>
                     <tbody>
                     <?php foreach ($individualTransactions as $transaction): ?>
-                        <tr>
+                        <tr data-row-link="index.php?page=transactions&transaction_id=<?= e($transaction['id']) ?>" tabindex="0" role="link" aria-label="View or edit transaction <?= e($transaction['wsr']) ?>">
                             <td><?= e($transaction['wsr']) ?></td>
+                            <td><?= e($transaction['palay_variety'] ?? 'PD1') ?></td>
                             <td><?= e(trim($transaction['farmer_name'])) ?></td>
                             <td><?= e($transaction['type']) ?> / <?= e($transaction['procurement']) ?></td>
                             <td><?= e($transaction['delivery_date']) ?></td>
@@ -210,7 +219,7 @@ if ($mode === 'transactions') {
                         </tr>
                     <?php endforeach; ?>
                     <?php if ($individualTransactions === []): ?>
-                        <tr><td colspan="10" class="text-center text-muted">No individual farmer transactions found.</td></tr>
+                        <tr><td colspan="11" class="text-center text-muted">No individual farmer transactions found.</td></tr>
                     <?php endif; ?>
                     </tbody>
                 </table>
@@ -227,11 +236,12 @@ if ($mode === 'transactions') {
             </div>
             <div class="table-responsive">
                 <table class="table align-middle sortable-table" id="organization-transactions-print-area">
-                    <thead><tr><th>WSR</th><th>Seller</th><th>Type</th><th>Date</th><th>Province</th><th>Facility</th><th>No. of Bags</th><th>In MT</th><th>Amount</th><th class="print-exclude">Action</th></tr></thead>
+                    <thead><tr><th>WSR</th><th>Palay Variety</th><th>Seller</th><th>Type</th><th>Date</th><th>Province</th><th>Facility</th><th>No. of Bags</th><th>In MT</th><th>Amount</th><th class="print-exclude">Action</th></tr></thead>
                     <tbody>
                     <?php foreach ($organizationTransactions as $transaction): ?>
-                        <tr>
+                        <tr data-row-link="index.php?page=transactions&transaction_id=<?= e($transaction['id']) ?>" tabindex="0" role="link" aria-label="View or edit transaction <?= e($transaction['wsr']) ?>">
                             <td><?= e($transaction['wsr']) ?></td>
+                            <td><?= e($transaction['palay_variety'] ?? 'PD1') ?></td>
                             <td><?= e($transaction['fo_name']) ?></td>
                             <td><?= e($transaction['type']) ?> / <?= e($transaction['procurement']) ?></td>
                             <td><?= e($transaction['delivery_date']) ?></td>
@@ -244,7 +254,7 @@ if ($mode === 'transactions') {
                         </tr>
                     <?php endforeach; ?>
                     <?php if ($organizationTransactions === []): ?>
-                        <tr><td colspan="10" class="text-center text-muted">No farmer organization delivery transactions found.</td></tr>
+                        <tr><td colspan="11" class="text-center text-muted">No farmer organization delivery transactions found.</td></tr>
                     <?php endif; ?>
                     </tbody>
                 </table>

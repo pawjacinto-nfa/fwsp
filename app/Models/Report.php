@@ -49,7 +49,7 @@ final class Report
             FROM transactions t
             LEFT JOIN farmers f ON f.id = t.farmer_id
             LEFT JOIN farmer_organizations fo ON fo.id = t.farmer_organization_id
-            LEFT JOIN warehouse_offices w ON w.id = COALESCE(f.warehouse_id, t.warehouse_id)
+            LEFT JOIN warehouse_offices w ON w.id = COALESCE(t.warehouse_id, f.warehouse_id)
             LEFT JOIN province_offices p ON p.id = w.province_id
             LEFT JOIN branch_offices b ON b.id = COALESCE(p.branch_id, w.branch_id)
             LEFT JOIN regions r ON r.id = b.region_id
@@ -137,7 +137,7 @@ final class Report
             FROM transactions t
             LEFT JOIN farmers f ON f.id = t.farmer_id
             LEFT JOIN farmer_organizations fo ON fo.id = t.farmer_organization_id
-            LEFT JOIN warehouse_offices w ON w.id = COALESCE(f.warehouse_id, t.warehouse_id)
+            LEFT JOIN warehouse_offices w ON w.id = COALESCE(t.warehouse_id, f.warehouse_id)
             LEFT JOIN province_offices p ON p.id = w.province_id
             LEFT JOIN branch_offices b ON b.id = COALESCE(p.branch_id, w.branch_id)
             LEFT JOIN regions r ON r.id = b.region_id
@@ -151,6 +151,55 @@ final class Report
         $branchRows = $stmt->fetchAll();
 
         return self::withRegionTotalRows($branchRows);
+    }
+
+    public static function summaryByProvince(array $filters = []): array
+    {
+        FarmerOrganization::ensureSchema();
+        $where = [];
+        $params = [];
+
+        foreach (['region_id' => 'r.id', 'branch_id' => 'b.id', 'province_id' => 'p.id', 'warehouse_id' => 'w.id'] as $key => $column) {
+            if (!empty($filters[$key])) {
+                $where[] = "{$column} = :{$key}";
+                $params[$key] = $filters[$key];
+            }
+        }
+
+        if (!empty($filters['date_from'])) {
+            $where[] = 't.delivery_date >= :date_from';
+            $params['date_from'] = $filters['date_from'];
+        }
+
+        if (!empty($filters['date_to'])) {
+            $where[] = 't.delivery_date <= :date_to';
+            $params['date_to'] = $filters['date_to'];
+        }
+
+        $whereSql = $where ? 'WHERE ' . implode(' AND ', $where) : '';
+        $metricSql = self::summaryMetricSql();
+        $sql = "
+            SELECT
+                COALESCE(r.name, 'Unassigned') AS region,
+                COALESCE(b.name, 'Unassigned Branch') AS branch,
+                COALESCE(p.name, 'Unassigned Province') AS province,
+                {$metricSql}
+            FROM transactions t
+            LEFT JOIN farmers f ON f.id = t.farmer_id
+            LEFT JOIN farmer_organizations fo ON fo.id = t.farmer_organization_id
+            LEFT JOIN warehouse_offices w ON w.id = COALESCE(t.warehouse_id, f.warehouse_id)
+            LEFT JOIN province_offices p ON p.id = w.province_id
+            LEFT JOIN branch_offices b ON b.id = COALESCE(p.branch_id, w.branch_id)
+            LEFT JOIN regions r ON r.id = b.region_id
+            {$whereSql}
+            GROUP BY COALESCE(r.name, 'Unassigned'), COALESCE(b.name, 'Unassigned Branch'), COALESCE(p.name, 'Unassigned Province')
+            ORDER BY COALESCE(r.name, 'Unassigned'), COALESCE(b.name, 'Unassigned Branch'), COALESCE(p.name, 'Unassigned Province')
+        ";
+
+        $stmt = Database::connection()->prepare($sql);
+        $stmt->execute($params);
+
+        return self::withProvinceHierarchyRows($stmt->fetchAll());
     }
 
     public static function sddSummary(array $filters = []): array
@@ -189,7 +238,7 @@ final class Report
             FROM transactions t
             LEFT JOIN farmers f ON f.id = t.farmer_id
             LEFT JOIN farmer_organizations fo ON fo.id = t.farmer_organization_id
-            LEFT JOIN warehouse_offices w ON w.id = COALESCE(f.warehouse_id, t.warehouse_id)
+            LEFT JOIN warehouse_offices w ON w.id = COALESCE(t.warehouse_id, f.warehouse_id)
             LEFT JOIN province_offices p ON p.id = w.province_id
             LEFT JOIN branch_offices b ON b.id = COALESCE(p.branch_id, w.branch_id)
             LEFT JOIN regions r ON r.id = b.region_id
@@ -222,7 +271,7 @@ final class Report
                 COALESCE(SUM(t.total_amount), 0) AS amount_paid
             FROM transactions t
             INNER JOIN farmers f ON f.id = t.farmer_id
-            LEFT JOIN warehouse_offices w ON w.id = COALESCE(f.warehouse_id, t.warehouse_id)
+            LEFT JOIN warehouse_offices w ON w.id = COALESCE(t.warehouse_id, f.warehouse_id)
             LEFT JOIN province_offices p ON p.id = w.province_id
             LEFT JOIN branch_offices b ON b.id = COALESCE(p.branch_id, w.branch_id)
             LEFT JOIN regions r ON r.id = b.region_id
@@ -310,6 +359,7 @@ final class Report
                 t.procurement_type,
                 t.delivery_date,
                 t.warehouse_stock_receipt_number AS wsr,
+                t.palay_variety,
                 t.price_per_kilogram,
                 t.net_kilogram,
                 t.total_amount,
@@ -324,7 +374,7 @@ final class Report
                 COALESCE(w.name, '') AS warehouse_name
             FROM transactions t
             LEFT JOIN farmers f ON f.id = t.farmer_id
-            LEFT JOIN warehouse_offices w ON w.id = COALESCE(f.warehouse_id, t.warehouse_id)
+            LEFT JOIN warehouse_offices w ON w.id = COALESCE(t.warehouse_id, f.warehouse_id)
             LEFT JOIN province_offices p ON p.id = w.province_id
             LEFT JOIN branch_offices b ON b.id = COALESCE(p.branch_id, w.branch_id)
             LEFT JOIN regions r ON r.id = b.region_id
@@ -355,6 +405,7 @@ final class Report
                 t.id AS transaction_id,
                 t.delivery_date,
                 t.warehouse_stock_receipt_number AS wsr,
+                t.palay_variety,
                 t.procurement_type,
                 f.farmer_key,
                 f.rsbsa_number AS rsbsa,
@@ -656,6 +707,70 @@ final class Report
         return $rows;
     }
 
+    private static function withProvinceHierarchyRows(array $provinceRows): array
+    {
+        $metricKeys = self::summaryMetricKeys();
+        $grouped = [];
+
+        foreach ($provinceRows as $row) {
+            $region = $row['region'] ?: 'Unassigned';
+            $branch = $row['branch'] ?: 'Unassigned Branch';
+            $grouped[$region][$branch][] = $row;
+        }
+
+        $rows = [];
+        foreach ($grouped as $region => $branches) {
+            $regionTotal = [
+                'row_type' => 'region_total',
+                'region' => $region,
+                'branch' => '',
+                'province' => '',
+                'region_branch' => $region,
+            ];
+            foreach ($metricKeys as $key) {
+                $regionTotal[$key] = 0;
+            }
+
+            foreach ($branches as $provinces) {
+                foreach ($provinces as $province) {
+                    foreach ($metricKeys as $key) {
+                        $regionTotal[$key] += (float) ($province[$key] ?? 0);
+                    }
+                }
+            }
+
+            $rows[] = $regionTotal;
+
+            foreach ($branches as $branch => $provinces) {
+                $branchTotal = [
+                    'row_type' => 'branch_total',
+                    'region' => $region,
+                    'branch' => $branch,
+                    'province' => '',
+                    'region_branch' => $branch,
+                ];
+                foreach ($metricKeys as $key) {
+                    $branchTotal[$key] = 0;
+                }
+
+                foreach ($provinces as $province) {
+                    foreach ($metricKeys as $key) {
+                        $branchTotal[$key] += (float) ($province[$key] ?? 0);
+                    }
+                }
+
+                $rows[] = $branchTotal;
+                foreach ($provinces as $province) {
+                    $province['row_type'] = 'province';
+                    $province['region_branch'] = $province['province'] ?? 'Unassigned Province';
+                    $rows[] = $province;
+                }
+            }
+        }
+
+        return $rows;
+    }
+
     public static function summaryMetricKeys(): array
     {
         return [
@@ -781,7 +896,7 @@ final class Report
             ? 'transactions t INNER JOIN farmers f ON f.id = t.farmer_id'
             : 'farmers f';
         $warehouseJoin = $source === 'sold_palay'
-            ? 'w.id = COALESCE(f.warehouse_id, t.warehouse_id)'
+            ? 'w.id = COALESCE(t.warehouse_id, f.warehouse_id)'
             : 'w.id = f.warehouse_id';
         $sectorExpressions = [
             'muslim' => self::flagExpression('farmers', 'muslim', "JSON_CONTAINS(COALESCE(f.sector, JSON_ARRAY()), JSON_QUOTE('Muslim'))"),
@@ -828,11 +943,23 @@ final class Report
         }
 
         if ($selectedFilters !== []) {
-            $selectedWhere = array_map(
-                fn (string $key): string => '(' . $filterExpressions[$key] . ')',
-                $selectedFilters
-            );
-            $where[] = '(' . implode(' OR ', $selectedWhere) . ')';
+            $filterGroups = [
+                'sex' => ['male', 'female'],
+                'age' => ['young', 'adult', 'senior'],
+                'identity' => ['sogie', 'muslim', 'ip'],
+            ];
+            foreach ($filterGroups as $groupFilters) {
+                $chosen = array_values(array_intersect($selectedFilters, $groupFilters));
+                if ($chosen === []) {
+                    continue;
+                }
+                // Multiple choices in one category are alternatives; selections
+                // from different categories are cumulative restrictions.
+                $where[] = '(' . implode(' OR ', array_map(
+                    fn (string $key): string => '(' . $filterExpressions[$key] . ')',
+                    $chosen
+                )) . ')';
+            }
         }
 
         $whereSql = 'WHERE ' . implode(' AND ', $where);

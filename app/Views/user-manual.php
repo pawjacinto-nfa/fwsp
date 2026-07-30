@@ -16,7 +16,7 @@ $allManualSections = [
     'roles' => 'Roles & Access',
     'dashboard' => 'Dashboard',
     'farmer-profiles' => 'Farmer Profiles',
-    'organizations' => 'Farmer Classifications',
+    'organizations' => 'Farmer Groups',
     'deliveries' => 'Delivery Encoding',
     'records' => 'Records',
     'reports' => 'Reports & Analytics',
@@ -213,11 +213,11 @@ $roleDescriptions = [
             <?php if ($canReviewRecords): ?>
             <section class="manual-section" id="organizations">
                 <p class="manual-kicker"><?= e($manualSectionNumbers['organizations']) ?></p>
-                <h2>Farmer Classifications</h2>
+                <h2>Farmer Groups</h2>
                 <?php if (!$canEncode): ?>
-                <p>Open <strong>Records → Farmer Classifications</strong> to review Farmer Organizations and Indigenous People Groups for your assigned location. Select <strong>View</strong> to inspect a group and its members. Manager access is read-only on this page.</p>
+                <p>Open <strong>Records → Farmer Groups</strong> to review Farmer Organizations and Indigenous People Groups for your assigned location. Select <strong>View</strong> to inspect a group and its members. Manager access is read-only on this page.</p>
                 <?php else: ?>
-                <p>Open <strong>Records → Farmer Classifications</strong>, then choose Farmer Organizations or Indigenous People Groups. Enter the official group name, total membership, and office location, then save. Select an existing group to view or edit its details and membership information.</p>
+                <p>Open <strong>Records → Farmer Groups</strong>, then choose Farmer Organizations or Indigenous People Groups. Enter the official group name, total membership, and office location, then save. Select an existing group to view or edit its details and membership information.</p>
                 <p>Create the organization before encoding an organization delivery so it can be selected consistently and reported under one official name.</p>
                 <?php endif; ?>
             </section>
@@ -434,10 +434,10 @@ $roleDescriptions = [
                             <li>Added the role-aware User's Manual, including printable contents and a print-to-PDF control.</li>
                         </ul></div>
                     </article>
-                    <article class="manual-version-entry is-current">
-                        <div class="manual-version-date"><time datetime="2026-07-17">July 17, 2026</time><span>Current release</span></div>
+                    <article class="manual-version-entry">
+                        <div class="manual-version-date"><time datetime="2026-07-17">July 17, 2026</time><span>Feature update</span></div>
                         <div><h3>Reporting dashboard and offline readiness improved</h3><ul class="manual-list">
-                            <li>Added the <strong>Summary Report with SDD</strong>, organized by region, seller classification, sex, and month.</li>
+                            <li>Added the <strong>SDD Report (Monthly)</strong>, organized by region, seller classification, sex, and month.</li>
                             <li>Added monthly People Count, Quantity Sold in 50 kg bags and metric tons, Amount Paid, and cumulative totals to that report.</li>
                             <li>Added the new report to the report-format selector and preserved the selected report type when resetting filters.</li>
                             <li>Improved print preparation for report sheets, including repeating report-title rows in printed output.</li>
@@ -449,6 +449,24 @@ $roleDescriptions = [
                             <li>Added the transaction creator ID and client control number to the transaction data structure.</li>
                             <li>Refined the sign-in modal with the Farmer Seller Registry logo, branded title, and full-width Login button.</li>
                             <li>Added Farmer Seller Registry logo assets and updated visual styling for reports, dashboard elements, forms, navigation, account screens, and offline status messages.</li>
+                        </ul></div>
+                    </article>
+                    <article class="manual-version-entry is-current">
+                        <div class="manual-version-date"><time datetime="2026-07-30">July 30, 2026</time><span>Current release</span></div>
+                        <div><h3>Record management, reporting, and administration expanded</h3><ul class="manual-list">
+                            <li>Added automatic system-error reporting that creates a Tech Support ticket and notifies System Admin accounts, along with clearer registration feedback for duplicate employee numbers.</li>
+                            <li>Added a System Admin maintenance-mode control that blocks new non-admin sign-ins and safely signs out active non-admin users during maintenance.</li>
+                            <li>Added self-service account deactivation with a required reason, immediate sign-out, and protection against deactivating the final active System Admin account.</li>
+                            <li>Expanded farmer profiles to support multiple farm locations, separate main- and summer-crop yields, MAO Certification, and a clearly validated option for farmers without an available control number.</li>
+                            <li>Added safeguards that prevent conflicting RSBSA or MAO values and restrict repeat deliveries for farmers registered without an available control number.</li>
+                            <li>Required farmers assigned to a Farmer Group to use Farmer Organization Delivery, with matching client- and server-side guidance.</li>
+                            <li>Added transaction editing within the permitted 14-day period, with the full delivery form prefilled for individual and farmer-group records.</li>
+                            <li>Added Palay Variety to delivery encoding, transaction records, and detailed reports, with supported PD, PW, RPD, and HPD classifications.</li>
+                            <li>Added record-level version history for farmer profiles and transactions, showing when a change was made, who made it, and the fields changed.</li>
+                            <li>Added the Provincial Summary report with region, branch, and province hierarchy totals and updated sectoral filters so selections across different categories combine correctly.</li>
+                            <li>Renamed the shared Farmer Classifications area to <strong>Farmer Groups</strong> throughout navigation, forms, records, reports, and this guide.</li>
+                            <li>Corrected character-encoding artifacts in exported names and locations so Philippine <strong>ñ</strong> characters are preserved during database reinstallation.</li>
+                            <li>Improved record navigation with accessible clickable table rows and direct View/Edit controls for farmer and transaction records.</li>
                         </ul></div>
                     </article>
                 </div>

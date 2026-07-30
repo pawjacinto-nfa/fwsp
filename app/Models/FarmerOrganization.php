@@ -128,6 +128,16 @@ final class FarmerOrganization
         return $stmt->fetchColumn() === self::CLASSIFICATION_INDIGENOUS;
     }
 
+    public static function idByName(string $name): ?int
+    {
+        self::ensureSchema();
+        $stmt = Database::connection()->prepare('SELECT id FROM farmer_organizations WHERE name = :name LIMIT 1');
+        $stmt->execute(['name' => trim($name)]);
+        $id = $stmt->fetchColumn();
+
+        return $id === false ? null : (int) $id;
+    }
+
     public static function create(string $name, int $totalMembers = 0, string $officeLocation = '', bool $isIndigenousSectorGroup = false, ?int $warehouseId = null): void
     {
         self::ensureSchema();

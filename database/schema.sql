@@ -24,6 +24,8 @@ CREATE TABLE IF NOT EXISTS users (
     password_reset_status VARCHAR(30),
     password_reset_requested_at TIMESTAMP NULL,
     password_reset_approved_at TIMESTAMP NULL,
+    deactivation_reason TEXT NULL,
+    deactivated_at TIMESTAMP NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -110,6 +112,9 @@ CREATE TABLE IF NOT EXISTS central_units (
 CREATE TABLE IF NOT EXISTS farmer_organizations (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(180) NOT NULL UNIQUE,
+    total_members INT UNSIGNED NOT NULL DEFAULT 0,
+    office_location VARCHAR(255) NULL,
+    warehouse_id BIGINT UNSIGNED NULL,
     is_indigenous_sector_group BOOLEAN NOT NULL DEFAULT FALSE,
     classification_type VARCHAR(40) NOT NULL DEFAULT 'Farmer Organization',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -176,6 +181,7 @@ CREATE TABLE IF NOT EXISTS transactions (
     verified_farm_area DECIMAL(10,3),
     delivery_date DATE NOT NULL,
     warehouse_stock_receipt_number VARCHAR(80) NOT NULL UNIQUE,
+    palay_variety VARCHAR(10) NOT NULL DEFAULT 'PD1',
     price_per_kilogram DECIMAL(10,3) NOT NULL,
     net_kilogram DECIMAL(12,3) NOT NULL,
     total_amount DECIMAL(20,3) NOT NULL DEFAULT 0,
@@ -189,6 +195,28 @@ CREATE TABLE IF NOT EXISTS transactions (
     FOREIGN KEY (farmer_organization_id) REFERENCES farmer_organizations(id),
     FOREIGN KEY (created_by) REFERENCES users(id),
     FOREIGN KEY (warehouse_id) REFERENCES warehouse_offices(id)
+);
+
+CREATE TABLE IF NOT EXISTS record_versions (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    entity_type VARCHAR(40) NOT NULL,
+    record_id BIGINT UNSIGNED NOT NULL,
+    changes JSON NOT NULL,
+    changed_by BIGINT UNSIGNED NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX record_versions_lookup (entity_type, record_id, created_at),
+    FOREIGN KEY (changed_by) REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS transaction_farmer_members (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    transaction_id BIGINT UNSIGNED NOT NULL,
+    farmer_id BIGINT UNSIGNED NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY transaction_farmer_unique (transaction_id, farmer_id),
+    KEY transaction_farmer_members_farmer_id_index (farmer_id),
+    FOREIGN KEY (transaction_id) REFERENCES transactions(id) ON DELETE CASCADE,
+    FOREIGN KEY (farmer_id) REFERENCES farmers(id) ON DELETE CASCADE
 );
 
 ALTER TABLE users MODIFY role VARCHAR(60) NOT NULL DEFAULT 'Read-Only User';
@@ -209,6 +237,8 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_image VARCHAR(255) NULL;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS password_reset_status VARCHAR(30) NULL;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS password_reset_requested_at TIMESTAMP NULL;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS password_reset_approved_at TIMESTAMP NULL;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS deactivation_reason TEXT NULL;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS deactivated_at TIMESTAMP NULL;
 ALTER TABLE farmers ADD COLUMN IF NOT EXISTS warehouse_id BIGINT UNSIGNED NULL;
 ALTER TABLE farmers ADD COLUMN IF NOT EXISTS photo_path VARCHAR(255) NULL;
 ALTER TABLE farmers ADD COLUMN IF NOT EXISTS farmer_key VARCHAR(32) NULL AFTER id;
@@ -216,6 +246,9 @@ ALTER TABLE farmers ADD COLUMN IF NOT EXISTS is_ip_group_member TINYINT(1) NOT N
 ALTER TABLE farmers ADD COLUMN IF NOT EXISTS mao_certification VARCHAR(60) NULL;
 ALTER TABLE farmers ADD COLUMN IF NOT EXISTS no_available_control_number TINYINT(1) NOT NULL DEFAULT 0;
 ALTER TABLE farmers MODIFY rsbsa_number VARCHAR(60) NULL;
+ALTER TABLE farmer_organizations ADD COLUMN IF NOT EXISTS total_members INT UNSIGNED NOT NULL DEFAULT 0;
+ALTER TABLE farmer_organizations ADD COLUMN IF NOT EXISTS office_location VARCHAR(255) NULL;
+ALTER TABLE farmer_organizations ADD COLUMN IF NOT EXISTS warehouse_id BIGINT UNSIGNED NULL;
 ALTER TABLE farmer_organizations ADD COLUMN IF NOT EXISTS is_indigenous_sector_group TINYINT(1) NOT NULL DEFAULT 0;
 ALTER TABLE farmer_organizations ADD COLUMN IF NOT EXISTS classification_type VARCHAR(40) NOT NULL DEFAULT 'Farmer Organization';
 UPDATE farmer_organizations
@@ -226,6 +259,7 @@ END;
 ALTER TABLE transactions ADD COLUMN IF NOT EXISTS warehouse_id BIGINT UNSIGNED NULL;
 ALTER TABLE transactions ADD COLUMN IF NOT EXISTS is_ip_group_delivery TINYINT(1) NOT NULL DEFAULT 0;
 ALTER TABLE transactions ADD COLUMN IF NOT EXISTS total_amount DECIMAL(20,3) NOT NULL DEFAULT 0;
+ALTER TABLE transactions ADD COLUMN IF NOT EXISTS palay_variety VARCHAR(10) NOT NULL DEFAULT 'PD1' AFTER warehouse_stock_receipt_number;
 ALTER TABLE warehouse_offices ADD COLUMN IF NOT EXISTS province_id BIGINT UNSIGNED NULL;
 
 CREATE TABLE IF NOT EXISTS province_offices (
@@ -333,13 +367,13 @@ INSERT IGNORE INTO farmers (
     '03-24-001-000001', 'Maria', 'Santos', 'Dela Cruz', 'San Jose, Nueva Ecija',
     '1984-04-12', 'Nueva Ecija', 'Married', 'Ramon Dela Cruz', 4, '09171234567',
     'maria@example.com', 'Female', JSON_ARRAY(), JSON_ARRAY('Adult'),
-    (SELECT id FROM farmer_organizations WHERE name = 'Nueva Harvest FO')
+    NULL
 ),
 (
     '03-24-001-000002', 'Jose', 'Reyes', 'Garcia', 'Munoz, Nueva Ecija',
     '1976-09-03', 'Nueva Ecija', 'Single', NULL, 2, '09179876543',
     'jose@example.com', 'Male', JSON_ARRAY(), JSON_ARRAY('Adult'),
-    (SELECT id FROM farmer_organizations WHERE name = 'Munoz Rice Growers Association')
+    NULL
 );
 
 UPDATE users SET role = 'Warehouse Personnel', is_active = 1, status = 'Active' WHERE username = 'warehouse';
@@ -374,14 +408,14 @@ INSERT IGNORE INTO transactions (
 (
     'Individual', 'In-Warehouse',
     (SELECT id FROM farmers WHERE rsbsa_number = '03-24-001-000001'),
-    (SELECT id FROM farmer_organizations WHERE name = 'Nueva Harvest FO'),
+    NULL,
     NULL, NULL, 2.40, CURDATE(), 'WSR-2026-0001', 23.00, 2400.00, 48,
     (SELECT id FROM users WHERE username = 'warehouse')
 ),
 (
     'Individual', 'Mobile Procurement',
     (SELECT id FROM farmers WHERE rsbsa_number = '03-24-001-000002'),
-    (SELECT id FROM farmer_organizations WHERE name = 'Munoz Rice Growers Association'),
+    NULL,
     NULL, NULL, 1.70, CURDATE(), 'WSR-2026-0002', 23.00, 1700.00, 34,
     (SELECT id FROM users WHERE username = 'warehouse')
 );

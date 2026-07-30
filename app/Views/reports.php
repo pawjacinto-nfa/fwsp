@@ -1,6 +1,6 @@
 <?php
 $view = $view ?? 'summary';
-$allowedReportFormats = ['default', 'branch_region', 'sdd_summary', 'monthly_sdd_summary', 'full_list_fwsp', 'ip_group_delivery'];
+$allowedReportFormats = ['default', 'branch_region', 'province_summary', 'sdd_summary', 'monthly_sdd_summary', 'full_list_fwsp', 'ip_group_delivery'];
 $reportFormat = in_array(($reportFormat ?? ($filters['report_format'] ?? 'default')), $allowedReportFormats, true)
     ? ($reportFormat ?? ($filters['report_format'] ?? 'default'))
     : 'default';
@@ -12,6 +12,7 @@ foreach (['region_id', 'branch_id', 'province_id', 'warehouse_id', 'date_from', 
 }
 $defaultReportUrl = 'index.php?' . http_build_query($reportSwitchParams);
 $branchRegionReportUrl = 'index.php?' . http_build_query($reportSwitchParams + ['report_format' => 'branch_region']);
+$provinceSummaryReportUrl = 'index.php?' . http_build_query($reportSwitchParams + ['report_format' => 'province_summary']);
 $sddSummaryReportUrl = 'index.php?' . http_build_query($reportSwitchParams + ['report_format' => 'sdd_summary']);
 $monthlySddSummaryReportUrl = 'index.php?' . http_build_query($reportSwitchParams + ['report_format' => 'monthly_sdd_summary']);
 $fullListReportUrl = 'index.php?' . http_build_query($reportSwitchParams + ['report_format' => 'full_list_fwsp']);
@@ -19,8 +20,9 @@ $ipGroupReportUrl = 'index.php?' . http_build_query($reportSwitchParams + ['repo
 $reportPageTitles = [
     'default' => 'Summary Reports on Farmers Who Sold Palay',
     'branch_region' => 'Summary Reports on Farmers Who Sold Palay',
+    'province_summary' => 'Provincial Summary',
     'sdd_summary' => 'SDD Summary Report',
-    'monthly_sdd_summary' => 'Summary Report with SDD',
+    'monthly_sdd_summary' => 'SDD Report (Monthly)',
     'full_list_fwsp' => 'Full List (FWSP)',
     'ip_group_delivery' => 'IP Group Delivery',
 ];
@@ -123,6 +125,7 @@ $reportPageTitles = [
                 <button class="btn btn-success" type="submit">Apply</button>
                 <a class="btn btn-outline-success" href="index.php?page=sectoral-report">Clear</a>
             </div>
+            <p class="small text-muted mb-0">Selections within the same category are matched as alternatives; selections across categories are combined.</p>
         </form>
 
         <section class="sector-breakdown-grid">
@@ -154,8 +157,9 @@ $reportPageTitles = [
             <div class="quick-actions">
                 <a class="btn <?= $reportFormat === 'default' ? 'btn-success' : 'btn-outline-success' ?>" href="<?= e($defaultReportUrl) ?>">National Summary</a>
                 <a class="btn <?= $reportFormat === 'branch_region' ? 'btn-success' : 'btn-outline-success' ?>" href="<?= e($branchRegionReportUrl) ?>">Regional Summary</a>
+                <a class="btn <?= $reportFormat === 'province_summary' ? 'btn-success' : 'btn-outline-success' ?>" href="<?= e($provinceSummaryReportUrl) ?>">Provincial Summary</a>
                 <a class="btn <?= $reportFormat === 'sdd_summary' ? 'btn-success' : 'btn-outline-success' ?>" href="<?= e($sddSummaryReportUrl) ?>">SDD Summary Report</a>
-                <a class="btn <?= $reportFormat === 'monthly_sdd_summary' ? 'btn-success' : 'btn-outline-success' ?>" href="<?= e($monthlySddSummaryReportUrl) ?>">Summary Report with SDD</a>
+                <a class="btn <?= $reportFormat === 'monthly_sdd_summary' ? 'btn-success' : 'btn-outline-success' ?>" href="<?= e($monthlySddSummaryReportUrl) ?>">SDD Report (Monthly)</a>
                 <a class="btn <?= $reportFormat === 'full_list_fwsp' ? 'btn-success' : 'btn-outline-success' ?>" href="<?= e($fullListReportUrl) ?>">Full List (FWSP)</a>
                 <a class="btn <?= $reportFormat === 'ip_group_delivery' ? 'btn-success' : 'btn-outline-success' ?>" href="<?= e($ipGroupReportUrl) ?>">IP Group Delivery</a>
             </div>
@@ -242,7 +246,7 @@ $reportPageTitles = [
             ?>
             <article class="report-sheet monthly-sdd-report-sheet">
                 <header class="report-title">
-                    <h2>SUMMARY REPORT WITH SDD</h2>
+                    <h2>SDD REPORT (MONTHLY)</h2>
                     <p><?= e(strtoupper($rangeStart->format('F d, Y') . ' - ' . $rangeEnd->format('F d, Y'))) ?></p>
                 </header>
                 <div class="table-responsive">
@@ -521,7 +525,7 @@ $reportPageTitles = [
                 </section>
 
                 <section class="full-list-report-section full-list-classification-title">
-                    <h3>II. FARMER CLASSIFICATIONS</h3>
+                    <h3>II. FARMER GROUPS</h3>
                 </section>
 
                 <?php foreach ($organizationSections as $organizationSection): ?>
@@ -640,7 +644,8 @@ $reportPageTitles = [
             ? \App\Models\Report::sddSummaryMetricKeys()
             : \App\Models\Report::summaryMetricKeys();
         $grandTotals = array_fill_keys($metricKeys, 0);
-        $totalSourceRows = $reportFormat === 'branch_region'
+        $isHierarchicalSummary = in_array($reportFormat, ['branch_region', 'province_summary'], true);
+        $totalSourceRows = $isHierarchicalSummary
             ? array_filter($rows, fn (array $row): bool => ($row['row_type'] ?? '') === 'region_total')
             : $rows;
         foreach ($totalSourceRows as $row) {
@@ -648,9 +653,9 @@ $reportPageTitles = [
                 $grandTotals[$key] += (float) ($row[$key] ?? 0);
             }
         }
-        $formatReportValue = function (float|int|string|null $value, int $decimals = 0) use ($reportFormat): string {
+        $formatReportValue = function (float|int|string|null $value, int $decimals = 0) use ($isHierarchicalSummary): string {
             $numeric = (float) ($value ?? 0);
-            if ($reportFormat === 'branch_region' && abs($numeric) < 0.00001) {
+            if ($isHierarchicalSummary && abs($numeric) < 0.00001) {
                 return '-';
             }
 
@@ -667,7 +672,7 @@ $reportPageTitles = [
         <article class="report-sheet">
             <header class="report-title">
                 <h2><?= $reportFormat === 'sdd_summary' ? 'SDD SUMMARY REPORT' : 'SUMMARY REPORTS ON FARMERS WHO SOLD PALAY' ?></h2>
-                <p><?= $reportFormat === 'branch_region' ? 'BY BRANCH, BY REGION / ' . e($dateLabel) : e($dateLabel) ?></p>
+                <p><?php if ($reportFormat === 'branch_region'): ?>BY BRANCH, BY REGION / <?= e($dateLabel) ?><?php elseif ($reportFormat === 'province_summary'): ?>BY PROVINCE, BY BRANCH, BY REGION / <?= e($dateLabel) ?><?php else: ?><?= e($dateLabel) ?><?php endif; ?></p>
             </header>
             <p class="report-unit">(IN BAGS AND METRIC TONS)</p>
             <div class="table-responsive">
@@ -677,7 +682,7 @@ $reportPageTitles = [
                             <tr>
                                 <th colspan="9">CUMULATIVE TOTAL</th>
                                 <th colspan="4">GRAND TOTAL</th>
-                                <th colspan="4">FARMER CLASSIFICATIONS</th>
+                                <th colspan="4">FARMER GROUPS</th>
                             </tr>
                             <tr>
                                 <th rowspan="2">REGION</th>
@@ -742,12 +747,12 @@ $reportPageTitles = [
                         </tbody>
                     </table>
                 <?php else: ?>
-                    <table class="report-table expanded-weight-report <?= $reportFormat === 'branch_region' ? 'branch-region-report' : '' ?>">
+                    <table class="report-table expanded-weight-report <?= $isHierarchicalSummary ? 'branch-region-report' : '' ?>">
                         <thead>
                             <tr>
-                                <th rowspan="3"><?= $reportFormat === 'branch_region' ? 'REGION / BRANCH' : 'REGION' ?></th>
+                                <th rowspan="3"><?php if ($reportFormat === 'branch_region'): ?>REGION / BRANCH<?php elseif ($reportFormat === 'province_summary'): ?>REGION / BRANCH / PROVINCE<?php else: ?>REGION<?php endif; ?></th>
                                 <th colspan="4">INDIVIDUAL FARMERS</th>
-                                <th colspan="10">FARMER CLASSIFICATIONS</th>
+                                <th colspan="10">FARMER GROUPS</th>
                                 <th colspan="4">TOTAL</th>
                             </tr>
                             <tr>
@@ -789,11 +794,19 @@ $reportPageTitles = [
                             <?php foreach ($rows as $row): ?>
                                 <?php
                                 $rowType = $row['row_type'] ?? '';
-                                $label = $reportFormat === 'branch_region'
-                                    ? ($rowType === 'branch' ? ($row['branch'] ?? 'Unassigned Branch') : ($row['region'] ?? 'Unassigned'))
-                                    : ($row[$scope === 'branch' ? 'region_branch' : 'region'] ?? 'Unassigned');
+                                if ($reportFormat === 'province_summary') {
+                                    $label = match ($rowType) {
+                                        'province' => $row['province'] ?? 'Unassigned Province',
+                                        'branch_total' => $row['branch'] ?? 'Unassigned Branch',
+                                        default => $row['region'] ?? 'Unassigned',
+                                    };
+                                } elseif ($reportFormat === 'branch_region') {
+                                    $label = $rowType === 'branch' ? ($row['branch'] ?? 'Unassigned Branch') : ($row['region'] ?? 'Unassigned');
+                                } else {
+                                    $label = $row[$scope === 'branch' ? 'region_branch' : 'region'] ?? 'Unassigned';
+                                }
                                 ?>
-                                <tr class="<?= $rowType === 'region_total' ? 'report-region-total' : ($rowType === 'branch' ? 'report-branch-row' : '') ?>">
+                                <tr class="<?= $rowType === 'region_total' ? 'report-region-total' : (in_array($rowType, ['branch', 'branch_total', 'province'], true) ? 'report-branch-row report-' . e($rowType) . '-row' : '') ?>">
                                     <th><?= e($label ?: 'Unassigned') ?></th>
                                     <td><?= $formatReportValue($row['individual_farmers']) ?></td>
                                     <td><?= $formatReportValue($row['individual_qty']) ?></td>

@@ -51,6 +51,13 @@
             <?php endif; ?>
             <div class="form-actions"><button class="btn btn-success" type="submit">Update Account</button></div>
         </form>
+        <form method="post" class="panel form-panel account-deactivate-panel mt-3">
+            <input type="hidden" name="action" value="account-deactivate">
+            <div class="panel-head"><div><p class="eyebrow text-danger">Danger Zone</p><h4>Deactivate Account</h4><p class="mb-0 text-muted">This marks your account as deleted and immediately signs you out. You will no longer be able to log in.</p></div></div>
+            <label class="form-label" for="deactivationReason">Why are you deactivating your account?</label>
+            <textarea class="form-control" id="deactivationReason" name="deactivation_reason" rows="3" maxlength="2000" required placeholder="Please specify your reason"></textarea>
+            <div class="form-actions"><button class="btn btn-outline-danger" type="submit" data-confirm-title="Deactivate Account" data-confirm-message="Are you sure you want to deactivate your account? You will be signed out and unable to log in." data-confirm-accept="Deactivate Account">Deactivate My Account</button></div>
+        </form>
         </div>
         <div class="tab-pane fade" id="display-settings">
             <form method="post" enctype="multipart/form-data" class="panel form-panel">

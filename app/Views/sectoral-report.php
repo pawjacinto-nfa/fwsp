@@ -93,6 +93,7 @@
             <button class="btn btn-success" type="submit">Apply</button>
             <a class="btn btn-outline-success" href="index.php?page=sectoral-report">Clear</a>
         </div>
+        <p class="small text-muted mb-0">Selections within the same category are matched as alternatives; selections across categories are combined.</p>
     </form>
 
     <section class="sector-breakdown-grid">

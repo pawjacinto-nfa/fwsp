@@ -55,7 +55,14 @@
                         <td class="user-office-cell"><?= e(str_replace("\n", ' / ', \App\Models\User::locationLabel($account))) ?></td>
                         <td><?= e($account['designation']) ?></td>
                         <td data-sort-value="<?= e($account['created_at']) ?>"><?= e(date('M j, Y', strtotime($account['created_at']))) ?></td>
-                        <td data-sort-value="<?= e($account['status']) ?>"><select name="status" form="<?= e($formId) ?>" class="form-select"><option <?= $account['status'] === 'Pending' ? 'selected' : '' ?>>Pending</option><option <?= $account['status'] === 'Active' ? 'selected' : '' ?>>Active</option><option <?= $account['status'] === 'Disabled' ? 'selected' : '' ?>>Disabled</option></select></td>
+                        <td data-sort-value="<?= e($account['status']) ?>">
+                            <?php if ($account['status'] === 'Deleted'): ?>
+                                <span class="badge text-bg-secondary">Deleted</span>
+                                <input type="hidden" name="status" value="Deleted" form="<?= e($formId) ?>">
+                            <?php else: ?>
+                                <select name="status" form="<?= e($formId) ?>" class="form-select"><option <?= $account['status'] === 'Pending' ? 'selected' : '' ?>>Pending</option><option <?= $account['status'] === 'Active' ? 'selected' : '' ?>>Active</option><option <?= $account['status'] === 'Disabled' ? 'selected' : '' ?>>Disabled</option></select>
+                            <?php endif; ?>
+                        </td>
                         <td data-sort-value="<?= e($account['role']) ?>"><select name="role" form="<?= e($formId) ?>" class="form-select"><?php foreach ($roles as $role): ?><option <?= $account['role'] === $role ? 'selected' : '' ?>><?= e($role) ?></option><?php endforeach; ?></select></td>
                         <td data-sort-value="<?= e($account['password_reset_status'] ?? '') ?>">
                             <?php if (($account['password_reset_status'] ?? '') === 'Requested'): ?>

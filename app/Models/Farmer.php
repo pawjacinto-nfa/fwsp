@@ -171,7 +171,9 @@ final class Farmer
     public static function create(array $farmer): void
     {
         self::ensureFarmerKeySchema();
+        RecordVersion::forRecord('farmer', 0);
         $db = Database::connection();
+        $warehouseId = $farmer['warehouse_id'] ?: Location::defaultWarehouseId();
         $db->beginTransaction();
 
         try {
@@ -210,12 +212,13 @@ final class Farmer
                 'sector' => json_encode($farmer['sector']),
                 'is_ip_group_member' => !empty($farmer['is_ip_group_member']) ? 1 : 0,
                 'farmer_organization_id' => $organizationId,
-                'warehouse_id' => $farmer['warehouse_id'] ?: Location::defaultWarehouseId(),
+                'warehouse_id' => $warehouseId,
                 'photo_path' => $farmer['photo_path'],
             ]);
 
             $farmerId = (int) $db->lastInsertId();
             self::saveLandholdings($db, $farmerId, $farmer['farms'] ?? []);
+            RecordVersion::record('farmer', $farmerId, [], $farmer);
 
             $db->commit();
         } catch (\Throwable $exception) {
@@ -227,11 +230,15 @@ final class Farmer
     public static function update(int $id, array $farmer): void
     {
         self::ensureFarmerKeySchema();
+        RecordVersion::forRecord('farmer', 0);
         if ($id <= 0) {
             return;
         }
 
         $db = Database::connection();
+        $before = self::find($id) ?? [];
+        $before['farms'] = $before['landholdings'] ?? [];
+        $warehouseId = $farmer['warehouse_id'] ?: Location::defaultWarehouseId();
         $db->beginTransaction();
 
         try {
@@ -284,12 +291,13 @@ final class Farmer
                 'sector' => json_encode($farmer['sector']),
                 'is_ip_group_member' => !empty($farmer['is_ip_group_member']) ? 1 : 0,
                 'farmer_organization_id' => $organizationId,
-                'warehouse_id' => $farmer['warehouse_id'] ?: Location::defaultWarehouseId(),
+                'warehouse_id' => $warehouseId,
                 'photo_path' => $farmer['photo_path'],
             ]);
 
             $db->prepare('DELETE FROM landholdings WHERE farmer_id = :farmer_id')->execute(['farmer_id' => $id]);
             self::saveLandholdings($db, $id, $farmer['farms'] ?? []);
+            RecordVersion::record('farmer', $id, $before, $farmer);
 
             $db->commit();
         } catch (\Throwable $exception) {
@@ -343,6 +351,14 @@ final class Farmer
         $select->execute(['name' => $name]);
 
         return (int) $select->fetchColumn();
+    }
+
+    public static function organizationNameForFarmer(int $farmerId): ?string
+    {
+        $stmt = Database::connection()->prepare('SELECT fo.name FROM farmers f INNER JOIN farmer_organizations fo ON fo.id = f.farmer_organization_id WHERE f.id = :id LIMIT 1');
+        $stmt->execute(['id' => $farmerId]);
+        $name = $stmt->fetchColumn();
+        return $name === false ? null : (string) $name;
     }
 
     public static function extractRsbsa(string $value): string

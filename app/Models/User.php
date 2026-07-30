@@ -207,6 +207,32 @@ final class User
         $stmt->execute($params);
     }
 
+    public static function deactivate(int $id, string $reason): void
+    {
+        self::ensurePasswordResetSchema();
+        $stmt = Database::connection()->prepare("\n            UPDATE users\n            SET status = 'Deleted', is_active = 0, deactivation_reason = :reason, deactivated_at = CURRENT_TIMESTAMP\n            WHERE id = :id\n        ");
+        $stmt->execute(['id' => $id, 'reason' => $reason]);
+    }
+
+    public static function activeSystemAdminCount(): int
+    {
+        return count(self::activeSystemAdminIds());
+    }
+
+    /** @return list<int> */
+    public static function activeSystemAdminIds(): array
+    {
+        $stmt = Database::connection()->query("
+            SELECT id
+            FROM users
+            WHERE role = 'System Admin'
+              AND status = 'Active'
+              AND is_active = 1
+        ");
+
+        return array_map('intval', $stmt->fetchAll(\PDO::FETCH_COLUMN));
+    }
+
     public static function updateAccess(int $id, string $role, string $status): void
     {
         self::ensurePasswordResetSchema();
@@ -315,6 +341,8 @@ final class User
         Database::connection()->exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS password_reset_status VARCHAR(30) NULL");
         Database::connection()->exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS password_reset_requested_at TIMESTAMP NULL");
         Database::connection()->exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS password_reset_approved_at TIMESTAMP NULL");
+        Database::connection()->exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS deactivation_reason TEXT NULL");
+        Database::connection()->exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS deactivated_at TIMESTAMP NULL");
         $ready = true;
     }
 }

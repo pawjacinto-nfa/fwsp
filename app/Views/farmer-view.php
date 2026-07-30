@@ -11,6 +11,7 @@
         <div class="panel"><p class="mb-0">Farmer profile was not found.</p></div>
     <?php else: ?>
         <?php
+        $canEditFarmer = in_array($_SESSION['role'] ?? '', ['Warehouse Personnel', 'System Admin'], true);
         $sogieOptions = ['Lesbian', 'Gay', 'Bisexual', 'Transgender', 'N/A'];
         $currentSogie = $farmer['gender_orientation'][0] ?? 'N/A';
         $otherSogie = '';
@@ -56,7 +57,7 @@
                     <div class="col-md-3"><label class="form-label">Farmer Key</label><input value="<?= e($farmer['farmer_key'] ?? '') ?>" class="form-control" disabled></div>
                     <div class="col-md-3"><label class="form-label">RSBSA Number</label><input name="rsbsa" value="<?= e($farmer['rsbsa']) ?>" class="form-control"></div>
                     <div class="col-md-3"><label class="form-label">MAO Certification</label><input name="mao_certification" value="<?= e($farmer['mao_certification'] ?? '') ?>" class="form-control"></div>
-                    <div class="col-md-3 pt-4"><label><input type="checkbox" name="no_available_control_number" value="1" <?= !empty($farmer['no_available_control_number']) ? 'checked' : '' ?>> No available control number</label></div>
+                    <div class="col-md-3 pt-4"><label title="Select this only when both RSBSA Number and MAO Certification are blank."><input type="checkbox" name="no_available_control_number" value="1" aria-describedby="profileNoControlNumberHelp" <?= !empty($farmer['no_available_control_number']) ? 'checked' : '' ?>> No available control number</label><small id="profileNoControlNumberHelp" class="d-block text-muted">RSBSA and MAO must be blank.</small></div>
                     <div class="col-md-3"><label class="form-label">First Name</label><input required name="first_name" value="<?= e($farmer['first_name']) ?>" class="form-control"></div>
                     <div class="col-md-3"><label class="form-label">Middle Name</label><input name="middle_name" value="<?= e($farmer['middle_name']) ?>" class="form-control"></div>
                     <div class="col-md-3"><label class="form-label">Last Name</label><input required name="last_name" value="<?= e($farmer['last_name']) ?>" class="form-control"></div>
@@ -146,10 +147,13 @@
                 <div class="row g-3 mt-1"><div class="col-md-6"><label class="form-label">Farmer Organization</label><div class="autocomplete-field" data-autocomplete-field><input name="organization" value="<?= e($farmer['organization']) ?>" class="form-control" autocomplete="off" placeholder="Type to search farmer organization" data-autocomplete-input data-autocomplete-source='<?= e(json_encode(array_column($farmerOrganizations ?? [], 'name'), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT)) ?>'><div class="autocomplete-menu" data-autocomplete-menu></div></div></div></div>
             </fieldset>
 
+            <?php if ($canEditFarmer): ?>
             <div class="form-actions farmer-profile-actions">
                 <button class="btn btn-outline-success" type="button" data-profile-edit-button>Edit Profile</button>
                 <button class="btn btn-success d-none" type="submit" data-profile-save-button>Save Profile</button>
             </div>
+            <?php endif; ?>
         </form>
+        <?php require BASE_PATH . '/app/Views/partials/version-history.php'; ?>
     <?php endif; ?>
 </section>

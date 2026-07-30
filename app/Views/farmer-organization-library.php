@@ -18,11 +18,11 @@ $classificationUrl = $activeClassification === 'indigenous' ? $indigenousTabUrl 
     <div class="section-head compact">
         <div>
             <p class="eyebrow">Records</p>
-            <h3>Farmer Classifications</h3>
+            <h3>Farmer Groups</h3>
         </div>
     </div>
 
-    <nav class="farmer-classification-tabs" aria-label="Farmer classification types">
+    <nav class="farmer-classification-tabs" aria-label="Farmer group types">
         <a class="farmer-classification-tab <?= !$isIndigenousTab ? 'is-active' : '' ?>" href="<?= e($organizationTabUrl) ?>" <?= !$isIndigenousTab ? 'aria-current="page"' : '' ?>>Farmer Organizations</a>
         <a class="farmer-classification-tab <?= $isIndigenousTab ? 'is-active' : '' ?>" href="<?= e($indigenousTabUrl) ?>" <?= $isIndigenousTab ? 'aria-current="page"' : '' ?>>Indigenous People Groups</a>
     </nav>

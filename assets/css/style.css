@@ -1096,6 +1096,12 @@ body.route-fade::before {
     min-width: 150px;
 }
 
+/* Record filters need enough room for native date-picker controls on every breakpoint. */
+.records-date-filter input[type="date"] {
+    width: 100%;
+    min-width: 0;
+}
+
 .form-control:focus,
 .form-select:focus {
     border-color: var(--green-600);
@@ -2816,6 +2822,16 @@ body.screensaver-mode .floating-home-link { pointer-events: none; opacity: 0; tr
     padding-left: 3.2em;
 }
 
+.report-table.branch-region-report .report-branch_total-row th,
+.report-table.branch-region-report .report-branch_total-row td {
+    background: #faf7e8;
+    font-weight: 700;
+}
+
+.report-table.branch-region-report .report-province-row th {
+    padding-left: 5.2em;
+}
+
 .report-table tfoot th,
 .report-table tfoot td {
     background: #eef8ef;
@@ -3937,3 +3953,7 @@ body.screensaver-mode .floating-home-link { pointer-events: none; opacity: 0; tr
     overflow-wrap: anywhere;
 }
  .offline-step [data-install-step-percent]{margin-left:auto;font-weight:700;color:#667085;font-variant-numeric:tabular-nums}.offline-step.is-active [data-install-step-percent]{color:#9a6700}.offline-step.is-done [data-install-step-percent]{color:#198754}
+
+tr[data-row-link] { cursor: pointer; }
+tr[data-row-link]:hover > * { background-color: rgba(25, 135, 84, 0.08); }
+tr[data-row-link]:focus-visible { outline: 2px solid #198754; outline-offset: -2px; }
