@@ -30,6 +30,7 @@ final class Farmer
                 f.email,
                 f.sex,
                 f.photo_path,
+                f.valid_id_path,
                 f.gender_orientation,
                 f.sector,
                 f.is_ip_group_member,
@@ -88,6 +89,7 @@ final class Farmer
                 END AS age,
                 f.sex,
                 f.photo_path,
+                f.valid_id_path,
                 f.gender_orientation,
                 f.sector,
                 f.is_ip_group_member,
@@ -184,11 +186,11 @@ final class Farmer
                 INSERT INTO farmers (
                     farmer_key, rsbsa_number, first_name, middle_name, last_name, address, birthdate, birthplace,
                     mao_certification, no_available_control_number, civil_status, spouse_name, dependents, contact_number, email, sex,
-                    gender_orientation, sector, is_ip_group_member, farmer_organization_id, warehouse_id, photo_path
+                    gender_orientation, sector, is_ip_group_member, farmer_organization_id, warehouse_id, photo_path, valid_id_path
                 ) VALUES (
                     :farmer_key, :rsbsa, :first_name, :middle_name, :last_name, :address, :birthdate, :birthplace,
                     :mao_certification, :no_available_control_number, :civil_status, :spouse, :dependents, :contact, :email, :sex,
-                    :gender_orientation, :sector, :is_ip_group_member, :farmer_organization_id, :warehouse_id, :photo_path
+                    :gender_orientation, :sector, :is_ip_group_member, :farmer_organization_id, :warehouse_id, :photo_path, :valid_id_path
                 )
             ");
             $stmt->execute([
@@ -214,6 +216,7 @@ final class Farmer
                 'farmer_organization_id' => $organizationId,
                 'warehouse_id' => $warehouseId,
                 'photo_path' => $farmer['photo_path'],
+                'valid_id_path' => $farmer['valid_id_path'],
             ]);
 
             $farmerId = (int) $db->lastInsertId();
@@ -267,7 +270,8 @@ final class Farmer
                     is_ip_group_member = :is_ip_group_member,
                     farmer_organization_id = :farmer_organization_id,
                     warehouse_id = :warehouse_id,
-                    photo_path = COALESCE(:photo_path, photo_path)
+                    photo_path = COALESCE(:photo_path, photo_path),
+                    valid_id_path = COALESCE(:valid_id_path, valid_id_path)
                 WHERE id = :id
             ");
             $stmt->execute([
@@ -293,6 +297,7 @@ final class Farmer
                 'farmer_organization_id' => $organizationId,
                 'warehouse_id' => $warehouseId,
                 'photo_path' => $farmer['photo_path'],
+                'valid_id_path' => $farmer['valid_id_path'],
             ]);
 
             $db->prepare('DELETE FROM landholdings WHERE farmer_id = :farmer_id')->execute(['farmer_id' => $id]);
@@ -436,6 +441,7 @@ final class Farmer
         ");
         $db->exec('ALTER TABLE farmers ADD COLUMN IF NOT EXISTS farmer_key VARCHAR(32) NULL AFTER id');
         $db->exec('ALTER TABLE farmers ADD COLUMN IF NOT EXISTS is_ip_group_member TINYINT(1) NOT NULL DEFAULT 0');
+        $db->exec('ALTER TABLE farmers ADD COLUMN IF NOT EXISTS valid_id_path VARCHAR(255) NULL');
         $db->exec('ALTER TABLE farmers ADD COLUMN IF NOT EXISTS mao_certification VARCHAR(60) NULL');
         $db->exec('ALTER TABLE farmers ADD COLUMN IF NOT EXISTS no_available_control_number TINYINT(1) NOT NULL DEFAULT 0');
         $db->exec('ALTER TABLE farmers MODIFY rsbsa_number VARCHAR(60) NULL');

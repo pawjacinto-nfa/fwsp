@@ -163,14 +163,25 @@ $reportPageTitles = [
                 <a class="btn <?= $reportFormat === 'full_list_fwsp' ? 'btn-success' : 'btn-outline-success' ?>" href="<?= e($fullListReportUrl) ?>">Full List (FWSP)</a>
                 <a class="btn <?= $reportFormat === 'ip_group_delivery' ? 'btn-success' : 'btn-outline-success' ?>" href="<?= e($ipGroupReportUrl) ?>">IP Group Delivery</a>
             </div>
-            <button class="floating-print-button" type="button" onclick="window.print()" aria-label="Print or save PDF">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M7 8V3h10v5"></path>
-                    <path d="M7 17H5a3 3 0 0 1-3-3v-3a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v3a3 3 0 0 1-3 3h-2"></path>
-                    <path d="M7 14h10v7H7z"></path>
-                    <path d="M17 11h.01"></path>
-                </svg>
-            </button>
+            <div class="report-action-stack">
+                <button class="floating-print-button" type="button" onclick="window.print()" aria-label="Print or save PDF">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M7 8V3h10v5"></path>
+                        <path d="M7 17H5a3 3 0 0 1-3-3v-3a3 3 0 0 1 3-3h14a3 3 0 0 1 3 3v3a3 3 0 0 1-3 3h-2"></path>
+                        <path d="M7 14h10v7H7z"></path>
+                        <path d="M17 11h.01"></path>
+                    </svg>
+                </button>
+                <button class="floating-export-button" type="button" data-report-export data-report-title="<?= e($reportPageTitles[$reportFormat] ?? 'Reports') ?>" aria-label="Export spreadsheet" title="Export spreadsheet">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+                        <path d="M14 3v6h6"></path>
+                        <path d="M8 13h8"></path>
+                        <path d="M8 17h8"></path>
+                        <path d="M8 9h2"></path>
+                    </svg>
+                </button>
+            </div>
         </div>
         <form method="get" class="panel filter-panel no-print">
             <input type="hidden" name="page" value="reports">

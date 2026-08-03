@@ -1348,6 +1348,80 @@ document.querySelectorAll(".report-sheet").forEach((sheet) => {
     addRepeatingPrintTitleRows(sheet, title, subtitle);
 });
 
+const downloadBlob = (blob, filename) => {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+};
+
+const spreadsheetFilename = (title) => {
+    const safeTitle = (title || "reports")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+        || "reports";
+    const date = new Date().toISOString().slice(0, 10);
+    return `${safeTitle}-${date}.xls`;
+};
+
+document.querySelectorAll("[data-report-export]").forEach((button) => {
+    button.addEventListener("click", () => {
+        const reportPage = button.closest(".report-page") || document.querySelector(".report-page");
+        const sheets = reportPage ? Array.from(reportPage.querySelectorAll(".report-sheet")) : [];
+        if (!sheets.length) return;
+
+        const exportedSheets = sheets.map((sheet) => {
+            const clone = sheet.cloneNode(true);
+            clone.querySelectorAll("tr[hidden]").forEach((row) => {
+                row.hidden = false;
+                row.removeAttribute("hidden");
+            });
+            clone.querySelectorAll(".no-print, .print-exclude, .report-signatory-footer, .print-document-title-row").forEach((element) => {
+                element.remove();
+            });
+            clone.querySelectorAll("a").forEach((link) => {
+                link.replaceWith(document.createTextNode(link.textContent));
+            });
+            clone.querySelectorAll(".sortable-heading").forEach((heading) => {
+                heading.classList.remove("sortable-heading");
+                heading.removeAttribute("role");
+                heading.removeAttribute("tabindex");
+                delete heading.dataset.sortDirection;
+            });
+            clone.querySelectorAll("[style]").forEach((element) => {
+                element.removeAttribute("style");
+            });
+            return clone.innerHTML;
+        }).join("<br><br>");
+
+        const title = button.dataset.reportTitle || document.title || "Reports";
+        const workbook = `
+            <!doctype html>
+            <html>
+            <head>
+                <meta charset="utf-8">
+                <style>
+                    body { font-family: Arial, sans-serif; }
+                    h2, h3, p { text-align: center; }
+                    table { width: 100%; border-collapse: collapse; }
+                    th, td { border: 1px solid #555; padding: 5px; vertical-align: top; mso-number-format:"\\@"; }
+                    th { background: #ffe94a; font-weight: 700; }
+                    tfoot th, tfoot td, .report-grand-total-row th, .report-grand-total-row td, .report-region-total th, .report-region-total td { background: #eef8ef; font-weight: 700; }
+                </style>
+            </head>
+            <body>${exportedSheets}</body>
+            </html>
+        `;
+        const blob = new Blob(["\ufeff", workbook], { type: "application/vnd.ms-excel;charset=utf-8" });
+        downloadBlob(blob, spreadsheetFilename(title));
+    });
+});
+
 document.querySelectorAll("[data-print-target]").forEach((button) => {
     button.addEventListener("click", () => {
         const target = document.getElementById(button.dataset.printTarget);

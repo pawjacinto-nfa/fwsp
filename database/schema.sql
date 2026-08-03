@@ -144,6 +144,7 @@ CREATE TABLE IF NOT EXISTS farmers (
     email VARCHAR(160),
     sex ENUM('Female', 'Male') NOT NULL,
     photo_path VARCHAR(255),
+    valid_id_path VARCHAR(255),
     gender_orientation JSON,
     sector JSON,
     is_ip_group_member BOOLEAN NOT NULL DEFAULT FALSE,
@@ -241,6 +242,7 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS deactivation_reason TEXT NULL;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS deactivated_at TIMESTAMP NULL;
 ALTER TABLE farmers ADD COLUMN IF NOT EXISTS warehouse_id BIGINT UNSIGNED NULL;
 ALTER TABLE farmers ADD COLUMN IF NOT EXISTS photo_path VARCHAR(255) NULL;
+ALTER TABLE farmers ADD COLUMN IF NOT EXISTS valid_id_path VARCHAR(255) NULL;
 ALTER TABLE farmers ADD COLUMN IF NOT EXISTS farmer_key VARCHAR(32) NULL AFTER id;
 ALTER TABLE farmers ADD COLUMN IF NOT EXISTS is_ip_group_member TINYINT(1) NOT NULL DEFAULT 0;
 ALTER TABLE farmers ADD COLUMN IF NOT EXISTS mao_certification VARCHAR(60) NULL;

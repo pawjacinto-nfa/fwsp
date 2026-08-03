@@ -29,6 +29,7 @@
             </div>
         </div>
         <div class="col-md-4"><label class="form-label">Farmer Photo</label><input type="file" name="farmer_photo" accept=".jpg,.jpeg,.png,image/jpeg,image/png" class="form-control"><small class="text-muted">JPG or PNG only, max 50MB.</small></div>
+        <div class="col-md-4"><label class="form-label">Farmer Passbook / Valid ID</label><input type="file" name="farmer_valid_id" accept=".jpg,.jpeg,.png,image/jpeg,image/png" class="form-control"><small class="text-muted">One JPG or PNG only, max 50MB.</small></div>
     </div>
     <div class="form-section-title">NFA Location</div>
     <div class="row g-3">

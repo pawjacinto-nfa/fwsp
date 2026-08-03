@@ -68,6 +68,31 @@ if ($mode === 'transactions') {
         </form>
     <?php endif; ?>
 
+    <?php if ($mode === 'transactions'): ?>
+        <?php
+        $transactionCount = count($transactions ?? []);
+        $individualTransactionCount = count($individualTransactions);
+        $groupTransactionCount = count($organizationTransactions);
+        ?>
+        <section class="sector-scoreboard transaction-scoreboard">
+            <article class="sector-score-card headline">
+                <span>Total Transactions</span>
+                <strong><?= number_format($transactionCount) ?></strong>
+                <p>All transactions matching the active filters.</p>
+            </article>
+            <article class="sector-score-card headline">
+                <span>Individual Transactions</span>
+                <strong><?= number_format($individualTransactionCount) ?></strong>
+                <p>Individual farmer deliveries in the filtered results.</p>
+            </article>
+            <article class="sector-score-card headline">
+                <span>Farmer Group / IP Group Transactions</span>
+                <strong><?= number_format($groupTransactionCount) ?></strong>
+                <p>Farmer Organization and Indigenous People Group deliveries in the filtered results.</p>
+            </article>
+        </section>
+    <?php endif; ?>
+
     <?php if (($selectedTransaction ?? null)): ?>
         <div class="modal fade" id="transactionDetailModal" tabindex="-1" aria-labelledby="transactionDetailModalTitle" aria-hidden="true">
             <div class="modal-dialog modal-xl modal-dialog-scrollable">

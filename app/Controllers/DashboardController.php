@@ -1446,6 +1446,7 @@ final class DashboardController
         }
 
         $photoPath = $this->saveFarmerPhoto($files['farmer_photo'] ?? null);
+        $validIdPath = $this->saveFarmerPhoto($files['farmer_valid_id'] ?? null);
         $genderOrientation = [];
         $genderSelection = $this->clean($payload['gender_orientation'] ?? '');
         if ($genderSelection !== '') {
@@ -1479,6 +1480,7 @@ final class DashboardController
             'organization' => $this->clean($payload['organization'] ?? ''),
             'warehouse_id' => $this->clean($payload['warehouse_id'] ?? ''),
             'photo_path' => $photoPath,
+            'valid_id_path' => $validIdPath,
         ];
 
         if ($farmer['is_ip_group_member'] && !in_array('Indigenous People', $farmer['sector'], true)) {
@@ -1518,6 +1520,7 @@ final class DashboardController
 
         $id = (int) ($payload['farmer_id'] ?? 0);
         $photoPath = $this->saveFarmerPhoto($files['farmer_photo'] ?? null);
+        $validIdPath = $this->saveFarmerPhoto($files['farmer_valid_id'] ?? null);
         $genderOrientation = [];
         $genderSelection = $this->clean($payload['gender_orientation'] ?? '');
         if ($genderSelection !== '') {
@@ -1551,6 +1554,7 @@ final class DashboardController
             'organization' => $this->clean($payload['organization'] ?? ''),
             'warehouse_id' => $this->clean($payload['warehouse_id'] ?? ''),
             'photo_path' => $photoPath,
+            'valid_id_path' => $validIdPath,
         ];
 
         if ($farmer['is_ip_group_member'] && !in_array('Indigenous People', $farmer['sector'], true)) {

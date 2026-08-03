@@ -387,7 +387,23 @@ body.route-fade::before {
     margin: 0 0 16px;
 }
 
-.floating-print-button {
+.report-action-stack {
+    position: fixed;
+    top: 112px;
+    right: 22px;
+    z-index: 1045;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.report-action-stack .floating-print-button {
+    position: static;
+}
+
+.floating-print-button,
+.floating-export-button {
     position: fixed;
     top: 112px;
     right: 22px;
@@ -404,14 +420,21 @@ body.route-fade::before {
     transition: transform 0.18s ease, background-color 0.18s ease, color 0.18s ease;
 }
 
+.floating-export-button {
+    position: static;
+}
+
 .floating-print-button:hover,
-.floating-print-button:focus-visible {
+.floating-print-button:focus-visible,
+.floating-export-button:hover,
+.floating-export-button:focus-visible {
     transform: translateY(-2px);
     background: var(--green-800);
     color: #fff;
 }
 
-.floating-print-button svg {
+.floating-print-button svg,
+.floating-export-button svg {
     width: 24px;
     height: 24px;
     fill: none;
