@@ -8,7 +8,18 @@ use App\Core\Database;
 final class Transaction
 {
     public const MAX_INDIVIDUAL_ANNUAL_BAGS = 400;
-    public const PALAY_VARIETIES = ['PD', 'PD1', 'PD3', 'PW', 'PW1', 'PW3', 'RPD', 'HPD'];
+    public const PALAY_VARIETIES = ['PD', 'PD1', 'PD1A', 'PD1B', 'PD2A', 'PD2B', 'PD3', 'PW', 'PW1', 'PW3', 'RPD', 'HPD'];
+
+    public static function duplicateWsrExists(string $wsr, int $excludeId = 0): bool
+    {
+        self::ensureSchema();
+        $wsr = trim($wsr);
+        if ($wsr === '') return false;
+
+        $stmt = Database::connection()->prepare('SELECT 1 FROM transactions WHERE warehouse_stock_receipt_number = :wsr AND id <> :exclude_id LIMIT 1');
+        $stmt->execute(['wsr' => $wsr, 'exclude_id' => $excludeId]);
+        return (bool) $stmt->fetchColumn();
+    }
 
     public static function all(): array
     {

@@ -66,10 +66,18 @@ final class SupportTicket
                 DATE_FORMAT(t.updated_at, '%b %d, %Y %h:%i %p') AS updated_label
             FROM support_tickets t
             LEFT JOIN users u ON u.id = t.reporter_id
+            WHERE t.admin_archived = 0
             ORDER BY t.created_at DESC, t.id DESC
         ";
 
         return self::withMessages(Database::connection()->query($sql)->fetchAll());
+    }
+
+    public static function archivedForAdmin(): array
+    {
+        self::ensureSchema();
+        $rows = Database::connection()->query("SELECT t.*, u.full_name AS reporter_name, DATE_FORMAT(t.created_at, '%b %d, %Y %h:%i %p') AS submitted_at, DATE_FORMAT(t.updated_at, '%b %d, %Y %h:%i %p') AS updated_label FROM support_tickets t LEFT JOIN users u ON u.id = t.reporter_id WHERE t.admin_archived = 1 ORDER BY t.updated_at DESC, t.id DESC")->fetchAll();
+        return self::withMessages($rows);
     }
 
     public static function findVisibleTo(int $ticketId, int $userId, string $role): ?array
@@ -121,6 +129,26 @@ final class SupportTicket
             WHERE id = :id
         ");
         $stmt->execute(['id' => $ticketId, 'resolved_by' => $resolverId]);
+    }
+
+    public static function markCompletedBulk(array $ids, int $resolverId): int
+    {
+        $ids = array_values(array_unique(array_filter(array_map('intval', $ids))));
+        if ($ids === []) return 0;
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $stmt = Database::connection()->prepare("UPDATE support_tickets SET status = 'Completed', resolved_by = ?, resolved_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id IN ({$placeholders}) AND admin_archived = 0");
+        $stmt->execute([$resolverId, ...$ids]);
+        return $stmt->rowCount();
+    }
+
+    public static function archiveBulkForAdmin(array $ids): int
+    {
+        $ids = array_values(array_unique(array_filter(array_map('intval', $ids))));
+        if ($ids === []) return 0;
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $stmt = Database::connection()->prepare("UPDATE support_tickets SET admin_archived = 1, updated_at = CURRENT_TIMESTAMP WHERE id IN ({$placeholders})");
+        $stmt->execute($ids);
+        return $stmt->rowCount();
     }
 
     public static function archiveFor(int $ticketId, string $role): void

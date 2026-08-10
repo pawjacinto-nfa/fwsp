@@ -7,7 +7,8 @@ foreach (($schema['relations'] ?? []) as $relation) {
     $relationByColumn[$relation['COLUMN_NAME']] = $relation;
 }
 ?>
-<section class="workspace-section database-management-page">
+<section class="workspace-section database-management-page<?= !empty($embeddedDatabaseManagement) ? ' pt-0' : '' ?>">
+    <?php if (empty($embeddedDatabaseManagement)): ?>
     <div class="section-head compact no-print">
         <div>
             <p class="eyebrow">System Admin</p>
@@ -15,10 +16,12 @@ foreach (($schema['relations'] ?? []) as $relation) {
             <p class="mb-0 text-muted">Inspect and print a clear, read-only data dictionary for any database table.</p>
         </div>
     </div>
+    <?php endif; ?>
 
     <div class="database-toolbar panel no-print">
         <form method="get" class="database-table-picker">
-            <input type="hidden" name="page" value="database-management">
+            <input type="hidden" name="page" value="<?= !empty($embeddedDatabaseManagement) ? 'system-maintenance' : 'database-management' ?>">
+            <?php if (!empty($embeddedDatabaseManagement)): ?><input type="hidden" name="tab" value="database"><?php endif; ?>
             <div>
                 <label class="form-label" for="databaseTable">Database table</label>
                 <select class="form-select" id="databaseTable" name="table" required>

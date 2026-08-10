@@ -29,7 +29,7 @@
                             <input class="form-check-input" type="checkbox" name="remember_me" id="rememberLogin" value="1" data-remember-login>
                             <label class="form-check-label" for="rememberLogin">Remember me</label>
                         </div>
-                        <button class="btn btn-link btn-sm p-0" type="button" data-bs-toggle="modal" data-bs-target="#forgotPasswordModal" data-bs-dismiss="modal">Forgot password?</button>
+                        <button class="btn btn-link btn-sm p-0" type="button" data-bs-toggle="modal" data-bs-target="#forgotPasswordOptionsModal" data-bs-dismiss="modal">Forgot password?</button>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -57,21 +57,62 @@
     </div>
 </div>
 
+<div class="modal fade auth-modal" id="forgotPasswordOptionsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title fs-5">How can we help you?</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body d-grid gap-3">
+                <button class="btn btn-outline-success text-start py-3" type="button" data-bs-toggle="modal" data-bs-target="#forgotPasswordModal" data-bs-dismiss="modal">
+                    I forgot my password and I will ask for a password reset approval.
+                </button>
+                <button class="btn btn-outline-success text-start py-3" type="button" data-bs-toggle="modal" data-bs-target="#passwordResetCheckModal" data-bs-dismiss="modal">
+                    My request for a password reset has been approved.
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade auth-modal" id="forgotPasswordModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <form method="post" class="modal-content">
             <input type="hidden" name="action" value="password-reset-request">
             <div class="modal-header">
-                <h2 class="modal-title fs-5">Reset password</h2>
+                <h2 class="modal-title fs-5">Request password reset</h2>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p class="text-muted">Enter your active username. The System Administrator will be notified with your request.</p>
-                <label class="form-label">Username</label>
-                <input required name="username" class="form-control" data-forgot-username>
+                <p class="text-muted">Enter your active employee number. The System Administrator will be notified with your request.</p>
+                <label class="form-label">Employee Number</label>
+                <input required name="username" class="form-control" inputmode="numeric" pattern="[0-9]{6}" minlength="6" maxlength="6" data-forgot-username>
             </div>
             <div class="modal-footer">
+                <button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal" data-bs-target="#forgotPasswordOptionsModal" data-bs-dismiss="modal">Back</button>
                 <button class="btn btn-success" type="submit">Send Reset Request</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal fade auth-modal" id="passwordResetCheckModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form method="post" class="modal-content">
+            <input type="hidden" name="action" value="password-reset-check">
+            <div class="modal-header">
+                <h2 class="modal-title fs-5">Check password reset approval</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted">The system will check for password approval. Please enter your employee number.</p>
+                <label class="form-label">Employee Number</label>
+                <input required name="username" class="form-control" inputmode="numeric" pattern="[0-9]{6}" minlength="6" maxlength="6" data-reset-check-username>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal" data-bs-target="#forgotPasswordOptionsModal" data-bs-dismiss="modal">Back</button>
+                <button class="btn btn-success" type="submit">Check Approval</button>
             </div>
         </form>
     </div>
@@ -87,15 +128,15 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p class="text-muted">Your request to change password has been approved. Please change your password here.</p>
+                <p class="text-muted">Your request to change password has been approved. Please nominate your new password and remember it for future logins.</p>
                 <label class="form-label">New Password</label>
                 <div class="input-group mb-3">
-                    <input required type="password" name="password" class="form-control" data-password-field>
+                    <input required type="password" name="password" class="form-control" pattern="(?=.*[A-Za-z])(?=.*[0-9]).{9,}" minlength="9" title="Password must be at least 9 characters and include letters and numbers. Special characters are allowed." data-password-field>
                     <button class="btn btn-outline-secondary" type="button" data-password-toggle aria-label="Show password" title="Show password">&#128065;</button>
                 </div>
                 <label class="form-label">Confirm New Password</label>
                 <div class="input-group">
-                    <input required type="password" name="password_confirmation" class="form-control" data-password-field>
+                    <input required type="password" name="password_confirmation" class="form-control" pattern="(?=.*[A-Za-z])(?=.*[0-9]).{9,}" minlength="9" title="Password confirmation must be at least 9 characters and include letters and numbers. Special characters are allowed." data-password-field>
                     <button class="btn btn-outline-secondary" type="button" data-password-toggle aria-label="Show password" title="Show password">&#128065;</button>
                 </div>
             </div>

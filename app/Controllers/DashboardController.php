@@ -122,6 +122,28 @@ final class DashboardController
         ]);
     }
 
+    public function notifications(): void
+    {
+        if (!$this->authorizeAuthenticated()) {
+            return;
+        }
+
+        View::render('notifications', [
+            'title' => 'Notifications',
+            'alert' => $this->pullFlash(),
+            'notifications' => Notification::forUser((int) $_SESSION['user_id']),
+            'preferences' => Notification::preferencesForUser((int) $_SESSION['user_id']),
+        ]);
+    }
+
+    public function saveNotificationPreferences(array $payload): void
+    {
+        if (!$this->authorizeAuthenticated()) return;
+        Notification::savePreferences((int) $_SESSION['user_id'], $payload);
+        $this->flash('success', 'Notification settings saved.');
+        $this->redirect('?page=notifications');
+    }
+
     public function encodeFarmer(): void
     {
         if (!$this->authorizeEncode()) {
@@ -333,14 +355,22 @@ final class DashboardController
             'users' => User::all(),
             'auditLogs' => Activity::auditLogs(),
             'roles' => self::ROLES,
-            'maintenanceModeEnabled' => SystemSetting::maintenanceModeEnabled(),
         ]);
     }
 
     public function databaseManagement(array $filters): void
     {
+        $query = '?page=system-maintenance&tab=database';
+        if (!empty($filters['table'])) {
+            $query .= '&table=' . rawurlencode((string) $filters['table']);
+        }
+        $this->redirect($query);
+    }
+
+    public function systemMaintenance(array $filters): void
+    {
         if (($_SESSION['role'] ?? '') !== 'System Admin') {
-            $this->flash('danger', 'Only System Admin can view database metadata.');
+            $this->flash('danger', 'Only System Admin can access system maintenance.');
             $this->redirect();
             return;
         }
@@ -349,9 +379,13 @@ final class DashboardController
         $selectedTable = trim((string) ($filters['table'] ?? ''));
         $schema = $selectedTable !== '' ? DatabaseSchema::describe($selectedTable) : null;
 
-        View::render('database-management', [
-            'title' => 'Database Management',
+        $activeTab = ($filters['tab'] ?? '') === 'database' ? 'database' : 'maintenance';
+        View::render('system-maintenance', [
+            'title' => 'System Maintenance',
             'alert' => $this->pullFlash(),
+            'activeTab' => $activeTab,
+            'maintenanceModeEnabled' => SystemSetting::maintenanceModeEnabled(),
+            'maintenanceSchedule' => SystemSetting::maintenanceSchedule(),
             'tables' => $tables,
             'selectedTable' => $selectedTable,
             'schema' => $schema,
@@ -391,6 +425,41 @@ final class DashboardController
                 : SupportTicket::forReporter((int) $_SESSION['user_id']),
             'isSuperAdmin' => $isSuperAdmin,
         ]);
+    }
+
+    public function archivedTechSupport(): void
+    {
+        if (($_SESSION['role'] ?? '') !== 'System Admin') {
+            $this->redirect('?page=tech-support');
+            return;
+        }
+
+        View::render('tech-support-archive', [
+            'title' => 'Archived Tech Support',
+            'alert' => $this->pullFlash(),
+            'tickets' => SupportTicket::archivedForAdmin(),
+        ]);
+    }
+
+    /** Read-only endpoint used for immediate duplicate warnings while encoding. */
+    public function duplicateCheck(array $query): void
+    {
+        header('Content-Type: application/json');
+        if (empty($_SESSION['user_id'])) {
+            http_response_code(401);
+            echo json_encode(['exists' => false]);
+            return;
+        }
+
+        $field = (string) ($query['field'] ?? '');
+        $value = $this->clean($query['value'] ?? '');
+        $excludeId = (int) ($query['exclude_id'] ?? 0);
+        $exists = match ($field) {
+            'rsbsa', 'mao_certification' => Farmer::duplicateIdentifierExists($field, $value, $excludeId),
+            'wsr' => Transaction::duplicateWsrExists($value, $excludeId),
+            default => false,
+        };
+        echo json_encode(['exists' => $exists]);
     }
 
     public function userManual(): void
@@ -436,7 +505,7 @@ final class DashboardController
         ]);
 
         foreach (SupportTicket::superAdminIds() as $adminId) {
-            Notification::add('New tech support ticket submitted: ' . $title . '.', $adminId, 'index.php?page=tech-support');
+            Notification::add('New tech support ticket submitted: ' . $title . '.', $adminId, 'index.php?page=tech-support', 'tech_support');
         }
 
         Activity::add($_SESSION['user'] . ' submitted support ticket #' . $ticketId . '.');
@@ -472,7 +541,7 @@ final class DashboardController
         ]);
 
         foreach (SupportTicket::superAdminIds() as $adminId) {
-            Notification::add('New automatic error report #' . $ticketId . ' submitted.', $adminId, 'index.php?page=tech-support');
+            Notification::add('New automatic error report #' . $ticketId . ' submitted.', $adminId, 'index.php?page=tech-support', 'tech_support');
         }
 
         if (!empty($_SESSION['user'])) {
@@ -508,11 +577,11 @@ final class DashboardController
 
         if (($_SESSION['role'] ?? '') === 'System Admin') {
             if (!empty($ticket['reporter_id'])) {
-                Notification::add('Developer team replied to your ticket: ' . $ticket['title'] . '.', (int) $ticket['reporter_id'], 'index.php?page=tech-support');
+                Notification::add('Developer team replied to your ticket: ' . $ticket['title'] . '.', (int) $ticket['reporter_id'], 'index.php?page=tech-support', 'tech_support');
             }
         } else {
             foreach (SupportTicket::superAdminIds() as $adminId) {
-                Notification::add('User replied to tech support ticket: ' . $ticket['title'] . '.', $adminId, 'index.php?page=tech-support');
+                Notification::add('User replied to tech support ticket: ' . $ticket['title'] . '.', $adminId, 'index.php?page=tech-support', 'tech_support');
             }
         }
 
@@ -539,7 +608,7 @@ final class DashboardController
 
         SupportTicket::markCompleted($ticketId, (int) $_SESSION['user_id']);
         if (!empty($ticket['reporter_id'])) {
-            Notification::add('Your tech support ticket has been marked completed: ' . $ticket['title'] . '.', (int) $ticket['reporter_id'], 'index.php?page=tech-support');
+            Notification::add('Your tech support ticket has been marked completed: ' . $ticket['title'] . '.', (int) $ticket['reporter_id'], 'index.php?page=tech-support', 'tech_support');
         }
         Activity::add($_SESSION['user'] . ' completed support ticket #' . $ticketId . '.');
         $this->flash('success', 'Support ticket marked as completed.');
@@ -563,6 +632,28 @@ final class DashboardController
         SupportTicket::archiveFor($ticketId, (string) $_SESSION['role']);
         Activity::add($_SESSION['user'] . ' archived support ticket #' . $ticketId . '.');
         $this->flash('success', 'Support ticket archived.');
+        $this->redirect('?page=tech-support');
+    }
+
+    public function bulkSupportTickets(array $payload): void
+    {
+        if (($_SESSION['role'] ?? '') !== 'System Admin') {
+            $this->redirect('?page=tech-support');
+            return;
+        }
+
+        $ids = array_values(array_unique(array_filter(array_map('intval', (array) ($payload['ticket_ids'] ?? [])))));
+        $operation = (string) ($payload['bulk_action'] ?? '');
+        if ($ids === [] || !in_array($operation, ['complete', 'archive'], true)) {
+            $this->flash('danger', 'Select one or more tickets and a bulk action.');
+            $this->redirect('?page=tech-support');
+            return;
+        }
+        $changed = $operation === 'complete'
+            ? SupportTicket::markCompletedBulk($ids, (int) $_SESSION['user_id'])
+            : SupportTicket::archiveBulkForAdmin($ids);
+        Activity::add($_SESSION['user'] . ' bulk ' . ($operation === 'complete' ? 'completed' : 'archived') . ' ' . $changed . ' support ticket(s).');
+        $this->flash('success', $changed . ' ticket(s) ' . ($operation === 'complete' ? 'marked completed.' : 'archived.'));
         $this->redirect('?page=tech-support');
     }
 
@@ -926,6 +1017,30 @@ final class DashboardController
         $this->redirect('?page=users');
     }
 
+    public function checkPasswordResetApproval(array $payload): void
+    {
+        $username = $this->clean($payload['username'] ?? '');
+        $user = preg_match('/^\d{6}$/', $username) ? User::findByUsername($username) : null;
+
+        if (
+            !$user
+            || (int) ($user['is_active'] ?? 0) !== 1
+            || ($user['password_reset_status'] ?? '') !== 'Approved'
+        ) {
+            unset($_SESSION['password_reset_user_id'], $_SESSION['password_reset_username']);
+            $this->flash(
+                'danger',
+                'There is no request for password reset for this account. Contact the administrator if you have a pending password reset request.'
+            );
+            $this->redirect('?password_reset_check=1');
+            return;
+        }
+
+        $_SESSION['password_reset_user_id'] = (int) $user['id'];
+        $_SESSION['password_reset_username'] = $user['username'];
+        $this->redirect('?password_reset=approved');
+    }
+
     public function completePasswordReset(array $payload): void
     {
         $userId = (int) ($_SESSION['password_reset_user_id'] ?? 0);
@@ -945,6 +1060,12 @@ final class DashboardController
         }
 
         $password = (string) ($payload['password'] ?? '');
+        if (!preg_match('/^(?=.*[A-Za-z])(?=.*\d).{9,}$/', $password)) {
+            $this->flash('danger', 'Password must be at least 9 characters and include letters and numbers. Special characters are allowed.');
+            $this->redirect('?password_reset=approved');
+            return;
+        }
+
         if ($password === '' || $password !== (string) ($payload['password_confirmation'] ?? '')) {
             $this->flash('danger', 'Password confirmation does not match.');
             $this->redirect('?password_reset=approved');
@@ -1224,11 +1345,38 @@ final class DashboardController
             return;
         }
 
+        if (!empty($payload['clear_maintenance_schedule'])) {
+            SystemSetting::setMaintenanceMode(false);
+            SystemSetting::setMaintenanceSchedule(null);
+            Activity::add('Scheduled maintenance cancelled.');
+            $this->flash('success', 'Scheduled maintenance was cancelled and maintenance mode is OFF.');
+            $this->redirect('?page=system-maintenance&tab=maintenance');
+            return;
+        }
+
         $enabled = ($payload['maintenance_enabled'] ?? '0') === '1';
+        $date = trim((string) ($payload['maintenance_date'] ?? ''));
+        $time = trim((string) ($payload['maintenance_time'] ?? ''));
+        if (($date === '') !== ($time === '')) {
+            $this->flash('danger', 'Set both a maintenance date and time, or leave both blank.');
+            $this->redirect('?page=system-maintenance&tab=maintenance');
+            return;
+        }
+        $schedule = null;
+        if ($date !== '') {
+            $schedule = $date . ' ' . $time . ':00';
+            if (strtotime($schedule) === false || strtotime($schedule) <= time()) {
+                $this->flash('danger', 'Choose a future date and time for scheduled maintenance.');
+                $this->redirect('?page=system-maintenance&tab=maintenance');
+                return;
+            }
+            $enabled = true;
+        }
         SystemSetting::setMaintenanceMode($enabled);
+        SystemSetting::setMaintenanceSchedule($schedule);
         Activity::add('Maintenance mode ' . ($enabled ? 'enabled.' : 'disabled.'));
-        $this->flash('success', 'Maintenance mode is now ' . ($enabled ? 'ON.' : 'OFF.'));
-        $this->redirect('?page=users');
+        $this->flash('success', $schedule && $enabled ? 'Maintenance is scheduled and users will be notified.' : 'Maintenance mode is now ' . ($enabled ? 'ON.' : 'OFF.'));
+        $this->redirect('?page=system-maintenance&tab=maintenance');
     }
 
     public function updateUserAccessBulk(array $payload): void
@@ -1499,7 +1647,7 @@ final class DashboardController
         }
 
         try {
-            Farmer::create($farmer);
+            $farmerId = Farmer::create($farmer);
         } catch (\Throwable $e) {
             error_log('Farmer creation failed: ' . $e->getMessage());
             $this->flash('danger', 'The farmer profile could not be saved. Check for duplicate identifiers and verify the required fields.');
@@ -1507,7 +1655,8 @@ final class DashboardController
             return;
         }
         Activity::add('Farmer profile added for ' . $farmer['first_name'] . ' ' . $farmer['last_name'] . '.');
-        Notification::add('New farmer record uploaded: ' . $farmer['rsbsa'] . '.');
+        $farmerIdentifier = $farmer['rsbsa'] ?: ($farmer['mao_certification'] ?: trim($farmer['first_name'] . ' ' . $farmer['last_name']));
+        Notification::add('New farmer record uploaded: ' . $farmerIdentifier . '.', null, 'index.php?page=farmer-view&id=' . $farmerId, 'farmer_new');
         $this->flash('success', 'Farmer profile saved.');
         $this->redirect('?page=encode-farmer');
     }
@@ -1625,7 +1774,7 @@ final class DashboardController
         }
 
         Activity::add('Warehouse transaction recorded for ' . ($transaction['rsbsa'] ?: $transaction['fo_name']) . '.');
-        Notification::add('New palay delivery awaiting manager review.');
+        Notification::add('New palay delivery awaiting manager review.', null, 'index.php?page=transactions&transaction_id=' . (int) $transactionResult['transaction_id'], $transaction['type'] === 'Farmer Organization' ? 'farmer_delivery_fo' : 'farmer_delivery_individual');
         $flashMessage = 'Transaction recorded.';
         if (!empty($transactionResult['reached_annual_limit'])) {
             $deliveryYear = (int) ($transactionResult['delivery_year'] ?? date('Y'));
@@ -1638,7 +1787,8 @@ final class DashboardController
             Notification::add(
                 $limitMessage,
                 !empty($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : null,
-                'index.php?page=farmers&q=' . rawurlencode($transaction['rsbsa'])
+                'index.php?page=transactions&q=' . rawurlencode($transaction['rsbsa']) . '&region_id=',
+                'annual_bag_limit'
             );
             $flashMessage .= ' ' . $limitMessage;
         }
@@ -1857,6 +2007,16 @@ final class DashboardController
             return;
         }
 
+        $locations = Location::libraryRows();
+        $regionsByWarehouse = [];
+        foreach ($locations as $location) {
+            $regionsByWarehouse[(int) $location['warehouse_id']] = (int) $location['region_id'];
+        }
+        if (($regionsByWarehouse[$homeWarehouseId] ?? 0) <= 0
+            || ($regionsByWarehouse[$homeWarehouseId] ?? 0) !== ($regionsByWarehouse[$soldWarehouseId] ?? 0)) {
+            return;
+        }
+
         $message = sprintf(
             'Farmer %s has sold %s kgs of Palay to %s.',
             $farmer['rsbsa'] ?? $transaction['rsbsa'],
@@ -1865,7 +2025,12 @@ final class DashboardController
         );
 
         foreach (User::activeIdsForWarehouse($homeWarehouseId) as $userId) {
-            Notification::add($message, $userId);
+            Notification::add(
+                $message,
+                $userId,
+                'index.php?page=transactions&q=' . rawurlencode((string) ($farmer['rsbsa'] ?? $transaction['rsbsa'])) . '&region_id=',
+                'cross_location_delivery'
+            );
         }
     }
 
@@ -2041,6 +2206,7 @@ final class DashboardController
                 'harvest_area' => $this->clean($farm['harvest_area'] ?? ''),
                 'main_crop_yield' => $this->clean($farm['main_crop_yield'] ?? $farm['average_yield'] ?? ''),
                 'summer_crop_yield' => $this->clean($farm['summer_crop_yield'] ?? ''),
+                'third_crop_yield' => $this->clean($farm['third_crop_yield'] ?? ''),
             ];
             if (array_filter($entry, static fn (mixed $value): bool => $value !== '' && $value !== [])) {
                 $farms[] = $entry;
@@ -2054,6 +2220,7 @@ final class DashboardController
             'harvest_area' => $this->clean($payload['harvest_area'] ?? ''),
             'main_crop_yield' => $this->clean($payload['main_crop_yield'] ?? $payload['average_yield'] ?? ''),
             'summer_crop_yield' => $this->clean($payload['summer_crop_yield'] ?? ''),
+            'third_crop_yield' => $this->clean($payload['third_crop_yield'] ?? ''),
         ]] : $farms;
     }
 

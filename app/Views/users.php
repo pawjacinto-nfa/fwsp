@@ -5,25 +5,6 @@
     <?php if (($_SESSION['role'] ?? '') !== 'System Admin'): ?>
         <div class="panel"><p class="mb-0">Only System Admin can access this page.</p></div>
     <?php else: ?>
-        <form method="post" class="maintenance-control mb-3" data-maintenance-form>
-            <input type="hidden" name="action" value="maintenance-mode">
-            <input type="hidden" name="maintenance_enabled" value="0">
-            <div class="maintenance-control-title">
-                <strong id="maintenanceModeLabel">Maintenance Mode</strong>
-                <span class="badge <?= !empty($maintenanceModeEnabled) ? 'text-bg-warning' : 'text-bg-success' ?>" data-maintenance-status>
-                    <?= !empty($maintenanceModeEnabled) ? 'ON' : 'OFF' ?>
-                </span>
-            </div>
-            <div class="maintenance-switch">
-                <span>OFF</span>
-                <div class="form-check form-switch m-0">
-                    <input class="form-check-input" type="checkbox" role="switch" name="maintenance_enabled" value="1" aria-labelledby="maintenanceModeLabel" data-maintenance-toggle <?= !empty($maintenanceModeEnabled) ? 'checked' : '' ?>>
-                </div>
-                <span>ON</span>
-            </div>
-            <button class="visually-hidden" type="submit">Save maintenance mode</button>
-        </form>
-
         <ul class="nav nav-tabs mb-3" id="userControlTabs" role="tablist">
             <li class="nav-item" role="presentation">
                 <button class="nav-link active" id="users-tab" type="button" role="tab" data-bs-toggle="tab" data-bs-target="#users-panel" aria-controls="users-panel" aria-selected="true">Users</button>

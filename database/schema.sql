@@ -166,6 +166,7 @@ CREATE TABLE IF NOT EXISTS landholdings (
     harvested_area_hectares DECIMAL(10,3),
     average_yield_per_hectare DECIMAL(10,3),
     summer_yield_per_hectare DECIMAL(10,3),
+    third_crop_yield_per_hectare DECIMAL(10,3),
     INDEX landholdings_farmer_idx (farmer_id),
     FOREIGN KEY (farmer_id) REFERENCES farmers(id)
 );
@@ -243,6 +244,7 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS deactivated_at TIMESTAMP NULL;
 ALTER TABLE farmers ADD COLUMN IF NOT EXISTS warehouse_id BIGINT UNSIGNED NULL;
 ALTER TABLE farmers ADD COLUMN IF NOT EXISTS photo_path VARCHAR(255) NULL;
 ALTER TABLE farmers ADD COLUMN IF NOT EXISTS valid_id_path VARCHAR(255) NULL;
+ALTER TABLE landholdings ADD COLUMN IF NOT EXISTS third_crop_yield_per_hectare DECIMAL(10,3) NULL;
 ALTER TABLE farmers ADD COLUMN IF NOT EXISTS farmer_key VARCHAR(32) NULL AFTER id;
 ALTER TABLE farmers ADD COLUMN IF NOT EXISTS is_ip_group_member TINYINT(1) NOT NULL DEFAULT 0;
 ALTER TABLE farmers ADD COLUMN IF NOT EXISTS mao_certification VARCHAR(60) NULL;
@@ -280,6 +282,34 @@ CREATE TABLE IF NOT EXISTS notifications (
     is_read BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS notification_reads (
+    notification_id BIGINT UNSIGNED NOT NULL,
+    user_id BIGINT UNSIGNED NOT NULL,
+    read_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (notification_id, user_id),
+    FOREIGN KEY (notification_id) REFERENCES notifications(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Added for per-user notification choices.  This creates settings only and does
+-- not alter existing farmer, transaction, or notification records.
+CREATE TABLE IF NOT EXISTS notification_preferences (
+    user_id BIGINT UNSIGNED NOT NULL PRIMARY KEY,
+    office_location TINYINT(1) NOT NULL DEFAULT 1,
+    location_level VARCHAR(16) NOT NULL DEFAULT 'Region',
+    farmer_new TINYINT(1) NOT NULL DEFAULT 1,
+    farmer_updates TINYINT(1) NOT NULL DEFAULT 1,
+    farmer_delivery TINYINT(1) NOT NULL DEFAULT 1,
+    farmer_delivery_individual TINYINT(1) NOT NULL DEFAULT 1,
+    farmer_delivery_fo TINYINT(1) NOT NULL DEFAULT 1,
+    annual_bag_limit TINYINT(1) NOT NULL DEFAULT 1,
+    cross_location_delivery TINYINT(1) NOT NULL DEFAULT 1,
+    tech_support TINYINT(1) NOT NULL DEFAULT 1,
+    account_updates TINYINT(1) NOT NULL DEFAULT 1,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS display_settings (

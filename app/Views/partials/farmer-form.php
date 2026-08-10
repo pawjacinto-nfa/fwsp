@@ -6,8 +6,8 @@
     <div class="form-section-title">Personal Details</div>
     <div class="row g-3">
         <div class="col-md-3"><label class="form-label">Farmer Key</label><input value="<?= e($nextFarmerKey ?? '') ?>" class="form-control" disabled></div>
-        <div class="col-md-3"><label class="form-label">RSBSA Number</label><input name="rsbsa" class="form-control"></div>
-        <div class="col-md-3"><label class="form-label">MAO Certification</label><input name="mao_certification" class="form-control"></div>
+        <div class="col-md-3"><label class="form-label">RSBSA Number</label><input name="rsbsa" class="form-control" data-duplicate-check="rsbsa"><small class="text-danger d-none" data-duplicate-warning>Record already exists.</small></div>
+        <div class="col-md-3"><label class="form-label">MAO Certification</label><input name="mao_certification" class="form-control" data-duplicate-check="mao_certification"><small class="text-danger d-none" data-duplicate-warning>Record already exists.</small></div>
         <div class="col-md-3 pt-4"><label title="Select this only when both RSBSA Number and MAO Certification are blank."><input type="checkbox" name="no_available_control_number" value="1" aria-describedby="noControlNumberHelp"> No available control number</label><small id="noControlNumberHelp" class="d-block text-muted">RSBSA and MAO must be blank.</small></div>
         <div class="w-100 d-none d-md-block"></div>
         <div class="col-md-4"><label class="form-label">First Name</label><input required name="first_name" class="form-control"></div>

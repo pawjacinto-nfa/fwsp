@@ -2570,6 +2570,14 @@ body.screensaver-mode .floating-home-link { pointer-events: none; opacity: 0; tr
     text-decoration: none;
 }
 
+.notification-history .notification-list {
+    max-height: none;
+}
+
+.notification-history .notification-item {
+    padding: 16px 18px;
+}
+
 .filter-panel,
 .detail-panel,
 .table-section {
@@ -3980,3 +3988,6 @@ body.screensaver-mode .floating-home-link { pointer-events: none; opacity: 0; tr
 tr[data-row-link] { cursor: pointer; }
 tr[data-row-link]:hover > * { background-color: rgba(25, 135, 84, 0.08); }
 tr[data-row-link]:focus-visible { outline: 2px solid #198754; outline-offset: -2px; }
+
+.fwsp-notification-toast{position:fixed;z-index:1090;top:1rem;right:1rem;width:min(360px,calc(100vw - 2rem));padding:1rem 2.8rem 1rem 1.15rem;border-radius:.75rem;background:#123d29;color:#fff;box-shadow:0 12px 28px rgba(0,0,0,.22);animation:fwspToastIn .25s ease-out}.fwsp-notification-toast a{color:inherit;text-decoration:none}.fwsp-notification-toast strong,.fwsp-notification-toast span{display:block}.fwsp-notification-toast span{margin-top:.3rem;font-size:.9rem}.fwsp-notification-toast-close{position:absolute;top:.45rem;right:.55rem;border:0;background:transparent;color:#fff;font-size:1.55rem;line-height:1;cursor:pointer}.fwsp-notification-toast-close:focus-visible{outline:2px solid #fff;outline-offset:2px}.fwsp-notification-toast.is-leaving{animation:fwspToastOut .25s ease-in forwards}@keyframes fwspToastIn{from{transform:translateX(110%);opacity:0}to{transform:none;opacity:1}}@keyframes fwspToastOut{to{transform:translateX(110%);opacity:0}}
+.toggle-button-group,.toggle-button-stack{display:flex;flex-wrap:wrap;gap:.45rem}.toggle-button-stack{flex-direction:column;align-items:stretch}.toggle-button{display:inline-block;cursor:pointer}.toggle-button input{position:absolute;opacity:0;pointer-events:none}.toggle-button span{display:block;padding:.48rem .7rem;border:1px solid #b8c7bd;border-radius:.45rem;background:#fff;color:#315442;font-size:.88rem;text-align:center}.toggle-button input:checked+span{border-color:#198754;background:#198754;color:#fff;font-weight:600}.toggle-button input:focus-visible+span{outline:3px solid rgba(25,135,84,.25);outline-offset:2px}.toggle-button-stack .toggle-button span{text-align:left}

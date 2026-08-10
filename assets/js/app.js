@@ -676,6 +676,14 @@ document.getElementById("forgotPasswordModal")?.addEventListener("show.bs.modal"
     }
 });
 
+document.getElementById("passwordResetCheckModal")?.addEventListener("show.bs.modal", () => {
+    const loginUsername = loginModal?.querySelector("[data-remember-username]")?.value || "";
+    const checkUsername = document.querySelector("[data-reset-check-username]");
+    if (checkUsername && checkUsername.value.trim() === "") {
+        checkUsername.value = loginUsername.trim();
+    }
+});
+
 const showRequestedAuthModal = () => {
     if (!window.bootstrap || !window.FWSP_AUTH_MODAL) return;
 
@@ -687,6 +695,9 @@ const showRequestedAuthModal = () => {
         if (modal) bootstrap.Modal.getOrCreateInstance(modal).show();
     } else if (window.FWSP_AUTH_MODAL.showForgotPassword) {
         const modal = document.getElementById("forgotPasswordModal");
+        if (modal) bootstrap.Modal.getOrCreateInstance(modal).show();
+    } else if (window.FWSP_AUTH_MODAL.showPasswordResetCheck) {
+        const modal = document.getElementById("passwordResetCheckModal");
         if (modal) bootstrap.Modal.getOrCreateInstance(modal).show();
     } else if (window.FWSP_AUTH_MODAL.showLogin) {
         if (loginModal) bootstrap.Modal.getOrCreateInstance(loginModal).show();
@@ -1095,12 +1106,62 @@ document.querySelectorAll("table").forEach((table) => {
 document.querySelectorAll("[data-select-all]").forEach((checkbox) => {
     const table = document.getElementById(checkbox.dataset.selectAll);
     const updateAll = () => {
-        table?.querySelectorAll('tbody input[type="checkbox"][name="user_ids[]"]').forEach((item) => {
-            item.checked = checkbox.checked;
+        const name = checkbox.dataset.selectName || "user_ids[]";
+        table?.querySelectorAll(`tbody input[type="checkbox"][name="${name}"]`).forEach((item) => {
+            // Pagination and filters keep non-current rows in the DOM.  Bulk
+            // selection must never silently include them.
+            if (!item.closest("tr")?.hidden) item.checked = checkbox.checked;
         });
     };
     checkbox.addEventListener("change", updateAll);
 });
+
+document.querySelectorAll("[data-duplicate-check]").forEach((input) => {
+    let timer;
+    const warning = input.parentElement?.querySelector("[data-duplicate-warning]");
+    const check = async () => {
+        const value = input.value.trim();
+        if (!value) { warning?.classList.add("d-none"); return; }
+        try {
+            const query = new URLSearchParams({ duplicate_check: "1", field: input.dataset.duplicateCheck, value });
+            if (input.dataset.duplicateExcludeId) query.set("exclude_id", input.dataset.duplicateExcludeId);
+            const response = await fetch(`index.php?${query.toString()}`, { credentials: "same-origin" });
+            const result = await response.json();
+            warning?.classList.toggle("d-none", !result.exists);
+        } catch (_) { warning?.classList.add("d-none"); }
+    };
+    input.addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(check, 300); });
+    input.addEventListener("blur", check);
+});
+
+(() => {
+    const notification = window.FWSP_TOAST_NOTIFICATION;
+    if (!notification?.id || sessionStorage.getItem(`fwsp-toast-${notification.id}`)) return;
+    sessionStorage.setItem(`fwsp-toast-${notification.id}`, "1");
+    const toast = document.createElement("div");
+    toast.className = "fwsp-notification-toast";
+    const link = document.createElement("a");
+    link.href = `index.php?notification_id=${encodeURIComponent(notification.id)}`;
+    link.innerHTML = `<strong>Notification</strong><span></span>`;
+    link.querySelector("span").textContent = notification.message || "You have a new notification.";
+    const close = document.createElement("button");
+    close.type = "button";
+    close.className = "fwsp-notification-toast-close";
+    close.setAttribute("aria-label", "Close notification");
+    close.textContent = "×";
+    toast.append(link, close);
+    document.body.appendChild(toast);
+    // Browsers may suppress audio before the user has interacted with the page;
+    // in that case the visual alert remains available without an error.
+    const sound = new Audio("assets/audio/notification.wav");
+    sound.volume = 0.55;
+    sound.play().catch(() => {});
+    const closeToast = () => toast.classList.add("is-leaving");
+    const dismiss = setTimeout(closeToast, 3000);
+    toast.addEventListener("mouseenter", () => clearTimeout(dismiss));
+    close.addEventListener("click", closeToast);
+    toast.addEventListener("animationend", () => { if (toast.classList.contains("is-leaving")) toast.remove(); });
+})();
 
 document.querySelectorAll("[data-table-filter]").forEach((input) => {
     const table = document.getElementById(input.dataset.tableFilter);

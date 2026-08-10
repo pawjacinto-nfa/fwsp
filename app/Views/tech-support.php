@@ -61,13 +61,23 @@ $archiveKey = $isSuperAdmin ? 'admin_archived' : 'reporter_archived';
             <span class="support-count"><?= number_format(count($ticketRows)) ?> ticket<?= count($ticketRows) === 1 ? '' : 's' ?></span>
         </div>
 
+        <?php if ($isSuperAdmin): ?>
+            <form method="post" id="bulkSupportTicketForm" class="row g-2 align-items-end mb-3">
+                <input type="hidden" name="action" value="support-ticket-bulk">
+                <div class="col-md-4"><label class="form-label" for="supportBulkAction">Bulk change</label><select class="form-select" id="supportBulkAction" name="bulk_action"><option value="">Choose an action</option><option value="complete">Mark as completed</option><option value="archive">Mark as archived</option></select></div>
+                <div class="col-md-3"><button class="btn btn-success w-100" type="submit">Apply to selected</button></div>
+                <div class="col-md-5 text-md-end"><a class="btn btn-outline-secondary" href="index.php?page=tech-support-archive">View archived tickets</a></div>
+            </form>
+        <?php endif; ?>
+
         <?php if ($ticketRows === []): ?>
             <div class="support-empty">No tech support tickets yet.</div>
         <?php else: ?>
             <div class="table-responsive">
-                <table class="table align-middle support-ticket-table" data-no-sort="true" data-page-size="20" data-paginate-row-selector=".ticket-summary-row">
+                <table class="table align-middle support-ticket-table" id="support-tickets-table" data-no-sort="true" data-page-size="20" data-paginate-row-selector=".ticket-summary-row">
                     <thead>
                     <tr>
+                        <?php if ($isSuperAdmin): ?><th data-no-sort="true"><input class="form-check-input" type="checkbox" aria-label="Select visible tickets" data-select-all="support-tickets-table" data-select-name="ticket_ids[]"></th><?php endif; ?>
                         <th>Ticket</th>
                         <th>Reporter</th>
                         <th>Category</th>
@@ -84,6 +94,7 @@ $archiveKey = $isSuperAdmin ? 'admin_archived' : 'reporter_archived';
                         $isArchived = !empty($ticket[$archiveKey]);
                         ?>
                         <tr class="ticket-summary-row <?= $isArchived ? 'support-ticket-archived' : '' ?>">
+                            <?php if ($isSuperAdmin): ?><td><input class="form-check-input" type="checkbox" name="ticket_ids[]" value="<?= e($ticketId) ?>" form="bulkSupportTicketForm" aria-label="Select ticket <?= e($ticketId) ?>"></td><?php endif; ?>
                             <td>
                                 <button class="support-ticket-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#<?= e($collapseId) ?>" aria-expanded="false" aria-controls="<?= e($collapseId) ?>">
                                     #<?= e($ticketId) ?> <?= e($ticket['title']) ?>
@@ -110,7 +121,7 @@ $archiveKey = $isSuperAdmin ? 'admin_archived' : 'reporter_archived';
                             </td>
                         </tr>
                         <tr class="ticket-detail-row <?= $isArchived ? 'support-ticket-archived' : '' ?>">
-                            <td colspan="6" class="p-0">
+                            <td colspan="<?= $isSuperAdmin ? '7' : '6' ?>" class="p-0">
                                 <div class="collapse" id="<?= e($collapseId) ?>">
                                     <div class="support-ticket-detail">
                                         <div class="support-ticket-description">

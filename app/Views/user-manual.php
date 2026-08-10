@@ -451,8 +451,8 @@ $roleDescriptions = [
                             <li>Added Farmer Seller Registry logo assets and updated visual styling for reports, dashboard elements, forms, navigation, account screens, and offline status messages.</li>
                         </ul></div>
                     </article>
-                    <article class="manual-version-entry is-current">
-                        <div class="manual-version-date"><time datetime="2026-07-30">July 30, 2026</time><span>Current release</span></div>
+                    <article class="manual-version-entry">
+                        <div class="manual-version-date"><time datetime="2026-07-30">July 30, 2026</time><span>Feature update</span></div>
                         <div><h3>Record management, reporting, and administration expanded</h3><ul class="manual-list">
                             <li>Added automatic system-error reporting that creates a Tech Support ticket and notifies System Admin accounts, along with clearer registration feedback for duplicate employee numbers.</li>
                             <li>Added a System Admin maintenance-mode control that blocks new non-admin sign-ins and safely signs out active non-admin users during maintenance.</li>
@@ -467,6 +467,29 @@ $roleDescriptions = [
                             <li>Renamed the shared Farmer Classifications area to <strong>Farmer Groups</strong> throughout navigation, forms, records, reports, and this guide.</li>
                             <li>Corrected character-encoding artifacts in exported names and locations so Philippine <strong>ñ</strong> characters are preserved during database reinstallation.</li>
                             <li>Improved record navigation with accessible clickable table rows and direct View/Edit controls for farmer and transaction records.</li>
+                        </ul></div>
+                    </article>
+                    <article class="manual-version-entry">
+                        <div class="manual-version-date"><time datetime="2026-07-31">July 31, 2026</time><span>Current release</span></div>
+                        <div><h3>Delivery controls, data outputs, and record visibility refined</h3><ul class="manual-list">
+                            <li>Added WSR-number validation for individual deliveries, preventing a transaction from being saved without a WSR number and reporting duplicate WSR entries to the encoder.</li>
+                            <li>Added a calculated Total Amount field to delivery forms. It uses the entered price per kilogram and net kilograms, and is stored with the transaction.</li>
+                            <li>Standardized delivery quantities and monetary amounts to three decimal places in delivery forms, transaction details, record tables, and applicable report totals.</li>
+                            <li>Added a clearly highlighted profile status for farmers marked <strong>No available control number</strong>, prompting record review and completion before a delivery can be accepted.</li>
+                            <li>Added Excel-compatible downloads for report data, allowing report tables to be exported for further review and submission.</li>
+                            <li>Clarified actual delivery quantities and 50 kg-bag values in delivery and report outputs, including the metric-ton equivalent based on the 50 kg-bag count.</li>
+                            <li>Added transaction dashboard visibility through searchable transaction lists, date filters, delivery detail panels, and direct View/Edit links.</li>
+                            <li>Added Farmer Passbook / Valid ID upload to farmer profiles, accepting one JPG or PNG file up to 50 MB and showing the current uploaded document when available.</li>
+                            <li>Added checkbox-based SDD filters and clarified how multiple selections are combined: choices in one category are alternatives, while choices across categories are applied together.</li>
+                            <li>Added Province and Facility choices to report and SDD filter options, so report scope can be narrowed below the branch level.</li>
+                        </ul></div>
+                    </article>
+                    <article class="manual-version-entry is-current">
+                        <div class="manual-version-date"><time datetime="2026-08-04">August 4, 2026</time><span>Current release</span></div>
+                        <div><h3>Notification navigation improved</h3><ul class="manual-list">
+                            <li>Added a dedicated per-user Notifications page and a <strong>See all notifications</strong> shortcut in the profile notification menu.</li>
+                            <li>Made notifications actionable: new farmer and delivery notifications open the exact related record, while annual-limit and same-region cross-facility alerts open Transactions pre-filtered to the relevant farmer.</li>
+                            <li>Added per-user read tracking, so selecting a notification removes its highlight only for the user who attended to it.</li>
                         </ul></div>
                     </article>
                 </div>

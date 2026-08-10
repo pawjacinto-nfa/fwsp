@@ -906,7 +906,8 @@ final class Report
             'senior' => self::flagExpression('farmers', 'senior_citizen', "JSON_CONTAINS(COALESCE(f.sector, JSON_ARRAY()), JSON_QUOTE('Senior Citizen'))"),
             'male' => self::flagExpression('farmers', 'male', "f.sex = 'Male'"),
             'female' => self::flagExpression('farmers', 'female', "f.sex = 'Female'"),
-            'lgbtqia' => self::flagExpression('farmers', 'lgbtqia', "JSON_LENGTH(COALESCE(f.gender_orientation, JSON_ARRAY())) > 0 AND NOT JSON_CONTAINS(COALESCE(f.gender_orientation, JSON_ARRAY()), JSON_QUOTE('N/A'))"),
+            // SOGIE is the sole source for this count.  Do not include legacy flags.
+            'lgbtqia' => "JSON_LENGTH(COALESCE(f.gender_orientation, JSON_ARRAY())) > 0 AND NOT JSON_CONTAINS(COALESCE(f.gender_orientation, JSON_ARRAY()), JSON_QUOTE('N/A'))",
             'young_age' => "f.birthdate IS NOT NULL AND TIMESTAMPDIFF(YEAR, f.birthdate, CURDATE()) BETWEEN 18 AND 28",
             'adult_age' => "f.birthdate IS NOT NULL AND TIMESTAMPDIFF(YEAR, f.birthdate, CURDATE()) BETWEEN 29 AND 59",
         ];

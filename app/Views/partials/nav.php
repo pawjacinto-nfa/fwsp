@@ -2,6 +2,9 @@
 $currentUserId = !empty($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : null;
 $notifications = $currentUserId ? \App\Models\Notification::all($currentUserId) : [];
 $unreadNotifications = $currentUserId ? \App\Models\Notification::unreadCount($currentUserId) : 0;
+if ($notifications !== []): ?>
+<script>window.FWSP_TOAST_NOTIFICATION = <?= json_encode(array_values(array_filter($notifications, fn (array $notification): bool => empty($notification['read'])))[0] ?? null, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;</script>
+<?php endif;
 ?>
 <nav class="navbar navbar-expand-xl sticky-top app-nav<?= empty($_SESSION['user_id']) ? ' guest-nav' : '' ?>">
     <div class="container-fluid px-3 px-lg-4">
@@ -68,7 +71,7 @@ $unreadNotifications = $currentUserId ? \App\Models\Notification::unreadCount($c
                             <?php if (($_SESSION['role'] ?? '') === 'System Admin'): ?>
                                 <li><a class="dropdown-item" href="index.php?page=display-settings">Display Settings</a></li>
                                 <li><a class="dropdown-item" href="index.php?page=users">User Control</a></li>
-                                <li><a class="dropdown-item" href="index.php?page=database-management">Database Management</a></li>
+                                <li><a class="dropdown-item" href="index.php?page=system-maintenance">System Maintenance</a></li>
                             <?php endif; ?>
                         </ul>
                     </li>
@@ -119,6 +122,9 @@ $unreadNotifications = $currentUserId ? \App\Models\Notification::unreadCount($c
                                 <?php if ($notifications === []): ?>
                                     <div class="notification-empty">No notifications yet.</div>
                                 <?php endif; ?>
+                            </div>
+                            <div class="notification-menu-footer">
+                                <a href="index.php?page=notifications">See all notifications</a>
                             </div>
                             <?php if (($_SESSION['role'] ?? '') !== 'Read-Only User'): ?>
                                 <div class="notification-menu-footer">

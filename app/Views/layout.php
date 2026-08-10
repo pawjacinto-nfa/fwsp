@@ -38,6 +38,7 @@
     ];
     $flashMessage = (string) ($alert['message'] ?? '');
     $isWelcomeMessage = !empty($_SESSION['user']) && str_starts_with($flashMessage, 'Welcome back, ');
+    $scheduledMaintenance = $isWelcomeMessage ? \App\Models\SystemSetting::scheduledMaintenanceNotice() : null;
     ?>
     <div class="modal fade auth-modal flash-message-modal" id="flashMessageModal" tabindex="-1" aria-labelledby="flashMessageModalTitle" aria-hidden="true" data-flash-message-modal>
         <div class="modal-dialog modal-dialog-centered">
@@ -57,6 +58,9 @@
                         <span class="flash-message-icon flash-message-<?= e($flashType) ?>" aria-hidden="true">!</span>
                     <?php endif; ?>
                     <p><?= e($flashMessage) ?></p>
+                    <?php if ($scheduledMaintenance): ?>
+                        <div class="alert alert-warning text-start mt-3 mb-0"><strong>Scheduled maintenance</strong><br>Service will be unavailable on <?= e(date('F j, Y \a\t g:i A', strtotime($scheduledMaintenance))) ?>. Please save your work, upload any offline inputs, and log out before this time.</div>
+                    <?php endif; ?>
                 </div>
                 <div class="modal-footer">
                     <button class="btn btn-success" type="button" data-bs-dismiss="modal">OK</button>
@@ -127,6 +131,7 @@ window.FWSP_AUTH_MODAL = <?= json_encode([
     'showLogin' => isset($_GET['show_login']),
     'showRegister' => isset($_GET['show_register']),
     'showForgotPassword' => isset($_GET['forgot_password']),
+    'showPasswordResetCheck' => isset($_GET['password_reset_check']),
     'showChangePassword' => !empty($_SESSION['password_reset_user_id']) || isset($_GET['password_reset']),
 ], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;
 </script>

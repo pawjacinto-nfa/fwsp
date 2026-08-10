@@ -27,7 +27,7 @@
             $farmLocations = [[
                 'landholding' => $farmer['landholding'] ?? [], 'irrigated' => $farmer['irrigated'] ?? 'Yes',
                 'palay_location' => $farmer['palay_location'] ?? '', 'harvest_area' => $farmer['harvest_area'] ?? '',
-                'main_crop_yield' => $farmer['average_yield'] ?? '', 'summer_crop_yield' => '',
+                'main_crop_yield' => $farmer['average_yield'] ?? '', 'summer_crop_yield' => '', 'third_crop_yield' => '',
             ]];
         }
         ?>
@@ -55,8 +55,8 @@
                 <div class="form-section-title">Personal Details</div>
                 <div class="row g-3">
                     <div class="col-md-3"><label class="form-label">Farmer Key</label><input value="<?= e($farmer['farmer_key'] ?? '') ?>" class="form-control" disabled></div>
-                    <div class="col-md-3"><label class="form-label">RSBSA Number</label><input name="rsbsa" value="<?= e($farmer['rsbsa']) ?>" class="form-control"></div>
-                    <div class="col-md-3"><label class="form-label">MAO Certification</label><input name="mao_certification" value="<?= e($farmer['mao_certification'] ?? '') ?>" class="form-control"></div>
+                    <div class="col-md-3"><label class="form-label">RSBSA Number</label><input name="rsbsa" value="<?= e($farmer['rsbsa']) ?>" class="form-control" data-duplicate-check="rsbsa" data-duplicate-exclude-id="<?= e($farmer['id']) ?>"><small class="text-danger d-none" data-duplicate-warning>Record already exists.</small></div>
+                    <div class="col-md-3"><label class="form-label">MAO Certification</label><input name="mao_certification" value="<?= e($farmer['mao_certification'] ?? '') ?>" class="form-control" data-duplicate-check="mao_certification" data-duplicate-exclude-id="<?= e($farmer['id']) ?>"><small class="text-danger d-none" data-duplicate-warning>Record already exists.</small></div>
                     <div class="col-md-3 pt-4"><label title="Select this only when both RSBSA Number and MAO Certification are blank."><input type="checkbox" name="no_available_control_number" value="1" aria-describedby="profileNoControlNumberHelp" <?= !empty($farmer['no_available_control_number']) ? 'checked' : '' ?>> No available control number</label><small id="profileNoControlNumberHelp" class="d-block text-muted">RSBSA and MAO must be blank.</small></div>
                     <div class="col-md-3"><label class="form-label">First Name</label><input required name="first_name" value="<?= e($farmer['first_name']) ?>" class="form-control"></div>
                     <div class="col-md-3"><label class="form-label">Middle Name</label><input name="middle_name" value="<?= e($farmer['middle_name']) ?>" class="form-control"></div>

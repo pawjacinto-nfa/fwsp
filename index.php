@@ -36,6 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'logout' => $controller->logout(),
         'register' => $controller->register($_POST),
         'password-reset-request' => $controller->requestPasswordReset($_POST),
+        'password-reset-check' => $controller->checkPasswordResetApproval($_POST),
         'password-reset-approve' => $controller->approvePasswordReset($_POST),
         'password-reset-complete' => $controller->completePasswordReset($_POST),
         'account' => $controller->updateAccount($_POST, $_FILES),
@@ -67,13 +68,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'support-ticket-reply' => $controller->replySupportTicket($_POST),
         'support-ticket-complete' => $controller->completeSupportTicket($_POST),
         'support-ticket-archive' => $controller->archiveSupportTicket($_POST),
+        'support-ticket-bulk' => $controller->bulkSupportTickets($_POST),
         'notifications-clear' => $controller->clearNotifications($_POST),
+        'notification-preferences' => $controller->saveNotificationPreferences($_POST),
         'signatory-add' => $controller->storeSignatories($_POST),
         'signatory-update' => $controller->updateSignatory($_POST),
         'signatory-delete' => $controller->deleteSignatory($_POST),
         default => $controller->redirect(),
     };
 
+    exit;
+}
+
+if (isset($_GET['duplicate_check'])) {
+    $controller->duplicateCheck($_GET);
     exit;
 }
 
@@ -94,10 +102,13 @@ match ($_GET['page'] ?? 'dashboard') {
     'sectoral-report' => $controller->sectoralReport($_GET),
     'report-settings' => $controller->reportSettings(),
     'account' => $controller->account(),
+    'notifications' => $controller->notifications(),
     'users' => $controller->users(),
+    'system-maintenance' => $controller->systemMaintenance($_GET),
     'database-management' => $controller->databaseManagement($_GET),
     'display-settings' => $controller->displaySettings(),
     'tech-support' => $controller->techSupport(),
+    'tech-support-archive' => $controller->archivedTechSupport(),
     'user-manual' => $controller->userManual(),
     'locations' => $controller->locationLibrary(),
     'central-office-directory' => $controller->centralOfficeLibrary(),
