@@ -59,10 +59,11 @@ final class Farmer
             LEFT JOIN landholdings l ON l.id = (SELECT id FROM landholdings WHERE farmer_id = f.id ORDER BY id ASC LIMIT 1)
             LEFT JOIN farmer_organizations fo ON fo.id = f.farmer_organization_id
             LEFT JOIN warehouse_offices w ON w.id = f.warehouse_id
-            LEFT JOIN province_offices p ON p.id = w.province_id
+            LEFT JOIN province_offices p ON p.id = COALESCE(f.province_id, w.province_id)
             LEFT JOIN branch_offices b ON b.id = COALESCE(p.branch_id, w.branch_id)
             LEFT JOIN regions r ON r.id = b.region_id
-            ORDER BY f.created_at DESC, f.id DESC
+            WHERE " . self::deletedVisibility('f') . "
+            ORDER BY (f.no_available_control_number = 1) DESC, f.created_at DESC, f.id DESC
         ";
 
         return array_map([self::class, 'decodeJsonFields'], Database::connection()->query($sql)->fetchAll());
@@ -111,10 +112,10 @@ final class Farmer
             LEFT JOIN landholdings l ON l.id = (SELECT id FROM landholdings WHERE farmer_id = f.id ORDER BY id ASC LIMIT 1)
             LEFT JOIN farmer_organizations fo ON fo.id = f.farmer_organization_id
             LEFT JOIN warehouse_offices w ON w.id = f.warehouse_id
-            LEFT JOIN province_offices p ON p.id = w.province_id
+            LEFT JOIN province_offices p ON p.id = COALESCE(f.province_id, w.province_id)
             LEFT JOIN branch_offices b ON b.id = COALESCE(p.branch_id, w.branch_id)
             LEFT JOIN regions r ON r.id = b.region_id
-            WHERE 1 = 1
+            WHERE 1 = 1 AND " . self::deletedVisibility('f') . "
         ";
         $params = [];
 
@@ -170,12 +171,20 @@ final class Farmer
         return $farmer;
     }
 
+    public static function softDelete(int $id): bool
+    {
+        self::ensureFarmerKeySchema();
+        $stmt = Database::connection()->prepare("UPDATE farmers SET farmer_key = CONCAT('DELETED-', COALESCE(farmer_key, id)), rsbsa_number = NULL, mao_certification = NULL WHERE id = :id AND COALESCE(farmer_key, '') NOT LIKE 'DELETED-%'");
+        $stmt->execute(['id' => $id]);
+        return $stmt->rowCount() > 0;
+    }
+
     public static function create(array $farmer): int
     {
         self::ensureFarmerKeySchema();
         RecordVersion::forRecord('farmer', 0);
         $db = Database::connection();
-        $warehouseId = $farmer['warehouse_id'] ?: Location::defaultWarehouseId();
+        $warehouseId = self::nullable($farmer['warehouse_id'] ?? '');
         $db->beginTransaction();
 
         try {
@@ -186,11 +195,11 @@ final class Farmer
                 INSERT INTO farmers (
                     farmer_key, rsbsa_number, first_name, middle_name, last_name, address, birthdate, birthplace,
                     mao_certification, no_available_control_number, civil_status, spouse_name, dependents, contact_number, email, sex,
-                    gender_orientation, sector, is_ip_group_member, farmer_organization_id, warehouse_id, photo_path, valid_id_path
+                    gender_orientation, sector, is_ip_group_member, farmer_organization_id, province_id, warehouse_id, photo_path, valid_id_path
                 ) VALUES (
                     :farmer_key, :rsbsa, :first_name, :middle_name, :last_name, :address, :birthdate, :birthplace,
                     :mao_certification, :no_available_control_number, :civil_status, :spouse, :dependents, :contact, :email, :sex,
-                    :gender_orientation, :sector, :is_ip_group_member, :farmer_organization_id, :warehouse_id, :photo_path, :valid_id_path
+                    :gender_orientation, :sector, :is_ip_group_member, :farmer_organization_id, :province_id, :warehouse_id, :photo_path, :valid_id_path
                 )
             ");
             $stmt->execute([
@@ -214,6 +223,7 @@ final class Farmer
                 'sector' => json_encode($farmer['sector']),
                 'is_ip_group_member' => !empty($farmer['is_ip_group_member']) ? 1 : 0,
                 'farmer_organization_id' => $organizationId,
+                'province_id' => self::nullable($farmer['province_id'] ?? ''),
                 'warehouse_id' => $warehouseId,
                 'photo_path' => $farmer['photo_path'],
                 'valid_id_path' => $farmer['valid_id_path'],
@@ -242,7 +252,7 @@ final class Farmer
         $db = Database::connection();
         $before = self::find($id) ?? [];
         $before['farms'] = $before['landholdings'] ?? [];
-        $warehouseId = $farmer['warehouse_id'] ?: Location::defaultWarehouseId();
+        $warehouseId = self::nullable($farmer['warehouse_id'] ?? '');
         $db->beginTransaction();
 
         try {
@@ -270,6 +280,7 @@ final class Farmer
                     sector = :sector,
                     is_ip_group_member = :is_ip_group_member,
                     farmer_organization_id = :farmer_organization_id,
+                    province_id = :province_id,
                     warehouse_id = :warehouse_id,
                     photo_path = COALESCE(:photo_path, photo_path),
                     valid_id_path = COALESCE(:valid_id_path, valid_id_path)
@@ -296,6 +307,7 @@ final class Farmer
                 'sector' => json_encode($farmer['sector']),
                 'is_ip_group_member' => !empty($farmer['is_ip_group_member']) ? 1 : 0,
                 'farmer_organization_id' => $organizationId,
+                'province_id' => self::nullable($farmer['province_id'] ?? ''),
                 'warehouse_id' => $warehouseId,
                 'photo_path' => $farmer['photo_path'],
                 'valid_id_path' => $farmer['valid_id_path'],
@@ -458,6 +470,7 @@ final class Farmer
         $db->exec('ALTER TABLE farmers ADD COLUMN IF NOT EXISTS valid_id_path VARCHAR(255) NULL');
         $db->exec('ALTER TABLE farmers ADD COLUMN IF NOT EXISTS mao_certification VARCHAR(60) NULL');
         $db->exec('ALTER TABLE farmers ADD COLUMN IF NOT EXISTS no_available_control_number TINYINT(1) NOT NULL DEFAULT 0');
+        $db->exec('ALTER TABLE farmers ADD COLUMN IF NOT EXISTS province_id BIGINT UNSIGNED NULL AFTER farmer_organization_id');
         $db->exec('ALTER TABLE farmers MODIFY rsbsa_number VARCHAR(60) NULL');
         $db->exec('ALTER TABLE landholdings ADD COLUMN IF NOT EXISTS summer_yield_per_hectare DECIMAL(10,3) NULL AFTER average_yield_per_hectare');
         $db->exec('ALTER TABLE landholdings ADD COLUMN IF NOT EXISTS third_crop_yield_per_hectare DECIMAL(10,3) NULL AFTER summer_yield_per_hectare');
@@ -501,6 +514,13 @@ final class Farmer
         }
 
         $ready = true;
+    }
+
+    private static function deletedVisibility(string $alias): string
+    {
+        return (($_SESSION['role'] ?? '') === 'System Admin')
+            ? '1 = 1'
+            : "COALESCE({$alias}.farmer_key, '') NOT LIKE 'DELETED-%'";
     }
 
     private static function nullable(string|int|float|null $value): string|int|float|null

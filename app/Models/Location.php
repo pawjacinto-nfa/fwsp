@@ -15,7 +15,6 @@ final class Location
             FROM regions r
             JOIN branch_offices b ON b.region_id = r.id
             JOIN province_offices p ON p.branch_id = b.id
-            JOIN warehouse_offices w ON w.province_id = p.id
             ORDER BY r.name
         ')->fetchAll();
     }
@@ -27,7 +26,6 @@ final class Location
             SELECT DISTINCT b.id, b.region_id, b.name
             FROM branch_offices b
             JOIN province_offices p ON p.branch_id = b.id
-            JOIN warehouse_offices w ON w.province_id = p.id
             ORDER BY b.name
         ')->fetchAll();
     }
@@ -36,9 +34,8 @@ final class Location
     {
         self::ensureSchema();
         return Database::connection()->query('
-            SELECT DISTINCT p.id, p.branch_id, p.name
+            SELECT p.id, p.branch_id, p.name
             FROM province_offices p
-            JOIN warehouse_offices w ON w.province_id = p.id
             ORDER BY p.name
         ')->fetchAll();
     }
@@ -90,10 +87,10 @@ final class Location
                 p.name AS province_name,
                 w.id AS warehouse_id,
                 w.name AS warehouse_name
-            FROM warehouse_offices w
-            LEFT JOIN province_offices p ON p.id = w.province_id
-            LEFT JOIN branch_offices b ON b.id = COALESCE(p.branch_id, w.branch_id)
+            FROM province_offices p
+            JOIN branch_offices b ON b.id = p.branch_id
             LEFT JOIN regions r ON r.id = b.region_id
+            LEFT JOIN warehouse_offices w ON w.province_id = p.id
             ORDER BY r.name, b.name, p.name, w.name
         ")->fetchAll();
     }

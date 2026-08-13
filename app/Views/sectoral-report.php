@@ -60,7 +60,7 @@
         <article class="sector-score-card headline">
             <span>Total Sectoral Farmers</span>
             <strong><?= number_format((int) ($score['total_sectoral_farmers'] ?? 0)) ?></strong>
-            <p>Unique farmers counted once even when multiple sectoral tags apply.</p>
+            <p>Unique farmers counted once when tagged under SOGIE or a sectoral group; sex alone is excluded.</p>
         </article>
         <article class="sector-score-card headline">
             <span>Inclusivity Rate</span>

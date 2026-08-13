@@ -1626,6 +1626,7 @@ final class DashboardController
             'is_ip_group_member' => !empty($payload['is_ip_group_member']),
             'farms' => $this->farmEntries($payload),
             'organization' => $this->clean($payload['organization'] ?? ''),
+            'province_id' => $this->clean($payload['province_id'] ?? ''),
             'warehouse_id' => $this->clean($payload['warehouse_id'] ?? ''),
             'photo_path' => $photoPath,
             'valid_id_path' => $validIdPath,
@@ -1701,6 +1702,7 @@ final class DashboardController
             'is_ip_group_member' => !empty($payload['is_ip_group_member']),
             'farms' => $this->farmEntries($payload),
             'organization' => $this->clean($payload['organization'] ?? ''),
+            'province_id' => $this->clean($payload['province_id'] ?? ''),
             'warehouse_id' => $this->clean($payload['warehouse_id'] ?? ''),
             'photo_path' => $photoPath,
             'valid_id_path' => $validIdPath,
@@ -1850,6 +1852,22 @@ final class DashboardController
             $this->flash('danger', 'The transaction could not be updated. Verify the values and try again.');
         }
         $this->redirect('?page=' . (($existing['seller_type'] ?? '') === 'Farmer Organization' ? 'organization-delivery' : 'individual-delivery') . '&transaction_id=' . $id);
+    }
+
+    public function deleteFarmer(array $payload): void
+    {
+        if (($_SESSION['role'] ?? '') !== 'System Admin') { $this->flash('danger', 'Only System Admin can delete farmer profiles.'); $this->redirect('?page=farmers'); return; }
+        $deleted = Farmer::softDelete((int) ($payload['farmer_id'] ?? 0));
+        $this->flash($deleted ? 'success' : 'danger', $deleted ? 'Farmer profile marked as deleted.' : 'Farmer profile was not found or is already deleted.');
+        $this->redirect('?page=farmers');
+    }
+
+    public function deleteTransaction(array $payload): void
+    {
+        if (($_SESSION['role'] ?? '') !== 'System Admin') { $this->flash('danger', 'Only System Admin can delete transactions.'); $this->redirect('?page=transactions'); return; }
+        $deleted = Transaction::softDelete((int) ($payload['transaction_id'] ?? 0));
+        $this->flash($deleted ? 'success' : 'danger', $deleted ? 'Transaction marked as deleted.' : 'Transaction was not found or is already deleted.');
+        $this->redirect('?page=transactions');
     }
 
     public function redirect(string $fragment = ''): void

@@ -149,9 +149,11 @@ CREATE TABLE IF NOT EXISTS farmers (
     sector JSON,
     is_ip_group_member BOOLEAN NOT NULL DEFAULT FALSE,
     farmer_organization_id BIGINT UNSIGNED,
+    province_id BIGINT UNSIGNED,
     warehouse_id BIGINT UNSIGNED,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (farmer_organization_id) REFERENCES farmer_organizations(id),
+    FOREIGN KEY (province_id) REFERENCES province_offices(id),
     FOREIGN KEY (warehouse_id) REFERENCES warehouse_offices(id)
 );
 
@@ -242,6 +244,7 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS password_reset_approved_at TIMESTAMP 
 ALTER TABLE users ADD COLUMN IF NOT EXISTS deactivation_reason TEXT NULL;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS deactivated_at TIMESTAMP NULL;
 ALTER TABLE farmers ADD COLUMN IF NOT EXISTS warehouse_id BIGINT UNSIGNED NULL;
+ALTER TABLE farmers ADD COLUMN IF NOT EXISTS province_id BIGINT UNSIGNED NULL;
 ALTER TABLE farmers ADD COLUMN IF NOT EXISTS photo_path VARCHAR(255) NULL;
 ALTER TABLE farmers ADD COLUMN IF NOT EXISTS valid_id_path VARCHAR(255) NULL;
 ALTER TABLE landholdings ADD COLUMN IF NOT EXISTS third_crop_yield_per_hectare DECIMAL(10,3) NULL;

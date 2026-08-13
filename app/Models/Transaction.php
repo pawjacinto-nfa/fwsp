@@ -16,7 +16,7 @@ final class Transaction
         $wsr = trim($wsr);
         if ($wsr === '') return false;
 
-        $stmt = Database::connection()->prepare('SELECT 1 FROM transactions WHERE warehouse_stock_receipt_number = :wsr AND id <> :exclude_id LIMIT 1');
+        $stmt = Database::connection()->prepare("SELECT 1 FROM transactions WHERE warehouse_stock_receipt_number = :wsr AND id <> :exclude_id AND warehouse_stock_receipt_number NOT LIKE 'DELETED-%' LIMIT 1");
         $stmt->execute(['wsr' => $wsr, 'exclude_id' => $excludeId]);
         return (bool) $stmt->fetchColumn();
     }
@@ -56,6 +56,7 @@ final class Transaction
             LEFT JOIN province_offices p ON p.id = w.province_id
             LEFT JOIN branch_offices b ON b.id = COALESCE(p.branch_id, w.branch_id)
             LEFT JOIN regions r ON r.id = b.region_id
+            WHERE " . self::deletedVisibility('t') . "
             ORDER BY t.delivery_date DESC, t.id DESC
         ";
 
@@ -98,7 +99,7 @@ final class Transaction
             LEFT JOIN province_offices p ON p.id = w.province_id
             LEFT JOIN branch_offices b ON b.id = COALESCE(p.branch_id, w.branch_id)
             LEFT JOIN regions r ON r.id = b.region_id
-            WHERE 1 = 1
+            WHERE 1 = 1 AND " . self::deletedVisibility('t') . "
         ";
         $params = [];
 
@@ -201,6 +202,14 @@ final class Transaction
         }
 
         return $transaction;
+    }
+
+    public static function softDelete(int $id): bool
+    {
+        self::ensureSchema();
+        $stmt = Database::connection()->prepare("UPDATE transactions SET warehouse_stock_receipt_number = CONCAT('DELETED-', LEFT(warehouse_stock_receipt_number, 72)) WHERE id = :id AND warehouse_stock_receipt_number NOT LIKE 'DELETED-%'");
+        $stmt->execute(['id' => $id]);
+        return $stmt->rowCount() > 0;
     }
 
     public static function create(array $transaction): array
@@ -655,5 +664,12 @@ final class Transaction
     private static function palayVariety(string $value): string
     {
         return in_array($value, self::PALAY_VARIETIES, true) ? $value : 'PD1';
+    }
+
+    private static function deletedVisibility(string $alias): string
+    {
+        return (($_SESSION['role'] ?? '') === 'System Admin')
+            ? '1 = 1'
+            : "COALESCE({$alias}.warehouse_stock_receipt_number, '') NOT LIKE 'DELETED-%'";
     }
 }

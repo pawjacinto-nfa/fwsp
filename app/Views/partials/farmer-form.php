@@ -35,7 +35,8 @@
     <div class="row g-3">
         <?php
         $locationClass = 'col-md-3';
-        $locationRequired = true;
+        $locationRequired = false;
+        $locationRequiredLevels = ['region', 'branch', 'province'];
         $locationIncludeAll = false;
         $locationValues = $locationDefaults ?? [];
         $locationLabelWarehouse = 'Facility Name';

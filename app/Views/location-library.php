@@ -101,6 +101,9 @@
                             </form>
                         </td>
                         <td>
+                            <?php if (empty($location['warehouse_id'])): ?>
+                                <input class="form-control form-control-sm" value="" disabled aria-label="No facility assigned">
+                            <?php else: ?>
                             <form method="post" class="inline-edit">
                                 <input type="hidden" name="type" value="warehouse">
                                 <input type="hidden" name="id" value="<?= e($location['warehouse_id']) ?>">
@@ -108,6 +111,7 @@
                                 <button class="btn btn-sm btn-outline-success" type="submit" name="action" value="location-update">Save</button>
                                 <button class="location-delete-x" type="submit" name="action" value="location-delete" formnovalidate data-confirm-message="Delete this facility?" aria-label="Delete facility">X</button>
                             </form>
+                            <?php endif; ?>
                         </td>
                     </tr>
                 <?php endforeach; ?>

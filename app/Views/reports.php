@@ -672,7 +672,7 @@ $reportPageTitles = [
 
             return number_format($numeric, $decimals);
         };
-        $formatMetricTons = fn (float|int|string|null $bags): string => $formatReportValue((float) ($bags ?? 0) / 20, 2);
+        $formatMetricTons = fn (float|int|string|null $bags): string => $formatReportValue((float) ($bags ?? 0) / 20, 3);
         $dateLabel = 'AS OF ' . strtoupper(date('F Y'));
         if (!empty($filters['date_from']) || !empty($filters['date_to'])) {
             $fromLabel = !empty($filters['date_from']) ? date('F d, Y', strtotime($filters['date_from'])) : 'Start';
@@ -717,15 +717,15 @@ $reportPageTitles = [
                             <tr class="report-grand-total-row">
                                 <th>Philippines</th>
                                 <td><?= number_format($grandTotals['male_count']) ?></td>
-                                <td><?= number_format($grandTotals['male_qty']) ?></td>
+                                <td><?= number_format($grandTotals['male_qty'], 3) ?></td>
                                 <td><?= number_format($grandTotals['male_qty'] / 20, 3) ?></td>
                                 <td><?= number_format($grandTotals['male_amount'], 3) ?></td>
                                 <td><?= number_format($grandTotals['female_count']) ?></td>
-                                <td><?= number_format($grandTotals['female_qty']) ?></td>
+                                <td><?= number_format($grandTotals['female_qty'], 3) ?></td>
                                 <td><?= number_format($grandTotals['female_qty'] / 20, 3) ?></td>
                                 <td><?= number_format($grandTotals['female_amount'], 3) ?></td>
                                 <td><?= number_format($grandTotals['total_farmers']) ?></td>
-                                <td><?= number_format($grandTotals['total_qty']) ?></td>
+                                <td><?= number_format($grandTotals['total_qty'], 3) ?></td>
                                 <td><?= number_format($grandTotals['total_qty'] / 20, 3) ?></td>
                                 <td><?= number_format($grandTotals['total_amount'], 3) ?></td>
                                 <td><?= number_format($grandTotals['farmer_organization_count']) ?></td>
@@ -738,17 +738,17 @@ $reportPageTitles = [
                                 <tr>
                                     <th><?= e($row['region'] ?? 'Unassigned') ?></th>
                                     <td><?= $formatReportValue($row['male_count']) ?></td>
-                                    <td><?= $formatReportValue($row['male_qty']) ?></td>
+                                    <td><?= $formatReportValue($row['male_qty'], 3) ?></td>
                                     <td><?= $formatMetricTons($row['male_qty']) ?></td>
-                                    <td><?= $formatReportValue($row['male_amount'], 2) ?></td>
+                                    <td><?= $formatReportValue($row['male_amount'], 3) ?></td>
                                     <td><?= $formatReportValue($row['female_count']) ?></td>
-                                    <td><?= $formatReportValue($row['female_qty']) ?></td>
+                                    <td><?= $formatReportValue($row['female_qty'], 3) ?></td>
                                     <td><?= $formatMetricTons($row['female_qty']) ?></td>
-                                    <td><?= $formatReportValue($row['female_amount'], 2) ?></td>
+                                    <td><?= $formatReportValue($row['female_amount'], 3) ?></td>
                                     <td><?= $formatReportValue($row['total_farmers']) ?></td>
-                                    <td><?= $formatReportValue($row['total_qty']) ?></td>
+                                    <td><?= $formatReportValue($row['total_qty'], 3) ?></td>
                                     <td><?= $formatMetricTons($row['total_qty']) ?></td>
-                                    <td><?= $formatReportValue($row['total_amount'], 2) ?></td>
+                                    <td><?= $formatReportValue($row['total_amount'], 3) ?></td>
                                     <td><?= $formatReportValue($row['farmer_organization_count']) ?></td>
                                     <td><?= $formatReportValue($row['farmer_organization_members']) ?></td>
                                     <td><?= $formatReportValue($row['ip_group_count']) ?></td>
@@ -782,23 +782,23 @@ $reportPageTitles = [
                                 <tr class="report-grand-total-row">
                                     <th>Philippines</th>
                                     <td><?= number_format($grandTotals['individual_farmers']) ?></td>
-                                    <td><?= number_format($grandTotals['individual_qty']) ?></td>
-                                    <td><?= number_format($grandTotals['individual_qty'] / 20, 2) ?></td>
-                                    <td><?= number_format($grandTotals['individual_amount'], 2) ?></td>
+                                    <td><?= number_format($grandTotals['individual_qty'], 3) ?></td>
+                                    <td><?= number_format($grandTotals['individual_qty'] / 20, 3) ?></td>
+                                    <td><?= number_format($grandTotals['individual_amount'], 3) ?></td>
                                     <td><?= number_format($grandTotals['farmer_organization_count']) ?></td>
                                     <td><?= number_format($grandTotals['farmer_organization_members']) ?></td>
-                                    <td><?= number_format($grandTotals['farmer_organization_qty']) ?></td>
-                                    <td><?= number_format($grandTotals['farmer_organization_qty'] / 20, 2) ?></td>
-                                    <td><?= number_format($grandTotals['farmer_organization_amount'], 2) ?></td>
+                                    <td><?= number_format($grandTotals['farmer_organization_qty'], 3) ?></td>
+                                    <td><?= number_format($grandTotals['farmer_organization_qty'] / 20, 3) ?></td>
+                                    <td><?= number_format($grandTotals['farmer_organization_amount'], 3) ?></td>
                                     <td><?= number_format($grandTotals['ip_group_count']) ?></td>
                                     <td><?= number_format($grandTotals['ip_group_members']) ?></td>
-                                    <td><?= number_format($grandTotals['ip_group_qty']) ?></td>
-                                    <td><?= number_format($grandTotals['ip_group_qty'] / 20, 2) ?></td>
-                                    <td><?= number_format($grandTotals['ip_group_amount'], 2) ?></td>
+                                    <td><?= number_format($grandTotals['ip_group_qty'], 3) ?></td>
+                                    <td><?= number_format($grandTotals['ip_group_qty'] / 20, 3) ?></td>
+                                    <td><?= number_format($grandTotals['ip_group_amount'], 3) ?></td>
                                     <td><?= number_format($grandTotals['total_farmers']) ?></td>
-                                    <td><?= number_format($grandTotals['total_qty']) ?></td>
-                                    <td><?= number_format($grandTotals['total_qty'] / 20, 2) ?></td>
-                                    <td><?= number_format($grandTotals['total_amount'], 2) ?></td>
+                                    <td><?= number_format($grandTotals['total_qty'], 3) ?></td>
+                                    <td><?= number_format($grandTotals['total_qty'] / 20, 3) ?></td>
+                                    <td><?= number_format($grandTotals['total_amount'], 3) ?></td>
                                 </tr>
                                 <tr class="report-spacer-row" aria-hidden="true"><td colspan="19">&nbsp;</td></tr>
                             <?php endif; ?>
@@ -820,23 +820,23 @@ $reportPageTitles = [
                                 <tr class="<?= $rowType === 'region_total' ? 'report-region-total' : (in_array($rowType, ['branch', 'branch_total', 'province'], true) ? 'report-branch-row report-' . e($rowType) . '-row' : '') ?>">
                                     <th><?= e($label ?: 'Unassigned') ?></th>
                                     <td><?= $formatReportValue($row['individual_farmers']) ?></td>
-                                    <td><?= $formatReportValue($row['individual_qty']) ?></td>
+                                    <td><?= $formatReportValue($row['individual_qty'], 3) ?></td>
                                     <td><?= $formatMetricTons($row['individual_qty']) ?></td>
-                                    <td><?= $formatReportValue($row['individual_amount'], 2) ?></td>
+                                    <td><?= $formatReportValue($row['individual_amount'], 3) ?></td>
                                     <td><?= $formatReportValue($row['farmer_organization_count']) ?></td>
                                     <td><?= $formatReportValue($row['farmer_organization_members']) ?></td>
-                                    <td><?= $formatReportValue($row['farmer_organization_qty']) ?></td>
+                                    <td><?= $formatReportValue($row['farmer_organization_qty'], 3) ?></td>
                                     <td><?= $formatMetricTons($row['farmer_organization_qty']) ?></td>
-                                    <td><?= $formatReportValue($row['farmer_organization_amount'], 2) ?></td>
+                                    <td><?= $formatReportValue($row['farmer_organization_amount'], 3) ?></td>
                                     <td><?= $formatReportValue($row['ip_group_count']) ?></td>
                                     <td><?= $formatReportValue($row['ip_group_members']) ?></td>
-                                    <td><?= $formatReportValue($row['ip_group_qty']) ?></td>
+                                    <td><?= $formatReportValue($row['ip_group_qty'], 3) ?></td>
                                     <td><?= $formatMetricTons($row['ip_group_qty']) ?></td>
-                                    <td><?= $formatReportValue($row['ip_group_amount'], 2) ?></td>
+                                    <td><?= $formatReportValue($row['ip_group_amount'], 3) ?></td>
                                     <td><?= $formatReportValue($row['total_farmers']) ?></td>
-                                    <td><?= $formatReportValue($row['total_qty']) ?></td>
+                                    <td><?= $formatReportValue($row['total_qty'], 3) ?></td>
                                     <td><?= $formatMetricTons($row['total_qty']) ?></td>
-                                    <td><?= $formatReportValue($row['total_amount'], 2) ?></td>
+                                    <td><?= $formatReportValue($row['total_amount'], 3) ?></td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
@@ -845,23 +845,23 @@ $reportPageTitles = [
                                 <tr>
                                     <th>GRAND TOTAL</th>
                                     <td><?= number_format($grandTotals['individual_farmers']) ?></td>
-                                    <td><?= number_format($grandTotals['individual_qty']) ?></td>
-                                    <td><?= number_format($grandTotals['individual_qty'] / 20, 2) ?></td>
-                                    <td><?= number_format($grandTotals['individual_amount'], 2) ?></td>
+                                    <td><?= number_format($grandTotals['individual_qty'], 3) ?></td>
+                                    <td><?= number_format($grandTotals['individual_qty'] / 20, 3) ?></td>
+                                    <td><?= number_format($grandTotals['individual_amount'], 3) ?></td>
                                     <td><?= number_format($grandTotals['farmer_organization_count']) ?></td>
                                     <td><?= number_format($grandTotals['farmer_organization_members']) ?></td>
-                                    <td><?= number_format($grandTotals['farmer_organization_qty']) ?></td>
-                                    <td><?= number_format($grandTotals['farmer_organization_qty'] / 20, 2) ?></td>
-                                    <td><?= number_format($grandTotals['farmer_organization_amount'], 2) ?></td>
+                                    <td><?= number_format($grandTotals['farmer_organization_qty'], 3) ?></td>
+                                    <td><?= number_format($grandTotals['farmer_organization_qty'] / 20, 3) ?></td>
+                                    <td><?= number_format($grandTotals['farmer_organization_amount'], 3) ?></td>
                                     <td><?= number_format($grandTotals['ip_group_count']) ?></td>
                                     <td><?= number_format($grandTotals['ip_group_members']) ?></td>
-                                    <td><?= number_format($grandTotals['ip_group_qty']) ?></td>
-                                    <td><?= number_format($grandTotals['ip_group_qty'] / 20, 2) ?></td>
-                                    <td><?= number_format($grandTotals['ip_group_amount'], 2) ?></td>
+                                    <td><?= number_format($grandTotals['ip_group_qty'], 3) ?></td>
+                                    <td><?= number_format($grandTotals['ip_group_qty'] / 20, 3) ?></td>
+                                    <td><?= number_format($grandTotals['ip_group_amount'], 3) ?></td>
                                     <td><?= number_format($grandTotals['total_farmers']) ?></td>
-                                    <td><?= number_format($grandTotals['total_qty']) ?></td>
-                                    <td><?= number_format($grandTotals['total_qty'] / 20, 2) ?></td>
-                                    <td><?= number_format($grandTotals['total_amount'], 2) ?></td>
+                                    <td><?= number_format($grandTotals['total_qty'], 3) ?></td>
+                                    <td><?= number_format($grandTotals['total_qty'] / 20, 3) ?></td>
+                                    <td><?= number_format($grandTotals['total_amount'], 3) ?></td>
                                 </tr>
                             </tfoot>
                         <?php endif; ?>

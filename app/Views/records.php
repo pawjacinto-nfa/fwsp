@@ -188,10 +188,11 @@ if ($mode === 'transactions') {
                         ])));
                         $sogie = implode(', ', array_filter($farmer['gender_orientation'] ?? []));
                         $sectors = implode(', ', array_filter($farmer['sector'] ?? []));
+                        $isDeleted = str_starts_with((string) ($farmer['farmer_key'] ?? ''), 'DELETED-');
                         ?>
-                        <tr class="<?= !empty($farmer['no_available_control_number']) ? 'table-warning' : '' ?>" data-row-link="index.php?page=farmer-view&id=<?= e($farmer['id']) ?>" tabindex="0" role="link" aria-label="View or edit <?= e($fullName) ?>">
+                        <tr class="<?= $isDeleted ? 'table-danger' : (!empty($farmer['no_available_control_number']) ? 'table-warning' : '') ?>" data-row-link="index.php?page=farmer-view&id=<?= e($farmer['id']) ?>" tabindex="0" role="link" aria-label="View or edit <?= e($fullName) ?>">
                             <td><?= e($farmer['farmer_key'] ?? '') ?></td>
-                            <td><?= e($farmer['rsbsa'] ?: ($farmer['mao_certification'] ?: 'Orange tag')) ?></td>
+                            <td><?= e($farmer['rsbsa'] ?: ($farmer['mao_certification'] ?: '(no available data)')) ?></td>
                             <td>
                                 <span class="farmer-name-with-limit">
                                     <a class="table-profile-link" href="index.php?page=farmer-view&id=<?= e($farmer['id']) ?>"><?= e($fullName) ?></a>
@@ -206,7 +207,7 @@ if ($mode === 'transactions') {
                             <td><?= e($sogie ?: 'N/A') ?></td>
                             <td><?= e($sectors ?: 'N/A') ?></td>
                             <td><?= e($farmer['organization'] ?: 'N/A') ?></td>
-                            <td class="print-exclude"><a class="btn btn-sm btn-outline-success" href="index.php?page=farmer-view&id=<?= e($farmer['id']) ?>">View / Edit</a></td>
+                            <td class="print-exclude"><a class="btn btn-sm btn-outline-success" href="index.php?page=farmer-view&id=<?= e($farmer['id']) ?>">View / Edit</a><?php if (($_SESSION['role'] ?? '') === 'System Admin' && !$isDeleted): ?><form method="post" class="d-inline"><input type="hidden" name="action" value="farmer-delete"><input type="hidden" name="farmer_id" value="<?= e($farmer['id']) ?>"><button class="btn btn-sm btn-outline-danger" type="submit" onclick="return confirm('Mark this farmer profile as deleted?')">Delete</button></form><?php endif; ?></td>
                         </tr>
                     <?php endforeach; ?>
                     </tbody>
@@ -229,7 +230,8 @@ if ($mode === 'transactions') {
                     <thead><tr><th>WSR</th><th>Palay Variety</th><th>Seller</th><th>Type</th><th>Date</th><th>Province</th><th>Facility</th><th>No. of Bags</th><th>In MT</th><th>Amount</th><th class="print-exclude">Action</th></tr></thead>
                     <tbody>
                     <?php foreach ($individualTransactions as $transaction): ?>
-                        <tr data-row-link="index.php?page=transactions&transaction_id=<?= e($transaction['id']) ?>" tabindex="0" role="link" aria-label="View or edit transaction <?= e($transaction['wsr']) ?>">
+                        <?php $isDeleted = str_starts_with((string) ($transaction['wsr'] ?? ''), 'DELETED-'); ?>
+                        <tr class="<?= $isDeleted ? 'table-danger' : '' ?>" data-row-link="index.php?page=transactions&transaction_id=<?= e($transaction['id']) ?>" tabindex="0" role="link" aria-label="View or edit transaction <?= e($transaction['wsr']) ?>">
                             <td><?= e($transaction['wsr']) ?></td>
                             <td><?= e($transaction['palay_variety'] ?? 'PD1') ?></td>
                             <td><?= e(trim($transaction['farmer_name'])) ?></td>
@@ -240,7 +242,7 @@ if ($mode === 'transactions') {
                             <td><?= number_format((float) $transaction['bags'], 3) ?></td>
                             <td><?= number_format((float) $transaction['bags'] / 20, 3) ?></td>
                             <td><?= number_format((float) ($transaction['total_amount'] ?? $transaction['total_cost']), 3) ?></td>
-                            <td class="print-exclude"><a class="btn btn-sm btn-outline-success" href="index.php?page=transactions&transaction_id=<?= e($transaction['id']) ?>">View / Edit</a></td>
+                            <td class="print-exclude"><a class="btn btn-sm btn-outline-success" href="index.php?page=transactions&transaction_id=<?= e($transaction['id']) ?>">View / Edit</a><?php if (($_SESSION['role'] ?? '') === 'System Admin' && !$isDeleted): ?><form method="post" class="d-inline"><input type="hidden" name="action" value="transaction-delete"><input type="hidden" name="transaction_id" value="<?= e($transaction['id']) ?>"><button class="btn btn-sm btn-outline-danger" type="submit" onclick="return confirm('Mark this transaction as deleted?')">Delete</button></form><?php endif; ?></td>
                         </tr>
                     <?php endforeach; ?>
                     <?php if ($individualTransactions === []): ?>
@@ -264,7 +266,8 @@ if ($mode === 'transactions') {
                     <thead><tr><th>WSR</th><th>Palay Variety</th><th>Seller</th><th>Type</th><th>Date</th><th>Province</th><th>Facility</th><th>No. of Bags</th><th>In MT</th><th>Amount</th><th class="print-exclude">Action</th></tr></thead>
                     <tbody>
                     <?php foreach ($organizationTransactions as $transaction): ?>
-                        <tr data-row-link="index.php?page=transactions&transaction_id=<?= e($transaction['id']) ?>" tabindex="0" role="link" aria-label="View or edit transaction <?= e($transaction['wsr']) ?>">
+                        <?php $isDeleted = str_starts_with((string) ($transaction['wsr'] ?? ''), 'DELETED-'); ?>
+                        <tr class="<?= $isDeleted ? 'table-danger' : '' ?>" data-row-link="index.php?page=transactions&transaction_id=<?= e($transaction['id']) ?>" tabindex="0" role="link" aria-label="View or edit transaction <?= e($transaction['wsr']) ?>">
                             <td><?= e($transaction['wsr']) ?></td>
                             <td><?= e($transaction['palay_variety'] ?? 'PD1') ?></td>
                             <td><?= e($transaction['fo_name']) ?></td>
@@ -275,7 +278,7 @@ if ($mode === 'transactions') {
                             <td><?= number_format((float) $transaction['bags'], 3) ?></td>
                             <td><?= number_format((float) $transaction['bags'] / 20, 3) ?></td>
                             <td><?= number_format((float) ($transaction['total_amount'] ?? $transaction['total_cost']), 3) ?></td>
-                            <td class="print-exclude"><a class="btn btn-sm btn-outline-success" href="index.php?page=transactions&transaction_id=<?= e($transaction['id']) ?>">View / Edit</a></td>
+                            <td class="print-exclude"><a class="btn btn-sm btn-outline-success" href="index.php?page=transactions&transaction_id=<?= e($transaction['id']) ?>">View / Edit</a><?php if (($_SESSION['role'] ?? '') === 'System Admin' && !$isDeleted): ?><form method="post" class="d-inline"><input type="hidden" name="action" value="transaction-delete"><input type="hidden" name="transaction_id" value="<?= e($transaction['id']) ?>"><button class="btn btn-sm btn-outline-danger" type="submit" onclick="return confirm('Mark this transaction as deleted?')">Delete</button></form><?php endif; ?></td>
                         </tr>
                     <?php endforeach; ?>
                     <?php if ($organizationTransactions === []): ?>

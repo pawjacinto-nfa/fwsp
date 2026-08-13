@@ -906,8 +906,15 @@ final class Report
             'senior' => self::flagExpression('farmers', 'senior_citizen', "JSON_CONTAINS(COALESCE(f.sector, JSON_ARRAY()), JSON_QUOTE('Senior Citizen'))"),
             'male' => self::flagExpression('farmers', 'male', "f.sex = 'Male'"),
             'female' => self::flagExpression('farmers', 'female', "f.sex = 'Female'"),
-            // SOGIE is the sole source for this count.  Do not include legacy flags.
-            'lgbtqia' => "JSON_LENGTH(COALESCE(f.gender_orientation, JSON_ARRAY())) > 0 AND NOT JSON_CONTAINS(COALESCE(f.gender_orientation, JSON_ARRAY()), JSON_QUOTE('N/A'))",
+            // Count only an affirmative label from the SOGIE control.  Legacy
+            // fields, N/A, blank values, and arbitrary JSON values never count.
+            'lgbtqia' => "(
+                JSON_CONTAINS(COALESCE(f.gender_orientation, JSON_ARRAY()), JSON_QUOTE('Lesbian'))
+                OR JSON_CONTAINS(COALESCE(f.gender_orientation, JSON_ARRAY()), JSON_QUOTE('Gay'))
+                OR JSON_CONTAINS(COALESCE(f.gender_orientation, JSON_ARRAY()), JSON_QUOTE('Bisexual'))
+                OR JSON_CONTAINS(COALESCE(f.gender_orientation, JSON_ARRAY()), JSON_QUOTE('Transgender'))
+                OR JSON_CONTAINS(COALESCE(f.gender_orientation, JSON_ARRAY()), JSON_QUOTE('Other'))
+            )",
             'young_age' => "f.birthdate IS NOT NULL AND TIMESTAMPDIFF(YEAR, f.birthdate, CURDATE()) BETWEEN 18 AND 28",
             'adult_age' => "f.birthdate IS NOT NULL AND TIMESTAMPDIFF(YEAR, f.birthdate, CURDATE()) BETWEEN 29 AND 59",
         ];
@@ -992,9 +999,7 @@ final class Report
                     MAX(CASE WHEN {$sectorExpressions['young_age']} THEN 1 ELSE 0 END) AS is_young_age,
                     MAX(CASE WHEN {$sectorExpressions['adult_age']} THEN 1 ELSE 0 END) AS is_adult_age,
                     MAX(CASE
-                        WHEN {$sectorExpressions['male']}
-                            OR {$sectorExpressions['female']}
-                            OR {$sectorExpressions['lgbtqia']}
+                        WHEN {$sectorExpressions['lgbtqia']}
                             OR {$sectorExpressions['muslim']}
                             OR {$sectorExpressions['pwd']}
                             OR {$sectorExpressions['ip']}
