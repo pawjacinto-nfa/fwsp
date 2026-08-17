@@ -264,7 +264,7 @@ $roleDescriptions = [
             <section class="manual-section" id="reports">
                 <p class="manual-kicker"><?= e($manualSectionNumbers['reports']) ?></p>
                 <h2>Reports and SDD Analytics</h2>
-                <p>Open <strong>Reports → Summary Report</strong> and choose the required output. Available formats include the standard summary, branch/region summary, SDD summary, and the full FWSP list of individual farmers and organizations.</p>
+                <p>Open <strong>Reports → Summary Report</strong> and choose the required output. Available formats include the standard summary, branch/region summary, SDD summary, and the full FSR list of individual farmers and organizations.</p>
                 <ol class="manual-steps">
                     <li><span>1</span><div>Select the report format or result basis.</div></li>
                     <li><span>2</span><div>Set the date range and applicable region, branch, province, and facility filters.</div></li>
@@ -415,7 +415,7 @@ $roleDescriptions = [
                     <article class="manual-version-entry">
                         <div class="manual-version-date"><time datetime="2026-06-30">June 30, 2026</time><span>Major feature update</span></div>
                         <div><h3>Reporting and administration expanded</h3><ul class="manual-list">
-                            <li>Added the full FWSP report, including separate individual-farmer and farmer-organization lists and their delivery details.</li>
+                            <li>Added the full FSR report, including separate individual-farmer and farmer-organization lists and their delivery details.</li>
                             <li>Added the IP Group Delivery report and marked IP-group deliveries separately from regular farmer-organization deliveries.</li>
                             <li>Added the SDD Summary Report with national and location-filtered results, including farmer organizations and Indigenous People Groups as separate classifications.</li>
                             <li>Added report signatory settings: authorized users can add, edit, and remove their own signatory names and designations.</li>
@@ -484,12 +484,33 @@ $roleDescriptions = [
                             <li>Added Province and Facility choices to report and SDD filter options, so report scope can be narrowed below the branch level.</li>
                         </ul></div>
                     </article>
-                    <article class="manual-version-entry is-current">
-                        <div class="manual-version-date"><time datetime="2026-08-04">August 4, 2026</time><span>Current release</span></div>
+                    <article class="manual-version-entry">
+                        <div class="manual-version-date"><time datetime="2026-08-04">August 4, 2026</time><span>Feature update</span></div>
                         <div><h3>Notification navigation improved</h3><ul class="manual-list">
                             <li>Added a dedicated per-user Notifications page and a <strong>See all notifications</strong> shortcut in the profile notification menu.</li>
                             <li>Made notifications actionable: new farmer and delivery notifications open the exact related record, while annual-limit and same-region cross-facility alerts open Transactions pre-filtered to the relevant farmer.</li>
                             <li>Added per-user read tracking, so selecting a notification removes its highlight only for the user who attended to it.</li>
+                        </ul></div>
+                    </article>
+                    <article class="manual-version-entry is-current">
+                        <div class="manual-version-date"><time datetime="2026-08-16">August 16, 2026</time><span>Current release</span></div>
+                        <div><h3>Scheduling, maintenance, notifications, and FSR workflow patch</h3><ul class="manual-list">
+                            <li>Added the <strong>Delivery Schedules</strong> module, available from the Encode menu and dashboard, for reserving individual or Farmer Group delivery dates by facility.</li>
+                            <li>Added a monthly delivery calendar, daily status controls, a scheduled-deliveries list, and individual schedule statuses for Completed, Rescheduled, and No-show.</li>
+                            <li>Added printable delivery-schedule confirmations with a reference code; completing a schedule opens the correct delivery form with the scheduled seller and location prefilled.</li>
+                            <li>Added schedule validation to prevent duplicate active schedules and to keep delivery dates, farmer/group selection, and assigned facility consistent.</li>
+                            <li>Renamed the system-facing FWSP terminology and assets to <strong>FSR — Farmer-Seller Registry</strong>, including report labels, navigation text, loaders, logos, and database snapshot names.</li>
+                            <li>Added a dedicated Notifications page, a <strong>See all notifications</strong> shortcut, per-user read state, notification-type icons, optional notification preferences, and an alert sound for new notices.</li>
+                            <li>Made farmer, delivery, annual-limit, cross-facility, and Tech Support notifications open their related record or filtered transaction results.</li>
+                            <li>Added immediate duplicate checks for RSBSA number, MAO Certification, and WSR number while encoding, before the user submits the form.</li>
+                            <li>Expanded System Maintenance with a combined maintenance and database view, scheduled maintenance date/time controls, cancellation, and user notification handling.</li>
+                            <li>Added Tech Support archive viewing and bulk actions so System Admins can complete or archive multiple tickets at once.</li>
+                            <li>Strengthened the password-reset flow with approval checking and a minimum nine-character password that contains both letters and numbers.</li>
+                            <li>Added province-level storage to farmer records and refined report, record, and location workflows so province and facility scope are carried consistently.</li>
+                            <li>Updated report quantity, metric-ton, and amount displays to use three decimal places consistently, including summary totals and hierarchical reports.</li>
+                            <li>Added System Admin delete controls that safely mark farmer profiles and transactions as deleted, preserve their history, and highlight deleted rows for review.</li>
+                            <li>Refined the dashboard and navigation with a Schedule Delivery shortcut, NFA web link, branded system visuals, and screensaver-mode support.</li>
+                            <li>Reworked record-version details into a clean Previous → Updated comparison, converting raw array-style values into readable change summaries.</li>
                         </ul></div>
                     </article>
                 </div>

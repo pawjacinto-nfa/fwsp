@@ -1,5 +1,5 @@
-CREATE DATABASE IF NOT EXISTS fwsp CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE fwsp;
+CREATE DATABASE IF NOT EXISTS fsr CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE fsr;
 
 CREATE TABLE IF NOT EXISTS users (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -37,6 +37,9 @@ CREATE TABLE IF NOT EXISTS system_settings (
 INSERT IGNORE INTO system_settings (setting_key, setting_value)
 VALUES ('maintenance_mode', '0');
 
+INSERT IGNORE INTO system_settings (setting_key, setting_value)
+VALUES ('maintenance_schedule', ''), ('encoding_mode', '0'), ('delivery_schedule_mode', '0');
+
 CREATE TABLE IF NOT EXISTS report_signatories (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT UNSIGNED NOT NULL,
@@ -49,7 +52,8 @@ CREATE TABLE IF NOT EXISTS report_signatories (
 
 CREATE TABLE IF NOT EXISTS regions (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(120) NOT NULL UNIQUE
+    name VARCHAR(120) NOT NULL UNIQUE,
+    reference_code VARCHAR(12) NULL UNIQUE
 );
 
 CREATE TABLE IF NOT EXISTS location_masterlist (
@@ -65,7 +69,9 @@ CREATE TABLE IF NOT EXISTS branch_offices (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     region_id BIGINT UNSIGNED NOT NULL,
     name VARCHAR(160) NOT NULL,
+    reference_code VARCHAR(12) NULL,
     UNIQUE KEY branch_region_unique (region_id, name),
+    UNIQUE KEY branch_region_reference_unique (region_id, reference_code),
     FOREIGN KEY (region_id) REFERENCES regions(id)
 );
 
@@ -199,6 +205,47 @@ CREATE TABLE IF NOT EXISTS transactions (
     FOREIGN KEY (farmer_organization_id) REFERENCES farmer_organizations(id),
     FOREIGN KEY (created_by) REFERENCES users(id),
     FOREIGN KEY (warehouse_id) REFERENCES warehouse_offices(id)
+);
+
+CREATE TABLE IF NOT EXISTS delivery_schedules (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    seller_type ENUM('Individual', 'Farmer Organization') NOT NULL DEFAULT 'Individual',
+    farmer_id BIGINT UNSIGNED NULL,
+    temporary_name VARCHAR(180) NULL,
+    temporary_contact_number VARCHAR(40) NULL,
+    farmer_organization_id BIGINT UNSIGNED NULL,
+    temporary_organization_name VARCHAR(180) NULL,
+    representative_name VARCHAR(180) NULL,
+    schedule_date DATE NOT NULL,
+    expected_bags DECIMAL(12,3) NOT NULL,
+    confirmation_code VARCHAR(128) NOT NULL,
+    status ENUM('Scheduled', 'Completed', 'Rescheduled', 'No-show') NOT NULL DEFAULT 'Scheduled',
+    status_changed_at TIMESTAMP NULL,
+    warehouse_id BIGINT UNSIGNED NOT NULL,
+    created_by BIGINT UNSIGNED NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX delivery_schedules_date_warehouse (schedule_date, warehouse_id),
+    INDEX delivery_schedules_reference_idx (confirmation_code),
+    FOREIGN KEY (farmer_id) REFERENCES farmers(id) ON DELETE SET NULL,
+    FOREIGN KEY (farmer_organization_id) REFERENCES farmer_organizations(id) ON DELETE SET NULL,
+    FOREIGN KEY (warehouse_id) REFERENCES warehouse_offices(id),
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS delivery_schedule_days (
+    warehouse_id BIGINT UNSIGNED NOT NULL,
+    schedule_date DATE NOT NULL,
+    status ENUM('Vacant', 'Full') NOT NULL DEFAULT 'Vacant',
+    PRIMARY KEY (warehouse_id, schedule_date),
+    FOREIGN KEY (warehouse_id) REFERENCES warehouse_offices(id)
+);
+
+CREATE TABLE IF NOT EXISTS delivery_schedule_sequences (
+    branch_id BIGINT UNSIGNED NOT NULL,
+    sequence_month CHAR(6) NOT NULL,
+    last_number SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+    PRIMARY KEY (branch_id, sequence_month),
+    FOREIGN KEY (branch_id) REFERENCES branch_offices(id)
 );
 
 CREATE TABLE IF NOT EXISTS record_versions (
@@ -381,8 +428,8 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 );
 
 INSERT IGNORE INTO users (full_name, username, email, password_hash, role, is_active, status, designation, contact_number) VALUES
-('System Admin', '940640', 'superadmin@fwsp.local', '$2y$10$GN7cBbOJqlqWKG4WTlq9WeDddCeEISNlbqSS3enkM2UeyQxVXti9e', 'System Admin', 1, 'Active', 'System Administrator', 'n/a'),
-('Maria Warehouse', 'warehouse', 'warehouse@fwsp.local', '$2y$10$eImiTXuWVxfM37uY4JANjQeD8ZtcVgHPwrFA4ocK9n53KRzLtPz4S', 'Warehouse Personnel', 1, 'Active', 'Warehouse Personnel', '09170000000');
+('System Admin', '940640', 'superadmin@fsr.local', '$2y$10$GN7cBbOJqlqWKG4WTlq9WeDddCeEISNlbqSS3enkM2UeyQxVXti9e', 'System Admin', 1, 'Active', 'System Administrator', 'n/a'),
+('Maria Warehouse', 'warehouse', 'warehouse@fsr.local', '$2y$10$eImiTXuWVxfM37uY4JANjQeD8ZtcVgHPwrFA4ocK9n53KRzLtPz4S', 'Warehouse Personnel', 1, 'Active', 'Warehouse Personnel', '09170000000');
 
 INSERT IGNORE INTO regions (name) VALUES
 ('Region I'), ('Region II'), ('Region III'), ('Region IV'), ('Region V'),

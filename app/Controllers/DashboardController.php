@@ -8,6 +8,7 @@ use App\Models\Activity;
 use App\Models\CentralOffice;
 use App\Models\DatabaseSchema;
 use App\Models\DisplayPhoto;
+use App\Models\DeliverySchedule;
 use App\Models\Farmer;
 use App\Models\FarmerOrganization;
 use App\Models\Location;
@@ -166,12 +167,20 @@ final class DashboardController
         }
 
         $transaction = !empty($_GET['transaction_id']) ? Transaction::find((int) $_GET['transaction_id']) : null;
+        $scheduledDelivery = !$transaction && !empty($_GET['schedule_id']) ? DeliverySchedule::find((int) $_GET['schedule_id']) : null;
+        $locationDefaults = $this->transactionLocationValues($transaction);
+        if ($scheduledDelivery) {
+            foreach (['region_id', 'branch_id', 'province_id', 'warehouse_id'] as $key) {
+                if (!empty($scheduledDelivery[$key])) $locationDefaults[$key] = $scheduledDelivery[$key];
+            }
+        }
         View::render('delivery-individual', [
             'title' => 'Individual Delivery',
             'alert' => $this->pullFlash(),
             'farmers' => Farmer::all(),
-            'locationDefaults' => $this->transactionLocationValues($transaction),
+            'locationDefaults' => $locationDefaults,
             'transaction' => $transaction,
+            'scheduledDelivery' => $scheduledDelivery,
             'versions' => $transaction ? RecordVersion::forRecord('transaction', (int) $transaction['id']) : [],
         ]);
     }
@@ -183,15 +192,146 @@ final class DashboardController
         }
 
         $transaction = !empty($_GET['transaction_id']) ? Transaction::find((int) $_GET['transaction_id']) : null;
+        $scheduledDelivery = !$transaction && !empty($_GET['schedule_id']) ? DeliverySchedule::find((int) $_GET['schedule_id']) : null;
+        $locationDefaults = $this->transactionLocationValues($transaction);
+        if ($scheduledDelivery) {
+            foreach (['region_id', 'branch_id', 'province_id', 'warehouse_id'] as $key) {
+                if (!empty($scheduledDelivery[$key])) $locationDefaults[$key] = $scheduledDelivery[$key];
+            }
+        }
         View::render('delivery-organization', [
             'title' => 'Farmers Organization Delivery',
             'alert' => $this->pullFlash(),
             'farmers' => Farmer::all(),
             'farmerOrganizations' => FarmerOrganization::all(),
-            'locationDefaults' => $this->transactionLocationValues($transaction),
+            'locationDefaults' => $locationDefaults,
             'transaction' => $transaction,
+            'scheduledDelivery' => $scheduledDelivery,
             'versions' => $transaction ? RecordVersion::forRecord('transaction', (int) $transaction['id']) : [],
         ]);
+    }
+
+    public function deliverySchedules(array $filters): void
+    {
+        if (!$this->authorizeDeliverySchedule()) return;
+        $month = (string) ($filters['month'] ?? date('Y-m'));
+        if (!preg_match('/^\\d{4}-(0[1-9]|1[0-2])$/', $month)) $month = date('Y-m');
+        $location = $this->currentUserLocationValues();
+        if (empty($location['warehouse_id'])) {
+            foreach (Location::libraryRows() as $candidate) {
+                if (empty($candidate['warehouse_id'])) continue;
+                if (!empty($location['region_id']) && (string) $location['region_id'] !== (string) $candidate['region_id']) continue;
+                if (!empty($location['branch_id']) && (string) $location['branch_id'] !== (string) $candidate['branch_id']) continue;
+                if (!empty($location['province_id']) && (string) $location['province_id'] !== (string) $candidate['province_id']) continue;
+                foreach (['region_id', 'branch_id', 'province_id', 'warehouse_id'] as $key) $location[$key] = $candidate[$key];
+                break;
+            }
+        }
+        $warehouseId = !empty($location['warehouse_id']) ? (int) $location['warehouse_id'] : Location::defaultWarehouseId();
+        View::render('delivery-schedules', [
+            'title' => 'Delivery Schedules',
+            'alert' => $this->pullFlash(),
+            'month' => $month,
+            'farmers' => Farmer::all(),
+            'farmerOrganizations' => FarmerOrganization::all(),
+            'schedules' => DeliverySchedule::forMonth($month, $warehouseId),
+            'dayStatuses' => DeliverySchedule::dayStatuses($month, $warehouseId),
+            'allDayStatuses' => DeliverySchedule::allDayStatuses($month),
+            'calendarWarehouseId' => $warehouseId,
+            'locationDefaults' => $location,
+            'openDate' => preg_match('/^\\d{4}-\\d{2}-\\d{2}$/', (string) ($filters['open_date'] ?? '')) ? (string) $filters['open_date'] : '',
+            'activeScheduleTab' => ($filters['tab'] ?? '') === 'list' ? 'list' : 'schedule',
+        ]);
+    }
+
+    public function storeDeliverySchedule(array $payload): void
+    {
+        if (!$this->authorizeDeliverySchedule()) return;
+        $date = $this->clean($payload['schedule_date'] ?? '');
+        try {
+            $id = DeliverySchedule::create([
+                'schedule_date' => $date,
+                'seller_type' => $this->clean($payload['seller_type'] ?? 'Individual'),
+                'farmer_id' => (int) ($payload['farmer_id'] ?? 0),
+                'temporary_name' => $this->clean($payload['temporary_name'] ?? ''),
+                'temporary_contact_number' => $this->clean($payload['temporary_contact_number'] ?? ''),
+                'farmer_organization_id' => (int) ($payload['farmer_organization_id'] ?? 0),
+                'temporary_organization_name' => $this->clean($payload['temporary_organization_name'] ?? ''),
+                'representative_name' => $this->clean($payload['representative_name'] ?? ''),
+                'expected_bags' => $this->clean($payload['expected_bags'] ?? ''),
+                'warehouse_id' => $this->clean($payload['warehouse_id'] ?? ''),
+            ]);
+            Activity::add('Delivery scheduled for ' . $date . '.');
+            $this->flash('success', 'Delivery scheduled. Your confirmation is ready to preview or print.');
+            $this->redirect('?page=delivery-schedule-confirmation&id=' . $id);
+        } catch (\DomainException $e) { $this->flash('danger', $e->getMessage()); $this->redirect('?page=delivery-schedules&month=' . substr($date, 0, 7)); }
+        catch (\Throwable $e) { error_log('Delivery schedule failed: ' . $e->getMessage()); $this->flash('danger', 'The delivery schedule could not be saved.'); $this->redirect('?page=delivery-schedules'); }
+    }
+
+    public function deliveryScheduleConfirmation(array $filters): void
+    {
+        if (!$this->authorizeDeliverySchedule()) return;
+        $schedule = DeliverySchedule::find((int) ($filters['id'] ?? 0));
+        if (!$schedule) { $this->flash('danger', 'The delivery schedule was not found.'); $this->redirect('?page=delivery-schedules'); return; }
+        $printLanguage = ($filters['language'] ?? 'tl') === 'en' ? 'en' : 'tl';
+        View::render('delivery-schedule-confirmation', [
+            'title' => 'Delivery Schedule Confirmation',
+            'alert' => $this->pullFlash(),
+            'schedule' => $schedule,
+            'printLanguage' => $printLanguage,
+        ]);
+    }
+
+    public function updateDeliveryScheduleStatus(array $payload): void
+    {
+        if (!$this->authorizeDeliverySchedule()) return;
+        $id = (int) ($payload['schedule_id'] ?? 0);
+        $requested = $this->clean($payload['schedule_status'] ?? '');
+        $statuses = ['completed' => 'Completed', 'rescheduled' => 'Rescheduled', 'no-show' => 'No-show'];
+
+        try {
+            $schedule = DeliverySchedule::updateStatus($id, $statuses[$requested] ?? '');
+            if (!$schedule) throw new \DomainException('The delivery schedule was not found.');
+            Activity::add('Delivery schedule reference ' . $schedule['confirmation_code'] . ' marked ' . strtolower($schedule['status']) . '.');
+            if ($schedule['status'] === 'Completed') {
+                $this->flash('success', "Schedule marked completed. Record the farmer's actual delivery details.");
+                $deliveryPage = ($schedule['seller_type'] ?? 'Individual') === 'Farmer Organization' ? 'organization-delivery' : 'individual-delivery';
+                $this->redirect('?page=' . $deliveryPage . '&schedule_id=' . $id);
+                return;
+            }
+            $this->flash('success', 'Schedule marked ' . strtolower($schedule['status']) . '.');
+            $this->redirect('?page=delivery-schedules&month=' . substr((string) $schedule['schedule_date'], 0, 7) . '&open_date=' . rawurlencode((string) $schedule['schedule_date']) . '&tab=list');
+        } catch (\DomainException $e) {
+            $this->flash('danger', $e->getMessage());
+            $this->redirect('?page=delivery-schedules');
+        } catch (\Throwable $e) {
+            error_log('Delivery schedule status update failed: ' . $e->getMessage());
+            $this->flash('danger', 'The schedule status could not be updated.');
+            $this->redirect('?page=delivery-schedules');
+        }
+    }
+
+    public function updateDeliveryScheduleDayStatus(array $payload): void
+    {
+        header('Content-Type: application/json');
+        if (!$this->authorizeDeliverySchedule()) return;
+        $date = $this->clean($payload['schedule_date'] ?? '');
+        $parsed = \DateTimeImmutable::createFromFormat('!Y-m-d', $date);
+        $warehouseId = (int) ($payload['warehouse_id'] ?? 0);
+        if (!$parsed || $parsed->format('Y-m-d') !== $date || $warehouseId <= 0) {
+            http_response_code(422);
+            echo json_encode(['success' => false, 'message' => 'Select a valid date and facility.']);
+            return;
+        }
+        try {
+            $status = !empty($payload['no_slots']) ? 'Full' : 'Vacant';
+            DeliverySchedule::setDayStatus($date, $warehouseId, $status);
+            echo json_encode(['success' => true, 'status' => $status]);
+        } catch (\Throwable $e) {
+            error_log('Delivery schedule day status update failed: ' . $e->getMessage());
+            http_response_code(422);
+            echo json_encode(['success' => false, 'message' => 'The day slot setting could not be saved.']);
+        }
     }
 
     public function reports(array $filters): void
@@ -204,7 +344,7 @@ final class DashboardController
         $filters = $this->withUserLocationDefaults($filters);
         $filters = $this->withCurrentYearDateDefaults($filters);
         $scope = $filters['scope'] ?? 'region';
-        $allowedReportFormats = ['default', 'branch_region', 'province_summary', 'sdd_summary', 'monthly_sdd_summary', 'full_list_fwsp', 'ip_group_delivery'];
+        $allowedReportFormats = ['default', 'branch_region', 'province_summary', 'sdd_summary', 'monthly_sdd_summary', 'full_list_fsr', 'ip_group_delivery'];
         $requestedReportFormat = $filters['report_format'] ?? 'default';
         $reportFormat = in_array($requestedReportFormat, $allowedReportFormats, true)
             ? $requestedReportFormat
@@ -221,7 +361,7 @@ final class DashboardController
                 'province_summary' => Report::summaryByProvince($filters),
                 'sdd_summary' => Report::sddSummary($filters),
                 'monthly_sdd_summary' => Report::monthlySddSummary($filters),
-                'full_list_fwsp' => [
+                'full_list_fsr' => [
                     'individual' => Report::fullListIndividual($filters),
                     'organizations' => Report::fullListFarmerOrganizations($filters),
                 ],
@@ -386,6 +526,8 @@ final class DashboardController
             'activeTab' => $activeTab,
             'maintenanceModeEnabled' => SystemSetting::maintenanceModeEnabled(),
             'maintenanceSchedule' => SystemSetting::maintenanceSchedule(),
+            'encodingEnabled' => SystemSetting::moduleEnabled('encoding'),
+            'deliveryScheduleEnabled' => SystemSetting::moduleEnabled('delivery_schedule'),
             'tables' => $tables,
             'selectedTable' => $selectedTable,
             'schema' => $schema,
@@ -1379,6 +1521,25 @@ final class DashboardController
         $this->redirect('?page=system-maintenance&tab=maintenance');
     }
 
+    public function updateModuleMaintenance(array $payload): void
+    {
+        if (($_SESSION['role'] ?? '') !== 'System Admin') {
+            $this->flash('danger', 'Only System Admin can change maintenance settings.');
+            $this->redirect();
+            return;
+        }
+        $module = (string) ($payload['module'] ?? '');
+        if (!in_array($module, ['encoding', 'delivery_schedule'], true)) {
+            $this->redirect('?page=system-maintenance&tab=maintenance');
+            return;
+        }
+        $enabled = ($payload['module_enabled'] ?? '0') === '1';
+        SystemSetting::setModuleEnabled($module, $enabled);
+        Activity::add(ucwords(str_replace('_', ' ', $module)) . ' set to ' . ($enabled ? 'ON.' : 'OFF.'));
+        $this->flash('success', ucwords(str_replace('_', ' ', $module)) . ' is now ' . ($enabled ? 'available.' : 'closed for maintenance.'));
+        $this->redirect('?page=system-maintenance&tab=maintenance');
+    }
+
     public function updateUserAccessBulk(array $payload): void
     {
         if (($_SESSION['role'] ?? '') !== 'System Admin') {
@@ -1911,11 +2072,30 @@ final class DashboardController
         }
 
         if ($this->canEncode()) {
+            if (($_SESSION['role'] ?? '') !== 'System Admin' && !SystemSetting::moduleEnabled('encoding')) {
+                return $this->maintenanceFeatureDenied();
+            }
             return true;
         }
 
         $this->flash('danger', 'Only Warehouse Personnel and System Admins can encode records.');
         $this->redirect($this->isReadOnlyUser() ? '?page=reports' : '');
+        return false;
+    }
+
+    private function authorizeDeliverySchedule(): bool
+    {
+        if (!$this->authorizeEncode()) return false;
+        if (($_SESSION['role'] ?? '') !== 'System Admin' && !SystemSetting::moduleEnabled('delivery_schedule')) {
+            return $this->maintenanceFeatureDenied();
+        }
+        return true;
+    }
+
+    private function maintenanceFeatureDenied(): bool
+    {
+        $this->flash('warning', 'This section you are trying to access is closed for maintenance. Try again soon.');
+        $this->redirect();
         return false;
     }
 

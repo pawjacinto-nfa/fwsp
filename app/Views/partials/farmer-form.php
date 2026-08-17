@@ -24,8 +24,8 @@
         <div class="col-md-4">
             <label class="form-label d-block">Sex</label>
             <div class="sex-radio-group" role="radiogroup" aria-label="Sex">
-                <label><input required type="radio" name="sex" value="Male"> Male</label>
-                <label><input required type="radio" name="sex" value="Female" checked> Female</label>
+                <label><input required type="radio" name="sex" value="Male" checked> Male</label>
+                <label><input required type="radio" name="sex" value="Female"> Female</label>
             </div>
         </div>
         <div class="col-md-4"><label class="form-label">Farmer Photo</label><input type="file" name="farmer_photo" accept=".jpg,.jpeg,.png,image/jpeg,image/png" class="form-control"><small class="text-muted">JPG or PNG only, max 50MB.</small></div>

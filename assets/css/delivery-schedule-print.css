@@ -1,0 +1,80 @@
+/* Bilingual delivery-schedule printout */
+.confirmation-toolbar { flex-wrap: wrap; align-items: center; }
+.confirmation-appointment-summary { display: grid; grid-template-columns: 1fr auto; gap: 18px; width: min(210mm, 100%); margin: 0 auto 14px; padding: 20px 22px; border: 1px solid #d4dde8; border-radius: 12px; background: #fff; box-shadow: 0 5px 18px rgba(20, 39, 75, .08); }
+.confirmation-appointment-summary h2 { margin: 2px 0 4px; color: #27317c; font-size: 1.25rem; }
+.confirmation-appointment-summary p { margin: 0; color: #657186; }
+.confirmation-appointment-summary dl { display: grid; grid-column: 1 / -1; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px 18px; margin: 0; padding-top: 16px; border-top: 1px solid #e0e5ec; }
+.confirmation-appointment-summary dt { color: #748097; font-size: .7rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.confirmation-appointment-summary dd { margin: 3px 0 0; color: #1d2a42; font-size: .88rem; font-weight: 700; overflow-wrap: anywhere; }
+.confirmation-status-pill { align-self: start; padding: 5px 10px; border-radius: 999px; background: #e4f2e8; color: #25623a; font-size: .74rem; font-weight: 800; }
+.confirmation-status-pill.is-rescheduled { background: #fff0bd; color: #755400; }
+.confirmation-status-pill.is-no-show { background: #e3e5e4; color: #59605c; }
+
+.po-confirmation-paper { gap: 0; padding: 11mm 12mm 8mm; color: #263249; }
+.po-confirmation-header { grid-template-columns: 22mm 1fr auto; gap: 5mm; padding: 2mm 0 3mm; }
+.po-confirmation-header .confirmation-logo { width: 22mm; height: 22mm; }
+.po-confirmation-header .confirmation-agency h1 { font-size: 16pt; }
+.po-confirmation-header .confirmation-agency strong { margin-top: 1mm; font-size: 9.5pt; }
+.po-office-strip { display: grid; grid-template-columns: 1fr 1fr; margin-top: 3mm; border: 1px solid #adb8c9; background: #f5f7fb; }
+.po-office-strip > div { display: flex; align-items: baseline; gap: 2mm; min-width: 0; padding: 2mm 3mm; }
+.po-office-strip > div + div { border-left: 1px solid #adb8c9; }
+.po-office-strip span, .po-meta-grid span, .po-party-grid span { flex: 0 0 auto; color: #5f6b81; font-size: 6.8pt; font-weight: 700; text-transform: uppercase; }
+.po-office-strip strong { min-width: 0; color: #27317c; font-size: 8.5pt; overflow-wrap: anywhere; }
+.po-meta-grid { display: grid; grid-template-columns: 1.35fr .8fr 1.35fr; border-right: 1px solid #adb8c9; border-bottom: 1px solid #adb8c9; border-left: 1px solid #adb8c9; }
+.po-meta-grid > div { display: flex; flex-direction: column; gap: .8mm; min-width: 0; padding: 2mm 2.5mm; }
+.po-meta-grid > div + div { border-left: 1px solid #adb8c9; }
+.po-meta-grid strong { color: #17233b; font-size: 8pt; overflow-wrap: anywhere; }
+.po-party-grid { display: grid; grid-template-columns: 1fr 1fr; margin-top: 2.5mm; border-top: 1px solid #adb8c9; border-left: 1px solid #adb8c9; }
+.po-party-grid > div { display: flex; align-items: baseline; gap: 2mm; min-width: 0; min-height: 7mm; padding: 1.5mm 2.5mm; border-right: 1px solid #adb8c9; border-bottom: 1px solid #adb8c9; }
+.po-party-grid > .is-full { grid-column: 1 / -1; }
+.po-party-grid strong { min-width: 0; color: #17233b; font-size: 8pt; overflow-wrap: anywhere; }
+.po-manual-line { display: inline-block; flex: 1 1 22mm; min-width: 22mm; height: 1em; border-bottom: 1px solid #536078; vertical-align: baseline; }
+.po-manual-line.is-short { flex: 0 0 14mm; min-width: 14mm; }
+.po-salutation { margin: 2.5mm 0 1mm; font-size: 8pt; }
+.po-intro { margin: 0 0 2mm; font-size: 7.5pt; }
+.po-purchase-details { border: 1px solid #9eaabd; }
+.po-purchase-details h2 { margin: 0; padding: 1.2mm 2mm; border-bottom: 1px solid #9eaabd; background: #293385; color: #fff; font-size: 8pt; letter-spacing: .06em; text-align: center; text-transform: uppercase; }
+.po-detail-row { display: grid; grid-template-columns: 37% 63%; min-height: 6mm; }
+.po-detail-row + .po-detail-row { border-top: 1px solid #c3cad5; }
+.po-detail-row > span { padding: 1.3mm 2mm; border-right: 1px solid #c3cad5; color: #4e5b71; font-size: 7pt; font-weight: 700; }
+.po-detail-row > strong, .po-detail-row > p { margin: 0; padding: 1.3mm 2mm; color: #17233b; font-size: 7.4pt; line-height: 1.28; }
+.po-detail-row.is-tall { min-height: 12mm; }
+.po-payment { margin: 2mm 0; font-size: 7.2pt; line-height: 1.35; }
+.po-terms h2, .po-schedule-notes h2 { margin: 0 0 1mm; color: #27317c; font-size: 8pt; }
+.po-terms ol { margin: 0; padding-left: 5mm; font-size: 6.8pt; line-height: 1.28; }
+.po-terms li + li { margin-top: .6mm; }
+.po-schedule-notes { margin-top: 2mm; padding: 2mm 2.5mm; border: 1px solid #efb8ba; border-left: 3px solid #ed1c24; background: #fff8f8; }
+.po-schedule-notes h2 { color: #9c1820; }
+.po-schedule-notes ol { columns: 2; column-gap: 7mm; margin: 0; padding-left: 4.5mm; color: #4b3840; font-size: 6.2pt; line-height: 1.25; }
+.po-schedule-notes li { break-inside: avoid; }
+.po-schedule-notes li + li { margin-top: .8mm; }
+.po-signing-date { margin: 2mm 0 0; font-size: 7pt; }
+.po-signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 12mm; margin-top: 3mm; }
+.po-signatures > div { font-size: 6.8pt; }
+.po-signature-line { display: block; height: 5mm; border-bottom: 1px solid #4e5b71; }
+.po-signatures strong { display: block; margin: 1mm 0; color: #27317c; font-size: 7pt; }
+.po-signatures p { display: flex; align-items: baseline; gap: 1mm; margin: .5mm 0 0; }
+.po-footer { margin-top: auto; padding-top: 2mm; border-top: 1px solid #c9d1de; color: #7c879a; font-size: 5.8pt; letter-spacing: .04em; text-align: right; text-transform: uppercase; }
+
+@media (max-width: 850px) {
+    .confirmation-toolbar { justify-content: stretch; }
+    .confirmation-toolbar > *, .confirmation-toolbar .btn-group { flex: 1 1 auto; }
+    .confirmation-appointment-summary { grid-template-columns: 1fr; border-radius: 0; }
+    .confirmation-appointment-summary dl { grid-template-columns: 1fr 1fr; }
+    .confirmation-status-pill { justify-self: start; }
+}
+
+@media print {
+    .no-print { display: none !important; }
+    .po-confirmation-paper { display: flex; width: 210mm; min-height: 297mm; padding: 7mm 10mm 4mm; overflow: hidden; box-shadow: none; }
+    .po-confirmation-paper::before { height: 3mm; }
+    .po-confirmation-header { padding-top: 1mm; padding-bottom: 2mm; }
+    .po-confirmation-header .confirmation-logo { width: 18mm; height: 18mm; }
+    .po-confirmation-header .confirmation-agency h1 { font-size: 14pt; }
+    .po-confirmation-header .confirmation-agency strong { font-size: 8.5pt; }
+    .po-office-strip { margin-top: 2mm; }
+    .po-party-grid { margin-top: 2mm; }
+    .po-schedule-notes { margin-top: 1.5mm; }
+    .po-signatures { margin-top: 2mm; }
+    .po-confirmation-paper, .po-confirmation-paper * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}

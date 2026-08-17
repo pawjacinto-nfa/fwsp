@@ -1,4 +1,11 @@
-<?php $editingTransaction = $transaction ?? null; ?>
+<?php
+$editingTransaction = $transaction ?? null;
+$schedulePrefill = $scheduledDelivery ?? null;
+$scheduledFarmerIdentifier = $schedulePrefill && !empty($schedulePrefill['farmer_id']) ? ($schedulePrefill['farmer_key'] ?? '') : '';
+$scheduledOrganizationName = $schedulePrefill && ($schedulePrefill['seller_type'] ?? '') === 'Farmer Organization'
+    ? ($schedulePrefill['enrolled_organization_name'] ?: $schedulePrefill['temporary_organization_name'])
+    : '';
+?>
 <form method="post" class="panel form-panel tracked-form">
     <input type="hidden" name="action" value="<?= $editingTransaction ? 'transaction-update' : 'transaction' ?>">
     <?php if ($editingTransaction): ?><input type="hidden" name="transaction_id" value="<?= e($editingTransaction['id']) ?>"><?php endif; ?>
@@ -30,11 +37,25 @@
                         $farmers
                     );
                     $farmerOrganizationMap = [];
+                    $farmerProfileMap = [];
                     foreach ($farmers as $farmer) {
-                        if (!empty($farmer['organization'])) $farmerOrganizationMap[$farmer['farmer_key'] ?? $farmer['rsbsa']] = $farmer['organization'];
+                        $identifiers = array_values(array_unique(array_filter([
+                            $farmer['farmer_key'] ?? '',
+                            $farmer['rsbsa'] ?? '',
+                        ])));
+                        foreach ($identifiers as $identifier) {
+                            if (!empty($farmer['organization'])) $farmerOrganizationMap[$identifier] = $farmer['organization'];
+                            $farmerProfileMap[$identifier] = [
+                                'farm_area' => $farmer['harvest_area'] ?? '',
+                                'region_id' => $farmer['region_id'] ?? '',
+                                'branch_id' => $farmer['branch_id'] ?? '',
+                                'province_id' => $farmer['province_id'] ?? '',
+                                'warehouse_id' => $farmer['warehouse_id'] ?? '',
+                            ];
+                        }
                     }
                     ?>
-                    <input required name="rsbsa" value="<?= e($editingTransaction['rsbsa'] ?? '') ?>" class="form-control" autocomplete="off" placeholder="Type farmer name or control number" data-individual-farmer-input data-farmer-organization-map='<?= e(json_encode($farmerOrganizationMap, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT)) ?>' data-autocomplete-input data-autocomplete-source='<?= e(json_encode($farmerOptions, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT)) ?>'>
+                    <input required name="rsbsa" value="<?= e($editingTransaction['rsbsa'] ?? $scheduledFarmerIdentifier) ?>" class="form-control" autocomplete="off" placeholder="Type farmer name or control number" data-individual-farmer-input data-farmer-organization-map='<?= e(json_encode($farmerOrganizationMap, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT)) ?>' data-farmer-profile-map='<?= e(json_encode($farmerProfileMap, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT)) ?>' data-autocomplete-input data-autocomplete-source='<?= e(json_encode($farmerOptions, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT)) ?>'>
                     <div class="autocomplete-menu" data-autocomplete-menu></div>
                 </div>
             </div>
@@ -49,11 +70,11 @@
             <div class="col-md-4">
                 <label class="form-label" for="foDeliveryName">Farmer Group</label>
                 <div class="autocomplete-field" data-autocomplete-field>
-                    <input required id="foDeliveryName" name="fo_name" value="<?= e($editingTransaction['fo_name'] ?? '') ?>" class="form-control" autocomplete="off" placeholder="Search farmer organization or IP group" data-fo-name-input data-autocomplete-input data-autocomplete-source='<?= e(json_encode(array_column($farmerOrganizations ?? [], 'name'), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT)) ?>'>
+                    <input required id="foDeliveryName" name="fo_name" value="<?= e($editingTransaction['fo_name'] ?? $scheduledOrganizationName) ?>" class="form-control" autocomplete="off" placeholder="Search farmer organization or IP group" data-fo-name-input data-autocomplete-input data-autocomplete-source='<?= e(json_encode(array_column($farmerOrganizations ?? [], 'name'), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT)) ?>'>
                     <div class="autocomplete-menu" data-autocomplete-menu></div>
                 </div>
             </div>
-            <div class="col-md-4"><label class="form-label">Authorized Representative</label><input required name="representative" value="<?= e($editingTransaction['representative_name'] ?? '') ?>" class="form-control"></div>
+            <div class="col-md-4"><label class="form-label">Authorized Representative</label><input required name="representative" value="<?= e($editingTransaction['representative_name'] ?? $schedulePrefill['representative_name'] ?? '') ?>" class="form-control"></div>
             <div class="col-md-4"><label class="form-label">Total Farmer-Members</label><input type="number" min="0" name="members" value="<?= e($editingTransaction['total_members'] ?? '') ?>" class="form-control"></div>
         <?php endif; ?>
         <?php if ($sellerType !== 'Farmer Organization'): ?>
@@ -67,7 +88,7 @@
             ?>
         <?php endif; ?>
         <div class="col-md-3"><label class="form-label">Verified Farm Area (ha)</label><input type="number" min="0" step="0.001" name="farm_area" value="<?= e($editingTransaction['verified_farm_area'] ?? '') ?>" class="form-control"></div>
-        <div class="col-md-3"><label class="form-label">Delivery Date</label><input required type="date" name="delivery_date" value="<?= e($editingTransaction['delivery_date'] ?? date('Y-m-d')) ?>" class="form-control"></div>
+        <div class="col-md-3"><label class="form-label">Delivery Date</label><input required type="date" name="delivery_date" value="<?= e($editingTransaction['delivery_date'] ?? $schedulePrefill['schedule_date'] ?? date('Y-m-d')) ?>" class="form-control"></div>
         <div class="col-md-3"><label class="form-label">WSR Number</label><input required name="wsr" value="<?= e($editingTransaction['wsr'] ?? '') ?>" class="form-control" data-duplicate-check="wsr"<?= !empty($editingTransaction['id']) ? ' data-duplicate-exclude-id="' . e((string) $editingTransaction['id']) . '"' : '' ?>><small class="text-danger d-none" data-duplicate-warning>Record already exists.</small></div>
         <div class="col-md-3"><label class="form-label">Palay Variety</label><select name="palay_variety" class="form-select"><?php foreach (\App\Models\Transaction::PALAY_VARIETIES as $variety): ?><option value="<?= e($variety) ?>" <?= ($editingTransaction['palay_variety'] ?? 'PD1') === $variety ? 'selected' : '' ?>><?= e($variety) ?></option><?php endforeach; ?></select></div>
         <div class="col-md-3"><label class="form-label">Price/Kg</label><input required type="number" min="0.001" step="0.001" name="price" value="<?= e($editingTransaction['price_per_kilogram'] ?? '') ?>" class="form-control" data-delivery-price></div>

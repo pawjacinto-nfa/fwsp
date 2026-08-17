@@ -1,5 +1,28 @@
 const loader = document.getElementById("loaderScreen");
 
+const properCaseName = (value) => value.trim().replace(/\s+/g, " ").split(" ").map((word) => word
+    .split(/([-'])/).map((part) => (part === "-" || part === "'") ? part : (part ? part.charAt(0).toUpperCase() + part.slice(1).toLowerCase() : part)).join("")
+).join(" ");
+
+// Apply a consistent proper case to names when users leave a name field.
+// Identifiers (RSBSA, WSR), usernames, email addresses, and locations are excluded.
+document.addEventListener("focusout", (event) => {
+    const input = event.target;
+    if (!(input instanceof HTMLInputElement || input instanceof HTMLTextAreaElement) || input.type === "email") return;
+    const fieldName = (input.name || "").toLowerCase();
+    const isNameField = [
+        "first_name", "middle_name", "last_name", "full_name", "spouse", "representative", "representative_name",
+        "fo_name", "organization", "temporary_organization_name", "enrolled_name", "temporary_name", "submitter_name", "photographer_name"
+    ].includes(fieldName);
+    if (!isNameField || input.value.trim() === "") return;
+    const normalized = properCaseName(input.value);
+    if (normalized !== input.value) {
+        input.value = normalized;
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+        input.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+});
+
 // Every regular form post must carry the session CSRF token. Keeping this here
 // also covers forms added inside record-detail modals.
 document.querySelectorAll("form[method='post'], form:not([method])").forEach((form) => {
@@ -7,7 +30,7 @@ document.querySelectorAll("form[method='post'], form:not([method])").forEach((fo
     const input = document.createElement("input");
     input.type = "hidden";
     input.name = "csrf_token";
-    input.value = window.FWSP_MAINTENANCE?.csrfToken || "";
+    input.value = window.FSR_MAINTENANCE?.csrfToken || "";
     form.append(input);
 });
 
@@ -42,21 +65,67 @@ document.querySelectorAll("tr[data-row-link]").forEach((row) => {
 
 document.querySelectorAll("[data-individual-farmer-input]").forEach((input) => {
     let organizationMap = {};
+    let profileMap = {};
     try { organizationMap = JSON.parse(input.dataset.farmerOrganizationMap || "{}"); } catch (_) { organizationMap = {}; }
+    try { profileMap = JSON.parse(input.dataset.farmerProfileMap || "{}"); } catch (_) { profileMap = {}; }
     const form = input.closest("form");
     const modalElement = form?.querySelector("#individualFarmerOrganizationPrompt");
     const message = modalElement?.querySelector("[data-fo-delivery-prompt-message]");
+    const identifier = () => input.value.split(" - ")[0].trim();
+    const setInputValue = (name, value) => {
+        const field = form?.querySelector(`[name="${name}"]`);
+        if (!field) return;
+        field.value = value ?? "";
+        field.dispatchEvent(new Event("input", { bubbles: true }));
+        field.dispatchEvent(new Event("change", { bubbles: true }));
+    };
+    const setLocationValues = (profile) => {
+        const region = form?.querySelector('[data-location-level="region"]');
+        const branch = form?.querySelector('[data-location-level="branch"]');
+        const province = form?.querySelector('[data-location-level="province"]');
+        const warehouse = form?.querySelector('[data-location-level="warehouse"]');
+        if (!region || !branch || !province || !warehouse) return;
+
+        branch.dataset.selected = profile.branch_id || "";
+        province.dataset.selected = profile.province_id || "";
+        warehouse.dataset.selected = profile.warehouse_id || "";
+        region.dataset.selected = profile.region_id || "";
+
+        region.value = profile.region_id || "";
+        region.dispatchEvent(new Event("change", { bubbles: true }));
+
+        branch.value = profile.branch_id || "";
+        branch.dispatchEvent(new Event("change", { bubbles: true }));
+
+        province.value = profile.province_id || "";
+        province.dispatchEvent(new Event("change", { bubbles: true }));
+
+        warehouse.value = profile.warehouse_id || "";
+        warehouse.dispatchEvent(new Event("change", { bubbles: true }));
+    };
+    const populateProfileValues = () => {
+        const profile = profileMap[identifier()];
+        if (!profile) return;
+
+        setInputValue("farm_area", profile.farm_area ?? "");
+        setLocationValues(profile);
+    };
     const prompt = () => {
-        const identifier = input.value.split(" - ")[0].trim();
-        const organization = organizationMap[identifier];
+        const organization = organizationMap[identifier()];
         if (!organization) return false;
         input.setCustomValidity("Farmers belonging to a Farmer Group must use Farmer Organization Delivery.");
         if (message) message.textContent = `This farmer belongs to the Farmer Group "${organization}". Record the delivery through Farmer Organization Delivery instead.`;
         if (modalElement && window.bootstrap) window.bootstrap.Modal.getOrCreateInstance(modalElement).show();
         return true;
     };
-    input.addEventListener("change", prompt);
-    input.addEventListener("blur", prompt);
+    input.addEventListener("change", () => {
+        populateProfileValues();
+        prompt();
+    });
+    input.addEventListener("blur", () => {
+        populateProfileValues();
+        prompt();
+    });
     input.addEventListener("input", () => { input.setCustomValidity(""); });
     form?.addEventListener("submit", (event) => { if (prompt()) event.preventDefault(); });
 });
@@ -93,7 +162,7 @@ document.querySelectorAll("form").forEach((form) => {
 });
 
 (() => {
-    const config = window.FWSP_MAINTENANCE || {};
+    const config = window.FSR_MAINTENANCE || {};
     if (!config.monitor) return;
 
     let checking = false;
@@ -134,7 +203,7 @@ document.querySelectorAll("form").forEach((form) => {
 /* One shared error prompt for browser, JavaScript, and unexpected server failures. */
 (() => {
     const modalNode = document.querySelector("[data-system-error-modal]");
-    const config = window.FWSP_ERROR_REPORT || {};
+    const config = window.FSR_ERROR_REPORT || {};
     if (!modalNode || !window.bootstrap) return;
 
     const modal = bootstrap.Modal.getOrCreateInstance(modalNode);
@@ -248,8 +317,8 @@ if (location.hash === "#display-settings") {
 
 /* Offline delivery queue. Records are stored locally only until this user approves upload. */
 (() => {
-    const config = window.FWSP_OFFLINE || {};
-    const key = `fwsp-offline-deliveries-${config.userId || 'guest'}`;
+    const config = window.FSR_OFFLINE || {};
+    const key = `fsr-offline-deliveries-${config.userId || 'guest'}`;
     const enabled = () => Boolean(config.enabled && config.userId);
     const read = () => { try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch { return []; } };
     const write = (items) => localStorage.setItem(key, JSON.stringify(items));
@@ -279,16 +348,16 @@ if (location.hash === "#display-settings") {
                 const timeout = window.setTimeout(() => { cleanup(); reject(new Error('The installation did not respond. Please try again.')); }, 45000);
                 const receive = (event) => {
                     const data = event.data || {};
-                    if (data.type === 'FWSP_INSTALL_PROGRESS') { setStepPercent('download', data.percent); update(Math.max(15, data.percent), `Downloading ${data.completed} of ${data.total} resources…`); return; }
-                    if (data.type === 'FWSP_INSTALL_ERROR') { cleanup(); reject(new Error(`${data.message} (${data.resource})`)); return; }
-                    if (data.type === 'FWSP_INSTALL_COMPLETE') { cleanup(); resolve(); }
+                    if (data.type === 'FSR_INSTALL_PROGRESS') { setStepPercent('download', data.percent); update(Math.max(15, data.percent), `Downloading ${data.completed} of ${data.total} resources…`); return; }
+                    if (data.type === 'FSR_INSTALL_ERROR') { cleanup(); reject(new Error(`${data.message} (${data.resource})`)); return; }
+                    if (data.type === 'FSR_INSTALL_COMPLETE') { cleanup(); resolve(); }
                 };
                 const cleanup = () => { window.clearTimeout(timeout); navigator.serviceWorker.removeEventListener('message', receive); };
                 navigator.serviceWorker.addEventListener('message', receive);
-                worker.postMessage({ type: 'FWSP_INSTALL_OFFLINE' });
+                worker.postMessage({ type: 'FSR_INSTALL_OFFLINE' });
             });
             setStep('download', 'is-done'); setStepPercent('download', 100); setStep('verify', 'is-active'); update(96, 'Verifying offline workspace…');
-            await caches.open('fwsp-offline-v2');
+            await caches.open('fsr-offline-v2');
             setStep('verify', 'is-done'); setStepPercent('verify', 100); update(100, 'Offline workspace is ready.');
             node.querySelector('.modal-footer').innerHTML = '<button class="btn btn-success" data-bs-dismiss="modal">Offline workspace ready</button>';
             if (toggle) toggle.disabled = false;
@@ -349,7 +418,7 @@ document.querySelectorAll("[data-signatory-add-form]").forEach((form) => {
 
 document.querySelectorAll("[data-report-signatory-selector]").forEach((selector) => {
     const optionsContainer = selector.querySelector(".report-signatory-options");
-    const orderKey = selector.dataset.orderKey || "fwsp-report-signatory-order";
+    const orderKey = selector.dataset.orderKey || "fsr-report-signatory-order";
     const getOptions = () => [...selector.querySelectorAll("[data-signatory-option]")];
     let savedOrder = [];
     try {
@@ -504,7 +573,7 @@ document.querySelectorAll("[data-delivery-total-cost]").forEach((output) => {
 });
 
 const themeToggle = document.getElementById("themeToggle");
-const savedTheme = localStorage.getItem("fwsp-theme");
+const savedTheme = localStorage.getItem("fsr-theme");
 
 if (savedTheme) {
     document.documentElement.setAttribute("data-bs-theme", savedTheme);
@@ -513,7 +582,7 @@ if (savedTheme) {
 themeToggle?.addEventListener("click", () => {
     const nextTheme = document.documentElement.getAttribute("data-bs-theme") === "dark" ? "light" : "dark";
     document.documentElement.setAttribute("data-bs-theme", nextTheme);
-    localStorage.setItem("fwsp-theme", nextTheme);
+    localStorage.setItem("fsr-theme", nextTheme);
 });
 
 const screensaverToggle = document.getElementById("screensaverToggle");
@@ -628,7 +697,7 @@ document.querySelectorAll("[data-password-hold-toggle]").forEach((button) => {
 
 const loginModal = document.getElementById("loginModal");
 if (loginModal) {
-    const rememberedUsername = localStorage.getItem("fwsp-remembered-username") || "";
+    const rememberedUsername = localStorage.getItem("fsr-remembered-username") || "";
     const usernameField = loginModal.querySelector("[data-remember-username]");
     const rememberField = loginModal.querySelector("[data-remember-login]");
     const credentialAlert = loginModal.querySelector("[data-login-credential-alert]");
@@ -661,9 +730,9 @@ if (loginModal) {
         if (!usernameField || !rememberField) return;
 
         if (rememberField.checked) {
-            localStorage.setItem("fwsp-remembered-username", usernameField.value.trim());
+            localStorage.setItem("fsr-remembered-username", usernameField.value.trim());
         } else {
-            localStorage.removeItem("fwsp-remembered-username");
+            localStorage.removeItem("fsr-remembered-username");
         }
     });
 }
@@ -685,21 +754,21 @@ document.getElementById("passwordResetCheckModal")?.addEventListener("show.bs.mo
 });
 
 const showRequestedAuthModal = () => {
-    if (!window.bootstrap || !window.FWSP_AUTH_MODAL) return;
+    if (!window.bootstrap || !window.FSR_AUTH_MODAL) return;
 
-    if (window.FWSP_AUTH_MODAL.showChangePassword) {
+    if (window.FSR_AUTH_MODAL.showChangePassword) {
         const modal = document.getElementById("changePasswordModal");
         if (modal) bootstrap.Modal.getOrCreateInstance(modal).show();
-    } else if (window.FWSP_AUTH_MODAL.showRegister) {
+    } else if (window.FSR_AUTH_MODAL.showRegister) {
         const modal = document.getElementById("registerModal");
         if (modal) bootstrap.Modal.getOrCreateInstance(modal).show();
-    } else if (window.FWSP_AUTH_MODAL.showForgotPassword) {
+    } else if (window.FSR_AUTH_MODAL.showForgotPassword) {
         const modal = document.getElementById("forgotPasswordModal");
         if (modal) bootstrap.Modal.getOrCreateInstance(modal).show();
-    } else if (window.FWSP_AUTH_MODAL.showPasswordResetCheck) {
+    } else if (window.FSR_AUTH_MODAL.showPasswordResetCheck) {
         const modal = document.getElementById("passwordResetCheckModal");
         if (modal) bootstrap.Modal.getOrCreateInstance(modal).show();
-    } else if (window.FWSP_AUTH_MODAL.showLogin) {
+    } else if (window.FSR_AUTH_MODAL.showLogin) {
         if (loginModal) bootstrap.Modal.getOrCreateInstance(loginModal).show();
     }
 };
@@ -1135,18 +1204,18 @@ document.querySelectorAll("[data-duplicate-check]").forEach((input) => {
 });
 
 (() => {
-    const notification = window.FWSP_TOAST_NOTIFICATION;
-    if (!notification?.id || sessionStorage.getItem(`fwsp-toast-${notification.id}`)) return;
-    sessionStorage.setItem(`fwsp-toast-${notification.id}`, "1");
+    const notification = window.FSR_TOAST_NOTIFICATION;
+    if (!notification?.id || sessionStorage.getItem(`fsr-toast-${notification.id}`)) return;
+    sessionStorage.setItem(`fsr-toast-${notification.id}`, "1");
     const toast = document.createElement("div");
-    toast.className = "fwsp-notification-toast";
+    toast.className = "fsr-notification-toast";
     const link = document.createElement("a");
     link.href = `index.php?notification_id=${encodeURIComponent(notification.id)}`;
     link.innerHTML = `<strong>Notification</strong><span></span>`;
     link.querySelector("span").textContent = notification.message || "You have a new notification.";
     const close = document.createElement("button");
     close.type = "button";
-    close.className = "fwsp-notification-toast-close";
+    close.className = "fsr-notification-toast-close";
     close.setAttribute("aria-label", "Close notification");
     close.textContent = "×";
     toast.append(link, close);
@@ -1197,6 +1266,55 @@ document.querySelectorAll("[data-table-filter]").forEach((input) => {
 
     input.addEventListener("input", applyFilter);
     applyFilter();
+});
+
+document.querySelectorAll("[data-field-office-filters]").forEach((filters) => {
+    const table = document.getElementById("field-office-table");
+    const tbody = table?.querySelector("tbody");
+    if (!table || !tbody) return;
+
+    const rows = Array.from(tbody.querySelectorAll("tr"));
+    const search = filters.querySelector("#fieldOfficeSearch");
+    const selects = Array.from(filters.querySelectorAll("[data-field-office-filter]"));
+    const emptyRow = document.createElement("tr");
+    const emptyCell = document.createElement("td");
+    emptyRow.hidden = true;
+    emptyRow.dataset.filterEmptyRow = "true";
+    emptyCell.colSpan = table.querySelectorAll("thead th").length || 1;
+    emptyCell.className = "text-muted";
+    emptyCell.textContent = "No matching locations found.";
+    emptyRow.appendChild(emptyCell);
+    tbody.appendChild(emptyRow);
+
+    const applyFilters = () => {
+        const query = (search?.value || "").trim().toLowerCase();
+        let visibleCount = 0;
+
+        rows.forEach((row) => {
+            const searchableText = [
+                row.textContent,
+                ...Array.from(row.querySelectorAll("input, select, textarea")).map((field) => field.value || ""),
+            ].join(" ").toLowerCase();
+            const matchesSearch = !query || searchableText.includes(query);
+            const matchesHierarchy = selects.every((select) => !select.value || row.dataset[`${select.dataset.fieldOfficeFilter}Id`] === select.value);
+            const matches = matchesSearch && matchesHierarchy;
+            row.dataset.filterHidden = matches ? "false" : "true";
+            row.hidden = !matches;
+            if (matches) visibleCount += 1;
+        });
+
+        emptyRow.hidden = visibleCount > 0;
+        table.dispatchEvent(new CustomEvent("table:changed"));
+    };
+
+    search?.addEventListener("input", applyFilters);
+    selects.forEach((select) => select.addEventListener("change", applyFilters));
+    filters.querySelector("[data-clear-field-office-filters]")?.addEventListener("click", () => {
+        if (search) search.value = "";
+        selects.forEach((select) => { select.value = ""; });
+        applyFilters();
+    });
+    applyFilters();
 });
 
 document.querySelectorAll("table").forEach((table) => {
@@ -1569,7 +1687,7 @@ if (transactionDetailModal && window.bootstrap?.Modal) {
     });
 }
 
-const locationData = window.FWSP_LOCATIONS || {};
+const locationData = window.FSR_LOCATIONS || {};
 const locationGroups = new Set(
     Array.from(document.querySelectorAll("[data-location-level]")).map((select) => {
         return select.closest(".row") || select.closest("form") || document;
@@ -1737,7 +1855,11 @@ document.querySelector("[data-maintenance-toggle]")?.addEventListener("change", 
     toggle.form?.requestSubmit();
 });
 
-const centralOfficeData = window.FWSP_CENTRAL_OFFICE || {};
+document.querySelectorAll("[data-module-maintenance-toggle]").forEach((toggle) => {
+    toggle.addEventListener("change", () => toggle.form?.requestSubmit());
+});
+
+const centralOfficeData = window.FSR_CENTRAL_OFFICE || {};
 const centralOfficeGroups = new Set(
     Array.from(document.querySelectorAll("[data-central-office-level]")).map((select) => {
         return select.closest(".row") || select.closest("form") || document;
@@ -2026,7 +2148,7 @@ document.querySelectorAll(".activity-transition").forEach((link) => {
 
         event.preventDefault();
 
-        if (!window.FWSP_IS_AUTHENTICATED) {
+        if (!window.FSR_IS_AUTHENTICATED) {
             const modal = document.getElementById("activityLoginRequiredModal");
             if (modal && window.bootstrap?.Modal) {
                 window.bootstrap.Modal.getOrCreateInstance(modal).show();

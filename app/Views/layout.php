@@ -11,6 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="assets/css/style.css?v=<?= e((string) filemtime(BASE_PATH . '/assets/css/style.css')) ?>" rel="stylesheet">
+    <link href="assets/css/delivery-schedule-print.css?v=<?= e((string) filemtime(BASE_PATH . '/assets/css/delivery-schedule-print.css')) ?>" rel="stylesheet">
 </head>
 <body>
 <div class="loader-screen" id="loaderScreen" aria-hidden="true">
@@ -108,26 +109,26 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-window.FWSP_LOCATIONS = <?= json_encode(\App\Models\Location::hierarchy(), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;
-window.FWSP_CENTRAL_OFFICE = <?= json_encode(\App\Models\CentralOffice::hierarchy(), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;
-window.FWSP_IS_AUTHENTICATED = <?= !empty($_SESSION['user_id']) ? 'true' : 'false' ?>;
-window.FWSP_MAINTENANCE = <?= json_encode([
+window.FSR_LOCATIONS = <?= json_encode(\App\Models\Location::hierarchy(), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;
+window.FSR_CENTRAL_OFFICE = <?= json_encode(\App\Models\CentralOffice::hierarchy(), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;
+window.FSR_IS_AUTHENTICATED = <?= !empty($_SESSION['user_id']) ? 'true' : 'false' ?>;
+window.FSR_MAINTENANCE = <?= json_encode([
     'monitor' => !empty($_SESSION['user_id']) && ($_SESSION['role'] ?? '') !== 'System Admin',
     'url' => 'index.php',
     'csrfToken' => csrf_token(),
 ], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;
-window.FWSP_ERROR_REPORT = <?= json_encode([
+window.FSR_ERROR_REPORT = <?= json_encode([
     'url' => 'index.php',
     'csrfToken' => csrf_token(),
 ], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;
 <?php $offlineUser = !empty($_SESSION['user_id']) ? \App\Models\User::find((int) $_SESSION['user_id']) : null; ?>
-window.FWSP_OFFLINE = <?= json_encode([
+window.FSR_OFFLINE = <?= json_encode([
     'enabled' => !empty($offlineUser['offline_enabled']),
     'userId' => (int) ($_SESSION['user_id'] ?? 0),
     'csrfToken' => csrf_token(),
     'syncUrl' => 'index.php',
 ], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;
-window.FWSP_AUTH_MODAL = <?= json_encode([
+window.FSR_AUTH_MODAL = <?= json_encode([
     'showLogin' => isset($_GET['show_login']),
     'showRegister' => isset($_GET['show_register']),
     'showForgotPassword' => isset($_GET['forgot_password']),

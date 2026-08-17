@@ -138,7 +138,7 @@ try {
             'spouse_name' => $civilStatus === 'Married' ? 'Seeded Spouse ' . $number : null,
             'dependents' => $index % 6,
             'contact_number' => sprintf('0918222%04d', $number),
-            'email' => sprintf('wm000222.farmer%03d@fwsp.local', $number),
+            'email' => sprintf('wm000222.farmer%03d@fsr.local', $number),
             'sex' => $sex,
             'gender_orientation' => json_encode(['N/A'], JSON_THROW_ON_ERROR),
             'sector' => json_encode($sectors[$index % count($sectors)], JSON_THROW_ON_ERROR),

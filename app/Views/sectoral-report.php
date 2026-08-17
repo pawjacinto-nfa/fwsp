@@ -81,11 +81,17 @@
                 <input type="hidden" name="<?= e($filterKey) ?>" value="<?= e($filters[$filterKey]) ?>">
             <?php endif; ?>
         <?php endforeach; ?>
+        <p class="sdd-check-filter-intro">You may select one or more groups to filter the results.</p>
         <div class="sdd-check-filter-row" aria-label="SDD checkmark filters">
             <?php foreach ($sddFilterOptions as $value => $label): ?>
-                <label class="sdd-check-filter <?= in_array($value, $selectedSddFilters, true) ? 'is-selected' : '' ?>">
+                <label class="sdd-check-filter sdd-check-filter--<?= e($value) ?> <?= in_array($value, ['male', 'female', 'young', 'adult', 'senior', 'sogie', 'muslim', 'ip'], true) ? 'has-image' : '' ?> <?= in_array($value, $selectedSddFilters, true) ? 'is-selected' : '' ?>">
                     <input type="checkbox" name="sdd_filter[]" value="<?= e($value) ?>" <?= in_array($value, $selectedSddFilters, true) ? 'checked' : '' ?>>
-                    <span><?= e($label) ?></span>
+                    <span class="sdd-check-filter-visual" aria-hidden="true">
+                        <?php if (!in_array($value, ['male', 'female', 'young', 'adult', 'senior', 'sogie', 'muslim', 'ip'], true)): ?>
+                            <span class="sdd-check-filter-initial"><?= e(strtoupper($label[0] ?? '')) ?></span>
+                        <?php endif; ?>
+                    </span>
+                    <span class="sdd-check-filter-label"><?= e($label) ?></span>
                 </label>
             <?php endforeach; ?>
         </div>

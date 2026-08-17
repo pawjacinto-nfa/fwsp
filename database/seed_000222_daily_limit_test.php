@@ -45,7 +45,7 @@ try {
             sector, farmer_organization_id, warehouse_id
         ) VALUES (
             :rsbsa_number, 'Daily', 'Limit', 'Tester', :address, '1984-03-12', :birthplace,
-            'Married', 'Limit Spouse', 2, '09182229999', 'daily.limit.tester@fwsp.local',
+            'Married', 'Limit Spouse', 2, '09182229999', 'daily.limit.tester@fsr.local',
             'Male', :gender_orientation, :sector, NULL, :warehouse_id
         )
         ON DUPLICATE KEY UPDATE

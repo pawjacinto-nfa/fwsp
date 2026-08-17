@@ -33,7 +33,7 @@ try {
         [
             'full_name' => 'Seed Warehouse Manager',
             'username' => '000222',
-            'email' => '000222@fwsp.local',
+            'email' => '000222@fsr.local',
             'role' => 'Warehouse Personnel',
             'region_id' => $regionOne,
             'branch_id' => $regionOneLocation['branch_id'],
@@ -45,7 +45,7 @@ try {
         [
             'full_name' => 'Seed Regional Branch Manager',
             'username' => '000111',
-            'email' => '000111@fwsp.local',
+            'email' => '000111@fsr.local',
             'role' => 'Manager',
             'region_id' => $regionOne,
             'branch_id' => $regionOneLocation['branch_id'],

@@ -1,6 +1,6 @@
 <?php
 $view = $view ?? 'summary';
-$allowedReportFormats = ['default', 'branch_region', 'province_summary', 'sdd_summary', 'monthly_sdd_summary', 'full_list_fwsp', 'ip_group_delivery'];
+$allowedReportFormats = ['default', 'branch_region', 'province_summary', 'sdd_summary', 'monthly_sdd_summary', 'full_list_fsr', 'ip_group_delivery'];
 $reportFormat = in_array(($reportFormat ?? ($filters['report_format'] ?? 'default')), $allowedReportFormats, true)
     ? ($reportFormat ?? ($filters['report_format'] ?? 'default'))
     : 'default';
@@ -15,7 +15,7 @@ $branchRegionReportUrl = 'index.php?' . http_build_query($reportSwitchParams + [
 $provinceSummaryReportUrl = 'index.php?' . http_build_query($reportSwitchParams + ['report_format' => 'province_summary']);
 $sddSummaryReportUrl = 'index.php?' . http_build_query($reportSwitchParams + ['report_format' => 'sdd_summary']);
 $monthlySddSummaryReportUrl = 'index.php?' . http_build_query($reportSwitchParams + ['report_format' => 'monthly_sdd_summary']);
-$fullListReportUrl = 'index.php?' . http_build_query($reportSwitchParams + ['report_format' => 'full_list_fwsp']);
+$fullListReportUrl = 'index.php?' . http_build_query($reportSwitchParams + ['report_format' => 'full_list_fsr']);
 $ipGroupReportUrl = 'index.php?' . http_build_query($reportSwitchParams + ['report_format' => 'ip_group_delivery']);
 $reportPageTitles = [
     'default' => 'Summary Reports on Farmers Who Sold Palay',
@@ -23,7 +23,7 @@ $reportPageTitles = [
     'province_summary' => 'Provincial Summary',
     'sdd_summary' => 'SDD Summary Report',
     'monthly_sdd_summary' => 'SDD Report (Monthly)',
-    'full_list_fwsp' => 'Full List (FWSP)',
+    'full_list_fsr' => 'Full List (FSR)',
     'ip_group_delivery' => 'IP Group Delivery',
 ];
 ?>
@@ -113,11 +113,17 @@ $reportPageTitles = [
                     <input type="hidden" name="<?= e($filterKey) ?>" value="<?= e($filters[$filterKey]) ?>">
                 <?php endif; ?>
             <?php endforeach; ?>
+            <p class="sdd-check-filter-intro">You may select one or more groups to filter the results.</p>
             <div class="sdd-check-filter-row" aria-label="SDD checkmark filters">
                 <?php foreach ($sddFilterOptions as $value => $label): ?>
-                    <label class="sdd-check-filter <?= in_array($value, $selectedSddFilters, true) ? 'is-selected' : '' ?>">
+                    <label class="sdd-check-filter sdd-check-filter--<?= e($value) ?> <?= in_array($value, ['male', 'female', 'young', 'adult', 'senior', 'sogie', 'muslim', 'ip'], true) ? 'has-image' : '' ?> <?= in_array($value, $selectedSddFilters, true) ? 'is-selected' : '' ?>">
                         <input type="checkbox" name="sdd_filter[]" value="<?= e($value) ?>" <?= in_array($value, $selectedSddFilters, true) ? 'checked' : '' ?>>
-                        <span><?= e($label) ?></span>
+                        <span class="sdd-check-filter-visual" aria-hidden="true">
+                        <?php if (!in_array($value, ['male', 'female', 'young', 'adult', 'senior', 'sogie', 'muslim', 'ip'], true)): ?>
+                                <span class="sdd-check-filter-initial"><?= e(strtoupper($label[0] ?? '')) ?></span>
+                            <?php endif; ?>
+                        </span>
+                        <span class="sdd-check-filter-label"><?= e($label) ?></span>
                     </label>
                 <?php endforeach; ?>
             </div>
@@ -160,7 +166,7 @@ $reportPageTitles = [
                 <a class="btn <?= $reportFormat === 'province_summary' ? 'btn-success' : 'btn-outline-success' ?>" href="<?= e($provinceSummaryReportUrl) ?>">Provincial Summary</a>
                 <a class="btn <?= $reportFormat === 'sdd_summary' ? 'btn-success' : 'btn-outline-success' ?>" href="<?= e($sddSummaryReportUrl) ?>">SDD Summary Report</a>
                 <a class="btn <?= $reportFormat === 'monthly_sdd_summary' ? 'btn-success' : 'btn-outline-success' ?>" href="<?= e($monthlySddSummaryReportUrl) ?>">SDD Report (Monthly)</a>
-                <a class="btn <?= $reportFormat === 'full_list_fwsp' ? 'btn-success' : 'btn-outline-success' ?>" href="<?= e($fullListReportUrl) ?>">Full List (FWSP)</a>
+                <a class="btn <?= $reportFormat === 'full_list_fsr' ? 'btn-success' : 'btn-outline-success' ?>" href="<?= e($fullListReportUrl) ?>">Full List (FSR)</a>
                 <a class="btn <?= $reportFormat === 'ip_group_delivery' ? 'btn-success' : 'btn-outline-success' ?>" href="<?= e($ipGroupReportUrl) ?>">IP Group Delivery</a>
             </div>
             <div class="report-action-stack">
@@ -398,7 +404,7 @@ $reportPageTitles = [
                     </table>
                 </div>
             </article>
-        <?php elseif ($reportFormat === 'full_list_fwsp'): ?>
+        <?php elseif ($reportFormat === 'full_list_fsr'): ?>
             <?php
             $dateLabel = 'AS OF ' . strtoupper(date('F Y'));
             if (!empty($filters['date_from']) || !empty($filters['date_to'])) {
@@ -456,7 +462,7 @@ $reportPageTitles = [
             ?>
             <article class="report-sheet full-list-report-sheet">
                 <header class="report-title">
-                    <h2>FULL LIST (FWSP)</h2>
+                    <h2>FULL LIST (FSR)</h2>
                     <p><?= e($dateLabel) ?></p>
                 </header>
 
@@ -872,7 +878,7 @@ $reportPageTitles = [
         <?php endif; ?>
 
         <?php if (($_SESSION['role'] ?? '') !== 'Read-Only User'): ?>
-        <section class="panel report-signatory-selector no-print" data-report-signatory-selector data-order-key="fwsp-report-signatory-order-<?= e($_SESSION['user_id'] ?? 0) ?>">
+        <section class="panel report-signatory-selector no-print" data-report-signatory-selector data-order-key="fsr-report-signatory-order-<?= e($_SESSION['user_id'] ?? 0) ?>">
             <div class="panel-head">
                 <div>
                     <h2>Report Signatories</h2>

@@ -9,7 +9,7 @@ $archiveKey = $isSuperAdmin ? 'admin_archived' : 'reporter_archived';
             <p class="eyebrow">Developer Team Desk</p>
             <h3>Tech Support</h3>
         </div>
-        <img class="tech-support-head-logo" src="assets/images/fwsp-logos.gif" alt="" aria-hidden="true">
+        <img class="tech-support-head-logo" src="assets/images/fsr-logos.gif" alt="" aria-hidden="true">
     </div>
 
     <?php if (!$isSuperAdmin): ?>

@@ -44,7 +44,7 @@ try {
     $stmt->execute([
         'full_name' => 'Seed Manager 000001',
         'username' => '000001',
-        'email' => '000001@fwsp.local',
+        'email' => '000001@fsr.local',
         'password_hash' => password_hash('password', PASSWORD_DEFAULT),
         'region_id' => $location['region_id'] ?? null,
         'branch_id' => $location['branch_id'] ?? null,

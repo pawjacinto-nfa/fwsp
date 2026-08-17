@@ -133,7 +133,6 @@
                             <?php foreach (['Persons with Disability', 'Indigenous People', 'Senior Citizen', 'Muslim', 'Youth', 'Adult'] as $item): ?>
                                 <label><input type="checkbox" name="sector[]" value="<?= e($item) ?>" <?= in_array($item, $currentSectors, true) ? 'checked' : '' ?>> <?= e($item) ?></label>
                             <?php endforeach; ?>
-                            <label class="ip-group-member-choice"><input type="checkbox" name="is_ip_group_member" value="1" <?= !empty($farmer['is_ip_group_member']) ? 'checked' : '' ?>> Indigenous Sector Group Delivery Member</label>
                         </div>
                     </section>
                 </div>

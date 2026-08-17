@@ -424,7 +424,7 @@ final class Farmer
 
     private static function formatFarmerKey(int $sequence, ?string $period = null): string
     {
-        return sprintf('NFAFWSP-%s-%07d', $period ?: date('ym'), $sequence);
+        return sprintf('NFAFSR-%s-%07d', $period ?: date('ym'), $sequence);
     }
 
     private static function landholdingsForFarmer(int $farmerId): array

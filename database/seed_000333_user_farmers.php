@@ -149,7 +149,7 @@ try {
     $userStmt->execute([
         'full_name' => 'Seed Warehouse Manager 000333',
         'username' => '000333',
-        'email' => '000333@fwsp.local',
+        'email' => '000333@fsr.local',
         'password_hash' => password_hash('password', PASSWORD_DEFAULT),
         'role' => 'Warehouse Personnel',
         'region_id' => $target['region_id'],
@@ -244,7 +244,7 @@ try {
             'spouse_name' => $civilStatus === 'Married' ? 'Seeded Spouse ' . $number : null,
             'dependents' => $index % 7,
             'contact_number' => sprintf('0918333%04d', $number),
-            'email' => sprintf('wm000333.farmer%03d@fwsp.local', $number),
+            'email' => sprintf('wm000333.farmer%03d@fsr.local', $number),
             'sex' => $number % 2 === 0 ? 'Male' : 'Female',
             'gender_orientation' => json_encode($sogie[$index % count($sogie)], JSON_THROW_ON_ERROR),
             'sector' => json_encode($sectors[$index % count($sectors)], JSON_THROW_ON_ERROR),

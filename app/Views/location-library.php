@@ -65,14 +65,33 @@
 
     <section class="panel table-section">
         <div class="panel-head"><h2>Master Location List</h2></div>
+        <div class="row g-2 align-items-end mb-3" data-field-office-filters>
+            <div class="col-md-4">
+                <label class="form-label" for="fieldOfficeSearch">Search locations</label>
+                <input id="fieldOfficeSearch" class="form-control" type="search" placeholder="Search region, branch, province, or facility">
+            </div>
+            <div class="col-sm-4 col-md-2">
+                <label class="form-label" for="fieldOfficeRegionFilter">Region</label>
+                <select id="fieldOfficeRegionFilter" class="form-select" data-field-office-filter="region"><option value="">All</option><?php foreach ($regions as $region): ?><option value="<?= e($region['id']) ?>"><?= e($region['name']) ?></option><?php endforeach; ?></select>
+            </div>
+            <div class="col-sm-4 col-md-2">
+                <label class="form-label" for="fieldOfficeBranchFilter">Branch</label>
+                <select id="fieldOfficeBranchFilter" class="form-select" data-field-office-filter="branch"><option value="">All</option><?php foreach ($branches as $branch): ?><option value="<?= e($branch['id']) ?>"><?= e($branch['name']) ?></option><?php endforeach; ?></select>
+            </div>
+            <div class="col-sm-4 col-md-2">
+                <label class="form-label" for="fieldOfficeProvinceFilter">Province</label>
+                <select id="fieldOfficeProvinceFilter" class="form-select" data-field-office-filter="province"><option value="">All</option><?php foreach ($provinces as $province): ?><option value="<?= e($province['id']) ?>"><?= e($province['name']) ?></option><?php endforeach; ?></select>
+            </div>
+            <div class="col-md-2"><button class="btn btn-outline-success w-100" type="button" data-clear-field-office-filters>Clear filters</button></div>
+        </div>
         <div class="table-responsive">
-            <table class="table align-middle">
+            <table class="table align-middle" id="field-office-table" data-page-size="20">
                 <thead>
                     <tr><th>Region</th><th>Branch</th><th>Province</th><th>Facility Name</th></tr>
                 </thead>
                 <tbody>
                 <?php foreach ($locations as $location): ?>
-                    <tr>
+                    <tr data-region-id="<?= e($location['region_id']) ?>" data-branch-id="<?= e($location['branch_id']) ?>" data-province-id="<?= e($location['province_id']) ?>">
                         <td>
                             <form method="post" class="inline-edit">
                                 <input type="hidden" name="type" value="region">

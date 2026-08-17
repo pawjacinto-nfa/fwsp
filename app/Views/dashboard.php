@@ -1,3 +1,8 @@
+<?php
+$dashboardAdmin = ($_SESSION['role'] ?? '') === 'System Admin';
+$dashboardEncodingAvailable = $dashboardAdmin || \App\Models\SystemSetting::moduleEnabled('encoding');
+$dashboardScheduleAvailable = $dashboardAdmin || \App\Models\SystemSetting::moduleEnabled('delivery_schedule');
+?>
 <section id="dashboard" class="dashboard-grid dashboard-landing">
     <div class="landing-slideshow<?= empty($displaySettings['panning_enabled']) ? ' no-pan' : '' ?>" data-landing-slideshow data-loop-duration="<?= e((string) ($displaySettings['loop_duration'] ?? 7)) ?>">
         <?php foreach ($slides as $index => $slide): ?>
@@ -12,7 +17,10 @@
     </div>
     <?php if (empty($_SESSION['user_id'])): ?>
         <header class="landing-brand" aria-label="National Food Authority Farmer-Seller Registry">
-            <img src="assets/images/farmer-seller-registry-logo-optimized.webp" width="256" height="256" alt="">
+            <span class="landing-brand-logos" aria-hidden="true">
+                <img src="assets/images/nfa-logo-small.png" width="104" height="104" alt="">
+                <img src="assets/images/farmer-seller-registry-logo-optimized.webp" width="104" height="104" alt="">
+            </span>
             <p>National Food Authority</p>
             <h1>Farmer-Seller Registry</h1>
         </header>
@@ -26,7 +34,7 @@
     </div>
 
     <div class="dashboard-actions">
-        <a class="action-square activity-transition" href="index.php?page=encode-farmer">
+        <?php if ($dashboardEncodingAvailable): ?><a class="action-square activity-transition" href="index.php?page=encode-farmer">
             <span class="activity-image-stack"><img class="activity-image base" src="assets/images/activity-buttons/button1-a1-v.png" alt=""><img class="activity-image hover" src="assets/images/activity-buttons/button1-a1-h.png" alt=""></span>
             <strong>Create Farmer Profile</strong>
         </a>
@@ -37,6 +45,10 @@
         <a class="action-square activity-transition" href="index.php?page=organization-delivery">
             <span class="activity-image-stack"><img class="activity-image base" src="assets/images/activity-buttons/button3-a3-h.png" alt=""><img class="activity-image hover" src="assets/images/activity-buttons/button3-a3-v.png" alt=""></span>
             <strong>Farmers Organization Delivery</strong>
-        </a>
+        </a><?php endif; ?>
+        <?php if ($dashboardScheduleAvailable): ?><a class="action-square activity-transition" href="index.php?page=delivery-schedules">
+            <span class="activity-image-stack"><img class="activity-image base" src="assets/images/activity-buttons/button4-a4-v.png" alt=""><img class="activity-image hover" src="assets/images/activity-buttons/button4-a4-h.png" alt=""></span>
+            <strong>Schedule Delivery</strong>
+        </a><?php endif; ?>
     </div>
 </section>

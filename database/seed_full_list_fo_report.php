@@ -236,7 +236,7 @@ try {
 
     $db->commit();
     printf(
-        "Seeded %d farmer organizations, %d member farmer records, and %d FO delivery transactions for Full List (FWSP).\n",
+        "Seeded %d farmer organizations, %d member farmer records, and %d FO delivery transactions for Full List (FSR).\n",
         count($organizations),
         $seededMembers,
         $seededTransactions

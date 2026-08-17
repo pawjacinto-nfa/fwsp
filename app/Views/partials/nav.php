@@ -2,15 +2,21 @@
 $currentUserId = !empty($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : null;
 $notifications = $currentUserId ? \App\Models\Notification::all($currentUserId) : [];
 $unreadNotifications = $currentUserId ? \App\Models\Notification::unreadCount($currentUserId) : 0;
+$isSystemAdmin = ($_SESSION['role'] ?? '') === 'System Admin';
+$encodingAvailable = $isSystemAdmin || \App\Models\SystemSetting::moduleEnabled('encoding');
+$deliveryScheduleAvailable = $isSystemAdmin || \App\Models\SystemSetting::moduleEnabled('delivery_schedule');
 if ($notifications !== []): ?>
-<script>window.FWSP_TOAST_NOTIFICATION = <?= json_encode(array_values(array_filter($notifications, fn (array $notification): bool => empty($notification['read'])))[0] ?? null, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;</script>
+<script>window.FSR_TOAST_NOTIFICATION = <?= json_encode(array_values(array_filter($notifications, fn (array $notification): bool => empty($notification['read'])))[0] ?? null, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;</script>
 <?php endif;
 ?>
 <nav class="navbar navbar-expand-xl sticky-top app-nav<?= empty($_SESSION['user_id']) ? ' guest-nav' : '' ?>">
     <div class="container-fluid px-3 px-lg-4">
         <?php if (!empty($_SESSION['user_id'])): ?>
             <a class="navbar-brand app-text-brand" href="index.php" aria-label="National Food Authority Farmer-Seller Registry home">
-                <img src="assets/images/farmer-seller-registry-logo-optimized.webp" width="56" height="56" alt="">
+                <span class="app-brand-logos" aria-hidden="true">
+                    <img src="assets/images/nfa-logo-small.png" width="56" height="56" alt="">
+                    <img src="assets/images/farmer-seller-registry-logo-optimized.webp" width="56" height="56" alt="">
+                </span>
                 <span><small>National Food Authority</small><strong>Farmer-Seller Registry</strong></span>
             </a>
         <?php endif; ?>
@@ -23,9 +29,16 @@ if ($notifications !== []): ?>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="index.php?page=encode-farmer" role="button" data-bs-toggle="dropdown" aria-expanded="false">Encode</a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="index.php?page=encode-farmer">Farmer Profile</a></li>
-                            <li><a class="dropdown-item" href="index.php?page=individual-delivery">Individual Delivery</a></li>
-                            <li><a class="dropdown-item" href="index.php?page=organization-delivery">Farmers Organization Delivery</a></li>
+                            <?php if ($encodingAvailable): ?>
+                                <li><a class="dropdown-item" href="index.php?page=encode-farmer">Farmer Profile</a></li>
+                                <li><a class="dropdown-item" href="index.php?page=individual-delivery">Individual Delivery</a></li>
+                                <li><a class="dropdown-item" href="index.php?page=organization-delivery">Farmers Organization Delivery</a></li>
+                            <?php else: ?>
+                                <li><span class="dropdown-item disabled" aria-disabled="true">Farmer Profile (maintenance)</span></li>
+                                <li><span class="dropdown-item disabled" aria-disabled="true">Individual Delivery (maintenance)</span></li>
+                                <li><span class="dropdown-item disabled" aria-disabled="true">Farmers Organization Delivery (maintenance)</span></li>
+                            <?php endif; ?>
+                            <?php if ($deliveryScheduleAvailable): ?><li><a class="dropdown-item" href="index.php?page=delivery-schedules">Delivery Schedules</a></li><?php else: ?><li><span class="dropdown-item disabled" aria-disabled="true">Delivery Schedules (maintenance)</span></li><?php endif; ?>
                         </ul>
                     </li>
                 <?php endif; ?>
@@ -145,5 +158,12 @@ if ($notifications !== []): ?>
     </div>
 </nav>
 <button class="mode-toggle floating-mode-toggle" type="button" id="themeToggle" aria-label="Toggle visual contrast"><span aria-hidden="true"></span></button>
-<button class="screensaver-toggle" type="button" id="screensaverToggle" aria-label="Enable screensaver mode" title="Screensaver mode" data-user-logged-in="<?= !empty($_SESSION['user_id']) ? 'true' : 'false' ?>"><span aria-hidden="true">SS</span></button>
+<?php if (($view ?? '') !== 'dashboard'): ?>
+    <a class="floating-nfa-link no-print print-exclude" href="https://nfa.gov.ph" target="_blank" rel="noopener" aria-label="Open National Food Authority website">
+        <img src="assets/images/nfa-logo-small.png" width="50" height="50" alt="">
+    </a>
+<?php endif; ?>
+<?php if (($view ?? '') === 'dashboard'): ?>
+    <button class="screensaver-toggle" type="button" id="screensaverToggle" aria-label="Enable screensaver mode" title="Screensaver mode" data-user-logged-in="<?= !empty($_SESSION['user_id']) ? 'true' : 'false' ?>"><span aria-hidden="true">SS</span></button>
+<?php endif; ?>
 <a class="floating-home-link no-print print-exclude" href="index.php" aria-label="Go to home">Home</a>

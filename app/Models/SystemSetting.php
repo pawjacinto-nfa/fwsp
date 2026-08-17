@@ -9,6 +9,8 @@ final class SystemSetting
 {
     private const MAINTENANCE_MODE = 'maintenance_mode';
     private const MAINTENANCE_SCHEDULE = 'maintenance_schedule';
+    private const ENCODING_MODE = 'encoding_mode';
+    private const DELIVERY_SCHEDULE_MODE = 'delivery_schedule_mode';
 
     public static function maintenanceModeEnabled(): bool
     {
@@ -57,6 +59,31 @@ final class SystemSetting
         $stmt->execute(['setting_key' => self::MAINTENANCE_SCHEDULE, 'setting_value' => $schedule ?? '']);
     }
 
+    /** System Admin accounts always retain access to modular maintenance areas. */
+    public static function moduleEnabled(string $module): bool
+    {
+        self::ensureSchema();
+        $key = match ($module) {
+            'encoding' => self::ENCODING_MODE,
+            'delivery_schedule' => self::DELIVERY_SCHEDULE_MODE,
+            default => null,
+        };
+        return $key === null || self::value($key) !== '1';
+    }
+
+    public static function setModuleEnabled(string $module, bool $enabled): void
+    {
+        self::ensureSchema();
+        $key = match ($module) {
+            'encoding' => self::ENCODING_MODE,
+            'delivery_schedule' => self::DELIVERY_SCHEDULE_MODE,
+            default => null,
+        };
+        if ($key === null) return;
+        $stmt = Database::connection()->prepare('INSERT INTO system_settings (setting_key, setting_value) VALUES (:setting_key, :setting_value) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)');
+        $stmt->execute(['setting_key' => $key, 'setting_value' => $enabled ? '0' : '1']);
+    }
+
     private static function value(string $key): ?string
     {
         $stmt = Database::connection()->prepare('SELECT setting_value FROM system_settings WHERE setting_key = :setting_key LIMIT 1');
@@ -86,6 +113,7 @@ final class SystemSetting
             "INSERT IGNORE INTO system_settings (setting_key, setting_value)
              VALUES ('maintenance_schedule', '')"
         );
+        Database::connection()->exec("INSERT IGNORE INTO system_settings (setting_key, setting_value) VALUES ('encoding_mode', '0'), ('delivery_schedule_mode', '0')");
         $ready = true;
     }
 }
