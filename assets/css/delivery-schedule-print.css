@@ -54,6 +54,12 @@
 .po-signature-line { display: block; height: 5mm; border-bottom: 1px solid #4e5b71; }
 .po-signatures strong { display: block; margin: 1mm 0; color: #27317c; font-size: 7pt; }
 .po-signatures p { display: flex; align-items: baseline; gap: 1mm; margin: .5mm 0 0; }
+.po-tracking { display: grid; grid-template-columns: 20mm 1fr; align-items: center; gap: 3mm; margin-top: 2mm; padding: 1.5mm 2mm; border: 1px solid #b8c3d2; border-radius: 2mm; background: #f6f8fb; }
+.po-tracking img { display: block; width: 20mm; height: 20mm; background: #fff; }
+.po-tracking h2 { margin: 0 0 .8mm; color: #27317c; font-size: 7.5pt; }
+.po-tracking p { margin: 0 0 .8mm; color: #536078; font-size: 6.2pt; line-height: 1.25; }
+.po-tracking strong { display: block; color: #17233b; font-size: 6.6pt; overflow-wrap: anywhere; }
+.po-tracking small { display: block; margin-top: .8mm; color: #6f7a8d; font-size: 5.6pt; }
 .po-footer { margin-top: auto; padding-top: 2mm; border-top: 1px solid #c9d1de; color: #7c879a; font-size: 5.8pt; letter-spacing: .04em; text-align: right; text-transform: uppercase; }
 
 @media (max-width: 850px) {
@@ -76,5 +82,6 @@
     .po-party-grid { margin-top: 2mm; }
     .po-schedule-notes { margin-top: 1.5mm; }
     .po-signatures { margin-top: 2mm; }
+    .po-tracking { margin-top: 1.5mm; }
     .po-confirmation-paper, .po-confirmation-paper * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }

@@ -168,6 +168,11 @@ final class DashboardController
 
         $transaction = !empty($_GET['transaction_id']) ? Transaction::find((int) $_GET['transaction_id']) : null;
         $scheduledDelivery = !$transaction && !empty($_GET['schedule_id']) ? DeliverySchedule::find((int) $_GET['schedule_id']) : null;
+        if ($scheduledDelivery && !$this->canAccessDeliverySchedule($scheduledDelivery)) {
+            $this->flash('danger', 'That delivery schedule belongs to another facility.');
+            $this->redirect('?page=delivery-schedules');
+            return;
+        }
         $locationDefaults = $this->transactionLocationValues($transaction);
         if ($scheduledDelivery) {
             foreach (['region_id', 'branch_id', 'province_id', 'warehouse_id'] as $key) {
@@ -193,6 +198,11 @@ final class DashboardController
 
         $transaction = !empty($_GET['transaction_id']) ? Transaction::find((int) $_GET['transaction_id']) : null;
         $scheduledDelivery = !$transaction && !empty($_GET['schedule_id']) ? DeliverySchedule::find((int) $_GET['schedule_id']) : null;
+        if ($scheduledDelivery && !$this->canAccessDeliverySchedule($scheduledDelivery)) {
+            $this->flash('danger', 'That delivery schedule belongs to another facility.');
+            $this->redirect('?page=delivery-schedules');
+            return;
+        }
         $locationDefaults = $this->transactionLocationValues($transaction);
         if ($scheduledDelivery) {
             foreach (['region_id', 'branch_id', 'province_id', 'warehouse_id'] as $key) {
@@ -217,7 +227,13 @@ final class DashboardController
         $month = (string) ($filters['month'] ?? date('Y-m'));
         if (!preg_match('/^\\d{4}-(0[1-9]|1[0-2])$/', $month)) $month = date('Y-m');
         $location = $this->currentUserLocationValues();
-        if (empty($location['warehouse_id'])) {
+        $isSystemAdmin = ($_SESSION['role'] ?? '') === 'System Admin';
+        if (!$isSystemAdmin && empty($location['warehouse_id'])) {
+            $this->flash('warning', 'Your account must be assigned to a facility before you can use the shared delivery calendar.');
+            $this->redirect('?page=account');
+            return;
+        }
+        if ($isSystemAdmin && empty($location['warehouse_id'])) {
             foreach (Location::libraryRows() as $candidate) {
                 if (empty($candidate['warehouse_id'])) continue;
                 if (!empty($location['region_id']) && (string) $location['region_id'] !== (string) $candidate['region_id']) continue;
@@ -228,6 +244,13 @@ final class DashboardController
             }
         }
         $warehouseId = !empty($location['warehouse_id']) ? (int) $location['warehouse_id'] : Location::defaultWarehouseId();
+        $calendarFacilityName = '';
+        foreach (Location::warehouses() as $warehouse) {
+            if ((int) $warehouse['id'] === (int) $warehouseId) {
+                $calendarFacilityName = (string) $warehouse['name'];
+                break;
+            }
+        }
         View::render('delivery-schedules', [
             'title' => 'Delivery Schedules',
             'alert' => $this->pullFlash(),
@@ -238,6 +261,8 @@ final class DashboardController
             'dayStatuses' => DeliverySchedule::dayStatuses($month, $warehouseId),
             'allDayStatuses' => DeliverySchedule::allDayStatuses($month),
             'calendarWarehouseId' => $warehouseId,
+            'calendarFacilityName' => $calendarFacilityName,
+            'lockScheduleFacility' => !$isSystemAdmin,
             'locationDefaults' => $location,
             'openDate' => preg_match('/^\\d{4}-\\d{2}-\\d{2}$/', (string) ($filters['open_date'] ?? '')) ? (string) $filters['open_date'] : '',
             'activeScheduleTab' => ($filters['tab'] ?? '') === 'list' ? 'list' : 'schedule',
@@ -249,6 +274,10 @@ final class DashboardController
         if (!$this->authorizeDeliverySchedule()) return;
         $date = $this->clean($payload['schedule_date'] ?? '');
         try {
+            $warehouseId = ($_SESSION['role'] ?? '') === 'System Admin'
+                ? (int) ($payload['warehouse_id'] ?? 0)
+                : $this->assignedDeliveryScheduleWarehouseId();
+            if ($warehouseId <= 0) throw new \DomainException('Your account is not assigned to a delivery facility.');
             $id = DeliverySchedule::create([
                 'schedule_date' => $date,
                 'seller_type' => $this->clean($payload['seller_type'] ?? 'Individual'),
@@ -259,7 +288,7 @@ final class DashboardController
                 'temporary_organization_name' => $this->clean($payload['temporary_organization_name'] ?? ''),
                 'representative_name' => $this->clean($payload['representative_name'] ?? ''),
                 'expected_bags' => $this->clean($payload['expected_bags'] ?? ''),
-                'warehouse_id' => $this->clean($payload['warehouse_id'] ?? ''),
+                'warehouse_id' => $warehouseId,
             ]);
             Activity::add('Delivery scheduled for ' . $date . '.');
             $this->flash('success', 'Delivery scheduled. Your confirmation is ready to preview or print.');
@@ -273,12 +302,37 @@ final class DashboardController
         if (!$this->authorizeDeliverySchedule()) return;
         $schedule = DeliverySchedule::find((int) ($filters['id'] ?? 0));
         if (!$schedule) { $this->flash('danger', 'The delivery schedule was not found.'); $this->redirect('?page=delivery-schedules'); return; }
+        if (!$this->canAccessDeliverySchedule($schedule)) {
+            $this->flash('danger', 'That delivery schedule belongs to another facility.');
+            $this->redirect('?page=delivery-schedules');
+            return;
+        }
         $printLanguage = ($filters['language'] ?? 'tl') === 'en' ? 'en' : 'tl';
         View::render('delivery-schedule-confirmation', [
             'title' => 'Delivery Schedule Confirmation',
             'alert' => $this->pullFlash(),
             'schedule' => $schedule,
             'printLanguage' => $printLanguage,
+        ]);
+    }
+
+    public function deliverySchedulePublicStatus(array $filters): void
+    {
+        if (!headers_sent()) {
+            header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+            header('Pragma: no-cache');
+            header('Referrer-Policy: no-referrer');
+            header('X-Robots-Tag: noindex, nofollow, noarchive');
+        }
+
+        $schedule = DeliverySchedule::findPublicStatus($this->clean($filters['token'] ?? ''));
+        if (!$schedule) {
+            http_response_code(404);
+        }
+
+        View::renderPublic('delivery-schedule-status', [
+            'title' => $schedule ? 'Appointment Status' : 'Appointment Not Found',
+            'schedule' => $schedule,
         ]);
     }
 
@@ -290,6 +344,9 @@ final class DashboardController
         $statuses = ['completed' => 'Completed', 'rescheduled' => 'Rescheduled', 'no-show' => 'No-show'];
 
         try {
+            $existingSchedule = DeliverySchedule::find($id);
+            if (!$existingSchedule) throw new \DomainException('The delivery schedule was not found.');
+            if (!$this->canAccessDeliverySchedule($existingSchedule)) throw new \DomainException('That delivery schedule belongs to another facility.');
             $schedule = DeliverySchedule::updateStatus($id, $statuses[$requested] ?? '');
             if (!$schedule) throw new \DomainException('The delivery schedule was not found.');
             Activity::add('Delivery schedule reference ' . $schedule['confirmation_code'] . ' marked ' . strtolower($schedule['status']) . '.');
@@ -317,7 +374,9 @@ final class DashboardController
         if (!$this->authorizeDeliverySchedule()) return;
         $date = $this->clean($payload['schedule_date'] ?? '');
         $parsed = \DateTimeImmutable::createFromFormat('!Y-m-d', $date);
-        $warehouseId = (int) ($payload['warehouse_id'] ?? 0);
+        $warehouseId = ($_SESSION['role'] ?? '') === 'System Admin'
+            ? (int) ($payload['warehouse_id'] ?? 0)
+            : $this->assignedDeliveryScheduleWarehouseId();
         if (!$parsed || $parsed->format('Y-m-d') !== $date || $warehouseId <= 0) {
             http_response_code(422);
             echo json_encode(['success' => false, 'message' => 'Select a valid date and facility.']);
@@ -2160,6 +2219,20 @@ final class DashboardController
             'province_id' => $user['province_id'] ?? '',
             'warehouse_id' => $user['warehouse_id'] ?? '',
         ];
+    }
+
+    private function assignedDeliveryScheduleWarehouseId(): int
+    {
+        $location = $this->currentUserLocationValues();
+        return (int) ($location['warehouse_id'] ?? 0);
+    }
+
+    private function canAccessDeliverySchedule(array $schedule): bool
+    {
+        if (($_SESSION['role'] ?? '') === 'System Admin') return true;
+        $assignedWarehouseId = $this->assignedDeliveryScheduleWarehouseId();
+        return $assignedWarehouseId > 0
+            && (int) ($schedule['warehouse_id'] ?? 0) === $assignedWarehouseId;
     }
 
     private function transactionLocationValues(?array $transaction): array

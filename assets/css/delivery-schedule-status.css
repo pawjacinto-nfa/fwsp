@@ -1,0 +1,47 @@
+:root { color-scheme: light; font-family: Arial, Helvetica, sans-serif; color: #17233b; background: #f3f6f8; }
+* { box-sizing: border-box; }
+body { min-height: 100vh; margin: 0; background: radial-gradient(circle at top, #fff 0, #f3f6f8 42rem); }
+.tracking-shell { width: min(720px, calc(100% - 28px)); margin: 0 auto; padding: 34px 0 28px; }
+.tracking-brand { display: flex; align-items: center; gap: 14px; margin: 0 6px 24px; }
+.tracking-brand img { width: 64px; height: 64px; object-fit: contain; }
+.tracking-brand div { display: flex; flex-direction: column; }
+.tracking-brand span, .tracking-brand small { color: #657186; font-size: .72rem; }
+.tracking-brand strong { color: #293385; font-size: 1.12rem; letter-spacing: .01em; }
+.tracking-card { overflow: hidden; padding: 30px; border: 1px solid #dbe2e8; border-top: 6px solid #318753; border-radius: 20px; background: #fff; box-shadow: 0 18px 50px rgba(24, 43, 72, .10); }
+.tracking-card.is-completed { border-top-color: #16784a; }
+.tracking-card.is-rescheduled { border-top-color: #d79a14; }
+.tracking-card.is-no-show { border-top-color: #7c8580; }
+.tracking-status-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
+.tracking-kicker { margin: 0 0 6px; color: #657186; font-size: .72rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+h1 { margin: 0; color: #1d2a42; font-size: clamp(1.45rem, 5vw, 2.2rem); line-height: 1.18; }
+.tracking-badge { flex: 0 0 auto; padding: 7px 12px; border-radius: 999px; background: #e5f4ea; color: #17643a; font-size: .76rem; font-weight: 700; }
+.is-rescheduled .tracking-badge { background: #fff0c7; color: #795800; }
+.is-no-show .tracking-badge { background: #e9ecea; color: #515a55; }
+.tracking-message { margin: 16px 0 24px; color: #536078; font-size: .94rem; line-height: 1.65; }
+.tracking-reference { margin: 0 -30px; padding: 18px 30px; background: #293385; color: #fff; }
+.tracking-reference span { display: block; opacity: .76; font-size: .68rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.tracking-reference strong { display: block; margin-top: 4px; font-size: clamp(1.18rem, 5vw, 1.65rem); overflow-wrap: anywhere; }
+.tracking-details { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin: 22px 0 0; border: 1px solid #e0e5ec; border-radius: 12px; }
+.tracking-details div { padding: 15px 16px; border-bottom: 1px solid #e0e5ec; }
+.tracking-details div:nth-child(odd) { border-right: 1px solid #e0e5ec; }
+.tracking-details .is-wide { grid-column: 1 / -1; border-right: 0; border-bottom: 0; }
+.tracking-details dt { color: #748097; font-size: .66rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
+.tracking-details dd { margin: 5px 0 0; color: #1d2a42; font-size: .88rem; font-weight: 600; overflow-wrap: anywhere; }
+.tracking-privacy { margin-top: 20px; padding: 14px 16px; border-radius: 10px; background: #f2f7f4; color: #315743; }
+.tracking-privacy strong { font-size: .78rem; }
+.tracking-privacy p { margin: 3px 0 0; font-size: .72rem; line-height: 1.5; }
+.tracking-updated { margin: 16px 0 0; color: #7b8598; font-size: .68rem; text-align: right; }
+.tracking-not-found { border-top-color: #b3464c; text-align: center; }
+.tracking-not-found .tracking-symbol { display: grid; place-items: center; width: 48px; height: 48px; margin: 0 auto 14px; border-radius: 50%; background: #fdebec; color: #a62c35; font-size: 1.5rem; font-weight: 700; }
+.tracking-not-found p:last-child { margin: 14px auto 0; max-width: 520px; color: #657186; line-height: 1.6; }
+.tracking-shell > footer { margin: 20px auto 0; max-width: 560px; color: #7b8598; font-size: .72rem; line-height: 1.5; text-align: center; }
+@media (max-width: 560px) {
+    .tracking-shell { width: min(100% - 18px, 720px); padding-top: 20px; }
+    .tracking-brand img { width: 54px; height: 54px; }
+    .tracking-card { padding: 22px 18px; border-radius: 15px; }
+    .tracking-status-head { flex-direction: column; }
+    .tracking-reference { margin-right: -18px; margin-left: -18px; padding-right: 18px; padding-left: 18px; }
+    .tracking-details { grid-template-columns: 1fr; }
+    .tracking-details div, .tracking-details div:nth-child(odd) { border-right: 0; border-bottom: 1px solid #e0e5ec; }
+    .tracking-details .is-wide { grid-column: auto; border-bottom: 0; }
+}

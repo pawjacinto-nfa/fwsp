@@ -21,8 +21,9 @@ $irrigated = $farm['irrigated'] ?? 'Yes';
         <div class="col-md-2"><label class="form-label">Average Yield/ha (Third Crop, MT)</label><input type="number" step="0.001" name="farms[<?= e($farmIndex) ?>][third_crop_yield]" value="<?= e($farm['third_crop_yield'] ?? '') ?>" class="form-control"></div>
     </div>
     <div class="check-grid farm-classification-grid">
-        <?php foreach (['Riceland', 'Cornland', 'Owner-Tiller', 'Landowner/Lessor', 'CLT Holder/Recipient'] as $item): ?>
-            <label><input type="checkbox" name="farms[<?= e($farmIndex) ?>][landholding][]" value="<?= e($item) ?>" <?= in_array($item, $classifications, true) ? 'checked' : '' ?>> <?= e($item) ?></label>
+        <?php foreach (['Riceland', 'Cornland', 'Owner-Tiller', 'Lessor', 'Lessee', 'Farm Worker', 'Farm Administrator', 'CLT Holder/Recipient'] as $item): ?>
+            <?php $isChecked = in_array($item, $classifications, true) || ($item === 'Lessor' && in_array('Landowner/Lessor', $classifications, true)); ?>
+            <label><input type="checkbox" name="farms[<?= e($farmIndex) ?>][landholding][]" value="<?= e($item) ?>" <?= $isChecked ? 'checked' : '' ?>> <?= e($item) ?></label>
         <?php endforeach; ?>
     </div>
 </section>

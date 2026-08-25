@@ -5,6 +5,8 @@ $locationRequired = $locationRequired ?? false;
 $locationRequiredLevels = $locationRequiredLevels ?? [];
 $locationIncludeAll = $locationIncludeAll ?? false;
 $locationValues = $locationValues ?? [];
+$locationDisabled = $locationDisabled ?? false;
+$locationDisabledAttr = $locationDisabled ? 'disabled aria-disabled="true"' : '';
 $locationLabelWarehouse = $locationLabelWarehouse ?? 'Facility Name';
 $regionRequiredAttr = ($locationRequired || in_array('region', $locationRequiredLevels, true)) ? 'required' : '';
 $branchRequiredAttr = ($locationRequired || in_array('branch', $locationRequiredLevels, true)) ? 'required' : '';
@@ -15,7 +17,7 @@ $showLocationClear = $locationShowClear ?? ($locationIncludeAll && !$locationReq
 ?>
 <div class="<?= e($locationClass) ?>">
     <label class="form-label">Region</label>
-    <select <?= $regionRequiredAttr ?> name="<?= e($locationPrefix) ?>region_id" class="form-select" data-location-level="region" data-selected="<?= e($locationValues['region_id'] ?? '') ?>">
+    <select <?= $regionRequiredAttr ?> <?= $locationDisabledAttr ?> name="<?= e($locationPrefix) ?>region_id" class="form-select" data-location-level="region" data-selected="<?= e($locationValues['region_id'] ?? '') ?>">
         <option value=""><?= e($emptyLabel) ?></option>
         <?php foreach (\App\Models\Location::regions() as $region): ?>
             <option value="<?= e($region['id']) ?>" <?= ($locationValues['region_id'] ?? '') == $region['id'] ? 'selected' : '' ?>><?= e($region['name']) ?></option>
@@ -24,7 +26,7 @@ $showLocationClear = $locationShowClear ?? ($locationIncludeAll && !$locationReq
 </div>
 <div class="<?= e($locationClass) ?>">
     <label class="form-label">Branch</label>
-    <select <?= $branchRequiredAttr ?> name="<?= e($locationPrefix) ?>branch_id" class="form-select" data-location-level="branch" data-selected="<?= e($locationValues['branch_id'] ?? '') ?>">
+    <select <?= $branchRequiredAttr ?> <?= $locationDisabledAttr ?> name="<?= e($locationPrefix) ?>branch_id" class="form-select" data-location-level="branch" data-selected="<?= e($locationValues['branch_id'] ?? '') ?>">
         <option value=""><?= e($emptyLabel) ?></option>
         <?php foreach (\App\Models\Location::branches() as $branch): ?>
             <option value="<?= e($branch['id']) ?>" <?= ($locationValues['branch_id'] ?? '') == $branch['id'] ? 'selected' : '' ?>><?= e($branch['name']) ?></option>
@@ -33,7 +35,7 @@ $showLocationClear = $locationShowClear ?? ($locationIncludeAll && !$locationReq
 </div>
 <div class="<?= e($locationClass) ?>">
     <label class="form-label">Province</label>
-    <select <?= $provinceRequiredAttr ?> name="<?= e($locationPrefix) ?>province_id" class="form-select" data-location-level="province" data-selected="<?= e($locationValues['province_id'] ?? '') ?>">
+    <select <?= $provinceRequiredAttr ?> <?= $locationDisabledAttr ?> name="<?= e($locationPrefix) ?>province_id" class="form-select" data-location-level="province" data-selected="<?= e($locationValues['province_id'] ?? '') ?>">
         <option value=""><?= e($emptyLabel) ?></option>
         <?php foreach (\App\Models\Location::provinces() as $province): ?>
             <option value="<?= e($province['id']) ?>" <?= ($locationValues['province_id'] ?? '') == $province['id'] ? 'selected' : '' ?>><?= e($province['name']) ?></option>
@@ -42,7 +44,7 @@ $showLocationClear = $locationShowClear ?? ($locationIncludeAll && !$locationReq
 </div>
 <div class="<?= e($locationClass) ?>">
     <label class="form-label"><?= e($locationLabelWarehouse) ?></label>
-    <select <?= $warehouseRequiredAttr ?> name="<?= e($locationPrefix) ?>warehouse_id" class="form-select" data-location-level="warehouse" data-selected="<?= e($locationValues['warehouse_id'] ?? '') ?>">
+    <select <?= $warehouseRequiredAttr ?> <?= $locationDisabledAttr ?> name="<?= e($locationPrefix) ?>warehouse_id" class="form-select" data-location-level="warehouse" data-selected="<?= e($locationValues['warehouse_id'] ?? '') ?>">
         <option value=""><?= e($emptyLabel) ?></option>
         <?php foreach (\App\Models\Location::warehouses() as $warehouse): ?>
             <option value="<?= e($warehouse['id']) ?>" <?= ($locationValues['warehouse_id'] ?? '') == $warehouse['id'] ? 'selected' : '' ?>><?= e($warehouse['name']) ?></option>
@@ -54,4 +56,4 @@ $showLocationClear = $locationShowClear ?? ($locationIncludeAll && !$locationReq
         <button class="btn btn-outline-success w-100" type="button" data-clear-location-filters>Clear Location</button>
     </div>
 <?php endif; ?>
-<?php unset($locationShowClear, $locationRequiredLevels); ?>
+<?php unset($locationShowClear, $locationRequiredLevels, $locationDisabled, $locationDisabledAttr); ?>

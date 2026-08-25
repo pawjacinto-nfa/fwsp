@@ -4,6 +4,11 @@ declare(strict_types=1);
 define('BASE_PATH', dirname(__DIR__));
 define('DATA_PATH', BASE_PATH . '/data');
 
+$composerAutoloader = BASE_PATH . '/vendor/autoload.php';
+if (is_file($composerAutoloader)) {
+    require_once $composerAutoloader;
+}
+
 if (!is_dir(DATA_PATH)) {
     mkdir(DATA_PATH, 0775, true);
 }
@@ -14,15 +19,25 @@ if (!is_dir($sessionPath)) {
     mkdir($sessionPath, 0775, true);
 }
 
-session_save_path($sessionPath);
-session_set_cookie_params([
-    'lifetime' => 0,
-    'path' => '/',
-    'secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
-    'httponly' => true,
-    'samesite' => 'Lax',
-]);
-session_start();
+$isPublicScheduleRequest = ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET'
+    && (
+        ($_GET['page'] ?? '') === 'schedule-status'
+        || preg_match('#/s/[A-Za-z0-9_-]{16}/?(?:\?|$)#', (string) ($_SERVER['REQUEST_URI'] ?? '')) === 1
+    );
+
+if ($isPublicScheduleRequest) {
+    $_SESSION = [];
+} else {
+    session_save_path($sessionPath);
+    session_set_cookie_params([
+        'lifetime' => 0,
+        'path' => '/',
+        'secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ]);
+    session_start();
+}
 
 /** Keep unexpected PHP failures user-visible and reportable instead of rendering a blank page. */
 ob_start();
@@ -115,4 +130,23 @@ function csrf_is_valid(mixed $token): bool
         && isset($_SESSION['csrf_token'])
         && is_string($_SESSION['csrf_token'])
         && hash_equals($_SESSION['csrf_token'], $token);
+}
+
+/** Canonical public origin used in printed QR codes and client status links. */
+function public_app_url(): string
+{
+    $configured = trim((string) (getenv('FSR_PUBLIC_BASE_URL') ?: ''));
+    return rtrim($configured !== '' ? $configured : 'https://sandbox.nfa.gov.ph/fsr', '/');
+}
+
+function delivery_schedule_public_url(string $token): string
+{
+    return public_app_url() . '/s/' . rawurlencode($token);
+}
+
+function app_base_path(): string
+{
+    $scriptName = str_replace('\\', '/', (string) ($_SERVER['SCRIPT_NAME'] ?? '/fsr/index.php'));
+    $directory = rtrim(str_replace('\\', '/', dirname($scriptName)), '/');
+    return $directory === '.' ? '' : $directory;
 }

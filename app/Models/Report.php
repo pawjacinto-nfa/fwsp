@@ -268,6 +268,7 @@ final class Report
                 DATE_FORMAT(t.delivery_date, '%Y-%m') AS period,
                 COUNT(t.id) AS people_count,
                 COALESCE(SUM(t.bags_50kg), 0) AS qty_bags,
+                COALESCE(SUM(t.net_kilogram), 0) AS qty_net_kg,
                 COALESCE(SUM(t.total_amount), 0) AS amount_paid
             FROM transactions t
             INNER JOIN farmers f ON f.id = t.farmer_id
@@ -295,6 +296,11 @@ final class Report
                     * (CASE WHEN sexes.sex = 'Male' THEN COALESCE(member_sexes.male_count, 0) ELSE COALESCE(member_sexes.female_count, 0) END)
                     / NULLIF(COALESCE(member_sexes.male_count, 0) + COALESCE(member_sexes.female_count, 0), 0)
                 ), 0) AS qty_bags,
+                COALESCE(SUM(
+                    t.net_kilogram
+                    * (CASE WHEN sexes.sex = 'Male' THEN COALESCE(member_sexes.male_count, 0) ELSE COALESCE(member_sexes.female_count, 0) END)
+                    / NULLIF(COALESCE(member_sexes.male_count, 0) + COALESCE(member_sexes.female_count, 0), 0)
+                ), 0) AS qty_net_kg,
                 COALESCE(SUM(
                     t.total_amount
                     * (CASE WHEN sexes.sex = 'Male' THEN COALESCE(member_sexes.male_count, 0) ELSE COALESCE(member_sexes.female_count, 0) END)
@@ -634,17 +640,21 @@ final class Report
         return "
             SUM(CASE WHEN t.seller_type = 'Individual' THEN 1 ELSE 0 END) AS individual_farmers,
             SUM(CASE WHEN t.seller_type = 'Individual' THEN t.bags_50kg ELSE 0 END) AS individual_qty,
+            SUM(CASE WHEN t.seller_type = 'Individual' THEN t.net_kilogram ELSE 0 END) AS individual_net_kg,
             SUM(CASE WHEN t.seller_type = 'Individual' THEN t.total_amount ELSE 0 END) AS individual_amount,
             SUM(CASE WHEN t.seller_type = 'Farmer Organization' AND COALESCE(fo.classification_type, 'Farmer Organization') = 'Farmer Organization' THEN 1 ELSE 0 END) AS farmer_organization_count,
             SUM(CASE WHEN t.seller_type = 'Farmer Organization' AND COALESCE(fo.classification_type, 'Farmer Organization') = 'Farmer Organization' THEN COALESCE(t.total_members, 0) ELSE 0 END) AS farmer_organization_members,
             SUM(CASE WHEN t.seller_type = 'Farmer Organization' AND COALESCE(fo.classification_type, 'Farmer Organization') = 'Farmer Organization' THEN t.bags_50kg ELSE 0 END) AS farmer_organization_qty,
+            SUM(CASE WHEN t.seller_type = 'Farmer Organization' AND COALESCE(fo.classification_type, 'Farmer Organization') = 'Farmer Organization' THEN t.net_kilogram ELSE 0 END) AS farmer_organization_net_kg,
             SUM(CASE WHEN t.seller_type = 'Farmer Organization' AND COALESCE(fo.classification_type, 'Farmer Organization') = 'Farmer Organization' THEN t.total_amount ELSE 0 END) AS farmer_organization_amount,
             SUM(CASE WHEN t.seller_type = 'Farmer Organization' AND fo.classification_type = 'Indigenous People Group' THEN 1 ELSE 0 END) AS ip_group_count,
             SUM(CASE WHEN t.seller_type = 'Farmer Organization' AND fo.classification_type = 'Indigenous People Group' THEN COALESCE(t.total_members, 0) ELSE 0 END) AS ip_group_members,
             SUM(CASE WHEN t.seller_type = 'Farmer Organization' AND fo.classification_type = 'Indigenous People Group' THEN t.bags_50kg ELSE 0 END) AS ip_group_qty,
+            SUM(CASE WHEN t.seller_type = 'Farmer Organization' AND fo.classification_type = 'Indigenous People Group' THEN t.net_kilogram ELSE 0 END) AS ip_group_net_kg,
             SUM(CASE WHEN t.seller_type = 'Farmer Organization' AND fo.classification_type = 'Indigenous People Group' THEN t.total_amount ELSE 0 END) AS ip_group_amount,
             COUNT(t.id) AS total_farmers,
             SUM(t.bags_50kg) AS total_qty,
+            SUM(t.net_kilogram) AS total_net_kg,
             SUM(t.total_amount) AS total_amount
         ";
     }
@@ -654,12 +664,15 @@ final class Report
         return "
             SUM(CASE WHEN t.seller_type = 'Individual' AND f.sex = 'Male' THEN 1 ELSE 0 END) AS male_count,
             SUM(CASE WHEN t.seller_type = 'Individual' AND f.sex = 'Male' THEN t.bags_50kg ELSE 0 END) AS male_qty,
+            SUM(CASE WHEN t.seller_type = 'Individual' AND f.sex = 'Male' THEN t.net_kilogram ELSE 0 END) AS male_net_kg,
             SUM(CASE WHEN t.seller_type = 'Individual' AND f.sex = 'Male' THEN t.total_amount ELSE 0 END) AS male_amount,
             SUM(CASE WHEN t.seller_type = 'Individual' AND f.sex = 'Female' THEN 1 ELSE 0 END) AS female_count,
             SUM(CASE WHEN t.seller_type = 'Individual' AND f.sex = 'Female' THEN t.bags_50kg ELSE 0 END) AS female_qty,
+            SUM(CASE WHEN t.seller_type = 'Individual' AND f.sex = 'Female' THEN t.net_kilogram ELSE 0 END) AS female_net_kg,
             SUM(CASE WHEN t.seller_type = 'Individual' AND f.sex = 'Female' THEN t.total_amount ELSE 0 END) AS female_amount,
             SUM(CASE WHEN t.seller_type = 'Individual' AND f.sex IN ('Male', 'Female') THEN 1 ELSE 0 END) AS total_farmers,
             COALESCE(SUM(t.bags_50kg), 0) AS total_qty,
+            COALESCE(SUM(t.net_kilogram), 0) AS total_net_kg,
             COALESCE(SUM(t.total_amount), 0) AS total_amount,
             SUM(CASE WHEN t.seller_type = 'Farmer Organization' AND COALESCE(fo.classification_type, 'Farmer Organization') = 'Farmer Organization' THEN 1 ELSE 0 END) AS farmer_organization_count,
             SUM(CASE WHEN t.seller_type = 'Farmer Organization' AND COALESCE(fo.classification_type, 'Farmer Organization') = 'Farmer Organization' THEN COALESCE(t.total_members, 0) ELSE 0 END) AS farmer_organization_members,
@@ -776,17 +789,21 @@ final class Report
         return [
             'individual_farmers',
             'individual_qty',
+            'individual_net_kg',
             'individual_amount',
             'farmer_organization_count',
             'farmer_organization_members',
             'farmer_organization_qty',
+            'farmer_organization_net_kg',
             'farmer_organization_amount',
             'ip_group_count',
             'ip_group_members',
             'ip_group_qty',
+            'ip_group_net_kg',
             'ip_group_amount',
             'total_farmers',
             'total_qty',
+            'total_net_kg',
             'total_amount',
         ];
     }
@@ -796,12 +813,15 @@ final class Report
         return [
             'male_count',
             'male_qty',
+            'male_net_kg',
             'male_amount',
             'female_count',
             'female_qty',
+            'female_net_kg',
             'female_amount',
             'total_farmers',
             'total_qty',
+            'total_net_kg',
             'total_amount',
             'farmer_organization_count',
             'farmer_organization_members',

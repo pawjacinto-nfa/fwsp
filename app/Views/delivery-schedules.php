@@ -30,9 +30,9 @@ foreach ($farmerOrganizations as $organization) {
 <section class="workspace-section delivery-calendar-page">
     <div class="section-head compact delivery-calendar-head">
         <div>
-            <p class="eyebrow">Warehouse</p>
+            <p class="eyebrow">Shared Facility Calendar</p>
             <h3>Delivery Schedules</h3>
-            <p class="mb-0 text-muted">Click a day to schedule a delivery or review its appointments.</p>
+            <p class="mb-0 text-muted"><strong><?= e($calendarFacilityName ?? 'Assigned facility') ?></strong> &mdash; all authorized users assigned to this facility see the same bookings.</p>
         </div>
         <div class="calendar-nav">
             <a class="btn btn-outline-success" href="index.php?page=delivery-schedules&amp;month=<?= e($first->modify('-1 month')->format('Y-m')) ?>">&larr; Previous</a>
@@ -115,9 +115,11 @@ foreach ($farmerOrganizations as $organization) {
                                 $locationIncludeAll = false;
                                 $locationValues = $locationDefaults ?? [];
                                 $locationLabelWarehouse = 'Facility Name';
+                                $locationDisabled = !empty($lockScheduleFacility);
                                 require BASE_PATH . '/app/Views/partials/location-selects.php';
                                 ?>
                             </div>
+                            <?php if (!empty($lockScheduleFacility)): ?><p class="form-text mt-n1">The delivery facility is fixed to your registered account assignment.</p><?php endif ?>
 
                             <fieldset class="schedule-type-fieldset">
                                 <legend class="form-label">Schedule for</legend>

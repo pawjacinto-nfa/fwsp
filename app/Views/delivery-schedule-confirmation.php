@@ -23,6 +23,8 @@ $organizationAddress = trim((string) ($schedule['organization_address'] ?? ''));
 $bookingUserName = trim((string) ($schedule['created_by_name'] ?? ''));
 $bookingUserName = $bookingUserName !== '' ? mb_convert_case($bookingUserName, MB_CASE_TITLE, 'UTF-8') : '';
 $bookingUserPosition = trim((string) ($schedule['created_by_designation'] ?? ''));
+$publicStatusUrl = delivery_schedule_public_url((string) ($schedule['public_token'] ?? ''));
+$publicStatusQr = \App\Support\QrCode::dataUri($publicStatusUrl);
 $blank = '<span class="po-manual-line" aria-label="Blank field"></span>';
 $shortBlank = '<span class="po-manual-line is-short" aria-label="Blank field"></span>';
 
@@ -84,6 +86,9 @@ $labels = $isFilipino ? [
     'name' => 'Pangalan',
     'position' => 'Posisyon',
     'notes_label' => 'Mahalagang Paalala sa Iskedyul',
+    'tracking_title' => 'Tingnan ang Status Online',
+    'tracking_text' => 'I-scan ang QR code o buksan ang maikling link upang makita ang kasalukuyang status ng appointment.',
+    'tracking_privacy' => 'Hindi ipinapakita online ang personal na impormasyon ng magsasaka.',
 ] : [
     'form' => 'Delivery Schedule Form',
     'copy' => "Client's Copy",
@@ -123,6 +128,9 @@ $labels = $isFilipino ? [
     'name' => 'Name',
     'position' => 'Position',
     'notes_label' => 'Important Scheduling Notes',
+    'tracking_title' => 'Check Status Online',
+    'tracking_text' => 'Scan the QR code or open the short link to view the current appointment status.',
+    'tracking_privacy' => 'Farmer personal information is not displayed online.',
 ];
 
 $terms = $isFilipino ? [
@@ -253,6 +261,16 @@ $recipientName = $isOrganization ? ($representativeName ?: $scheduledName) : $sc
         <section class="po-signatures">
             <div><span class="po-signature-line"></span><strong><?= e($labels['nfa_signature']) ?></strong><p><?= e($labels['name']) ?>: <?= $bookingUserName !== '' ? e($bookingUserName) : $blank ?></p><p><?= e($labels['position']) ?>: <?= $bookingUserPosition !== '' ? e($bookingUserPosition) : $blank ?></p></div>
             <div><span class="po-signature-line"></span><strong><?= e($labels['farmer_signature']) ?></strong><p><?= e($labels['name']) ?>: <?= e($recipientName) ?></p></div>
+        </section>
+
+        <section class="po-tracking">
+            <img src="<?= e($publicStatusQr) ?>" alt="QR code for the online appointment status">
+            <div>
+                <h2><?= e($labels['tracking_title']) ?></h2>
+                <p><?= e($labels['tracking_text']) ?></p>
+                <strong><?= e($publicStatusUrl) ?></strong>
+                <small><?= e($labels['tracking_privacy']) ?></small>
+            </div>
         </section>
 
         <footer class="po-footer">NFA-FSR / <?= e($labels['form']) ?> / <?= e($schedule['confirmation_code']) ?></footer>

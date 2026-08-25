@@ -1,0 +1,13 @@
+{
+    "name": "nfa/fsr",
+    "description": "National Food Authority Farmer-Seller Registry",
+    "license": "proprietary",
+    "type": "project",
+    "require": {
+        "endroid/qr-code": "^5.1"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    }
+}

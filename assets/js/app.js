@@ -1217,7 +1217,7 @@ document.querySelectorAll("[data-duplicate-check]").forEach((input) => {
     close.type = "button";
     close.className = "fsr-notification-toast-close";
     close.setAttribute("aria-label", "Close notification");
-    close.textContent = "×";
+    close.textContent = "\u00D7";
     toast.append(link, close);
     document.body.appendChild(toast);
     // Browsers may suppress audio before the user has interacted with the page;

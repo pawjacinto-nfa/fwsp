@@ -11,6 +11,7 @@ final class DeliverySchedule
     public static function forMonth(string $month, ?int $warehouseId): array
     {
         self::ensureSchema();
+        self::refreshOverdueStatuses();
         $from = $month . '-01';
         $to = date('Y-m-d', strtotime($from . ' +1 month'));
         $sql = "SELECT s.*, CONCAT(COALESCE(f.first_name, ''), ' ', COALESCE(f.last_name, '')) AS enrolled_name,
@@ -84,7 +85,8 @@ final class DeliverySchedule
         $db->beginTransaction();
         try {
             $reference = self::nextReferenceNumber($warehouse, $date);
-            $stmt = $db->prepare('INSERT INTO delivery_schedules (seller_type, farmer_id, temporary_name, temporary_contact_number, farmer_organization_id, temporary_organization_name, representative_name, schedule_date, expected_bags, confirmation_code, warehouse_id, created_by) VALUES (:seller_type, :farmer_id, :temporary_name, :temporary_contact_number, :farmer_organization_id, :temporary_organization_name, :representative_name, :schedule_date, :bags, :confirmation_code, :warehouse_id, :created_by)');
+            $publicToken = self::generatePublicToken($db);
+            $stmt = $db->prepare('INSERT INTO delivery_schedules (seller_type, farmer_id, temporary_name, temporary_contact_number, farmer_organization_id, temporary_organization_name, representative_name, schedule_date, expected_bags, confirmation_code, public_token, warehouse_id, created_by) VALUES (:seller_type, :farmer_id, :temporary_name, :temporary_contact_number, :farmer_organization_id, :temporary_organization_name, :representative_name, :schedule_date, :bags, :confirmation_code, :public_token, :warehouse_id, :created_by)');
             $stmt->execute([
                 'seller_type' => $sellerType,
                 'farmer_id' => $sellerType === 'Individual' ? ($farmerId ?: null) : null,
@@ -94,6 +96,7 @@ final class DeliverySchedule
                 'temporary_organization_name' => $sellerType === 'Farmer Organization' ? ($temporaryOrganization ?: null) : null,
                 'representative_name' => $sellerType === 'Farmer Organization' ? $representative : null,
                 'schedule_date' => $date, 'bags' => $data['expected_bags'], 'confirmation_code' => $reference,
+                'public_token' => $publicToken,
                 'warehouse_id' => $warehouse, 'created_by' => $_SESSION['user_id'] ?? null,
             ]);
             $id = (int) $db->lastInsertId();
@@ -115,6 +118,7 @@ final class DeliverySchedule
     public static function updateStatus(int $id, string $status): ?array
     {
         self::ensureSchema();
+        self::refreshOverdueStatuses();
         if (!in_array($status, ['Completed', 'Rescheduled', 'No-show'], true)) {
             throw new \DomainException('Select a valid schedule action.');
         }
@@ -131,6 +135,7 @@ final class DeliverySchedule
     public static function find(int $id): ?array
     {
         self::ensureSchema();
+        self::refreshOverdueStatuses();
         $stmt = Database::connection()->prepare("SELECT s.*, CONCAT(COALESCE(f.first_name, ''), ' ', COALESCE(f.last_name, '')) AS enrolled_name,
             f.farmer_key, f.rsbsa_number AS farmer_rsbsa, f.mao_certification AS farmer_mao_certification,
             f.address AS farmer_address, f.contact_number AS farmer_contact,
@@ -148,6 +153,45 @@ final class DeliverySchedule
             LEFT JOIN regions r ON r.id=b.region_id
             WHERE s.id=:id LIMIT 1");
         $stmt->execute(['id' => $id]); return $stmt->fetch() ?: null;
+    }
+
+    /** Returns only non-sensitive fields suitable for the unauthenticated client page. */
+    public static function findPublicStatus(string $token): ?array
+    {
+        self::ensureSchema();
+        self::refreshOverdueStatuses();
+        if (!preg_match('/^[A-Za-z0-9_-]{16}$/', $token)) return null;
+
+        $stmt = Database::connection()->prepare("SELECT s.confirmation_code, s.seller_type, s.schedule_date,
+            s.expected_bags, s.status, s.status_changed_at, s.created_at,
+            COALESCE(w.name, '') AS warehouse_name, COALESCE(p.name, '') AS province_name,
+            COALESCE(b.name, '') AS branch_name, COALESCE(r.name, '') AS region_name
+            FROM delivery_schedules s
+            LEFT JOIN warehouse_offices w ON w.id = s.warehouse_id
+            LEFT JOIN province_offices p ON p.id = w.province_id
+            LEFT JOIN branch_offices b ON b.id = COALESCE(p.branch_id, w.branch_id)
+            LEFT JOIN regions r ON r.id = b.region_id
+            WHERE s.public_token = :token AND s.public_tracking_enabled = 1
+            LIMIT 1");
+        $stmt->execute(['token' => $token]);
+        return $stmt->fetch() ?: null;
+    }
+
+    /**
+     * Keeps a schedule active through its five-day grace period, then marks it
+     * No-show on the following day if personnel have not selected a status.
+     */
+    public static function refreshOverdueStatuses(): int
+    {
+        self::ensureSchema();
+        $stmt = Database::connection()->prepare("UPDATE delivery_schedules
+            SET status = 'No-show', status_changed_at = CURRENT_TIMESTAMP
+            WHERE status = 'Scheduled'
+              AND schedule_date < :active_cutoff");
+        $stmt->execute([
+            'active_cutoff' => (new \DateTimeImmutable('today'))->modify('-5 days')->format('Y-m-d'),
+        ]);
+        return $stmt->rowCount();
     }
 
     private static function nextReferenceNumber(int $warehouseId, string $date): string
@@ -191,9 +235,11 @@ final class DeliverySchedule
             farmer_organization_id BIGINT UNSIGNED NULL,
             temporary_organization_name VARCHAR(180) NULL, representative_name VARCHAR(180) NULL,
             schedule_date DATE NOT NULL, expected_bags DECIMAL(12,3) NOT NULL, confirmation_code VARCHAR(128) NOT NULL,
+            public_token CHAR(16) CHARACTER SET ascii COLLATE ascii_bin NULL, public_tracking_enabled TINYINT(1) NOT NULL DEFAULT 1,
             status ENUM('Scheduled','Completed','Rescheduled','No-show') NOT NULL DEFAULT 'Scheduled', status_changed_at TIMESTAMP NULL,
             warehouse_id BIGINT UNSIGNED NOT NULL, created_by BIGINT UNSIGNED NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             INDEX delivery_schedules_date_warehouse (schedule_date, warehouse_id),
+            INDEX delivery_schedules_status_date (status, schedule_date),
             CONSTRAINT delivery_schedules_farmer_fk FOREIGN KEY (farmer_id) REFERENCES farmers(id) ON DELETE SET NULL,
             CONSTRAINT delivery_schedules_organization_fk FOREIGN KEY (farmer_organization_id) REFERENCES farmer_organizations(id) ON DELETE SET NULL,
             CONSTRAINT delivery_schedules_warehouse_fk FOREIGN KEY (warehouse_id) REFERENCES warehouse_offices(id),
@@ -207,6 +253,9 @@ final class DeliverySchedule
         }
         elseif (!$hasExpectedBags) $db->exec('ALTER TABLE delivery_schedules ADD COLUMN expected_bags DECIMAL(12,3) NOT NULL DEFAULT 0 AFTER schedule_date');
         $db->exec("ALTER TABLE delivery_schedules ADD COLUMN IF NOT EXISTS status ENUM('Scheduled','Completed','Rescheduled','No-show') NOT NULL DEFAULT 'Scheduled' AFTER confirmation_code");
+        $db->exec('ALTER TABLE delivery_schedules ADD COLUMN IF NOT EXISTS public_token CHAR(16) NULL AFTER confirmation_code');
+        $db->exec('ALTER TABLE delivery_schedules MODIFY COLUMN public_token CHAR(16) CHARACTER SET ascii COLLATE ascii_bin NULL');
+        $db->exec('ALTER TABLE delivery_schedules ADD COLUMN IF NOT EXISTS public_tracking_enabled TINYINT(1) NOT NULL DEFAULT 1 AFTER public_token');
         $db->exec('ALTER TABLE delivery_schedules ADD COLUMN IF NOT EXISTS status_changed_at TIMESTAMP NULL AFTER status');
         $db->exec("ALTER TABLE delivery_schedules ADD COLUMN IF NOT EXISTS seller_type ENUM('Individual','Farmer Organization') NOT NULL DEFAULT 'Individual' AFTER id");
         $db->exec('ALTER TABLE delivery_schedules ADD COLUMN IF NOT EXISTS temporary_contact_number VARCHAR(40) NULL AFTER temporary_name');
@@ -216,6 +265,8 @@ final class DeliverySchedule
         try { $db->exec('ALTER TABLE delivery_schedules ADD CONSTRAINT delivery_schedules_organization_fk FOREIGN KEY (farmer_organization_id) REFERENCES farmer_organizations(id) ON DELETE SET NULL'); } catch (\Throwable) { }
         try { $db->exec('ALTER TABLE delivery_schedules DROP INDEX confirmation_code'); } catch (\Throwable) { }
         try { $db->exec('CREATE INDEX delivery_schedules_reference_idx ON delivery_schedules (confirmation_code)'); } catch (\Throwable) { }
+        try { $db->exec('CREATE UNIQUE INDEX delivery_schedules_public_token_uq ON delivery_schedules (public_token)'); } catch (\Throwable) { }
+        try { $db->exec('CREATE INDEX delivery_schedules_status_date ON delivery_schedules (status, schedule_date)'); } catch (\Throwable) { }
         $db->exec("CREATE TABLE IF NOT EXISTS delivery_schedule_days (
             warehouse_id BIGINT UNSIGNED NOT NULL, schedule_date DATE NOT NULL, status ENUM('Vacant','Full') NOT NULL DEFAULT 'Vacant',
             PRIMARY KEY (warehouse_id, schedule_date), FOREIGN KEY (warehouse_id) REFERENCES warehouse_offices(id)
@@ -228,7 +279,31 @@ final class DeliverySchedule
             CONSTRAINT delivery_schedule_sequences_branch_fk FOREIGN KEY (branch_id) REFERENCES branch_offices(id)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
         self::migrateLegacyReferenceNumbers();
+        self::migratePublicTokens();
         $ready = true;
+    }
+
+    private static function generatePublicToken(\PDO $db): string
+    {
+        $lookup = $db->prepare('SELECT 1 FROM delivery_schedules WHERE public_token = :token LIMIT 1');
+        do {
+            $token = rtrim(strtr(base64_encode(random_bytes(12)), '+/', '-_'), '=');
+            $lookup->execute(['token' => $token]);
+        } while ($lookup->fetchColumn());
+
+        return $token;
+    }
+
+    private static function migratePublicTokens(): void
+    {
+        $db = Database::connection();
+        $ids = $db->query("SELECT id FROM delivery_schedules WHERE public_token IS NULL OR public_token = '' ORDER BY id")->fetchAll(\PDO::FETCH_COLUMN);
+        if ($ids === []) return;
+
+        $update = $db->prepare('UPDATE delivery_schedules SET public_token = :token WHERE id = :id AND (public_token IS NULL OR public_token = \'\')');
+        foreach ($ids as $id) {
+            $update->execute(['token' => self::generatePublicToken($db), 'id' => $id]);
+        }
     }
 
     private static function migrateLegacyReferenceNumbers(): void

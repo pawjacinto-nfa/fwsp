@@ -1,0 +1,5 @@
+Options -MultiViews
+RewriteEngine On
+
+# Short, stable client appointment link printed as text and encoded in the QR.
+RewriteRule ^s/([A-Za-z0-9_-]{16})/?$ index.php?page=schedule-status&token=$1 [END,QSA,NC]

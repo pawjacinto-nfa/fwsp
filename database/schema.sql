@@ -175,6 +175,10 @@ CREATE TABLE IF NOT EXISTS landholdings (
     average_yield_per_hectare DECIMAL(10,3),
     summer_yield_per_hectare DECIMAL(10,3),
     third_crop_yield_per_hectare DECIMAL(10,3),
+    is_lessor BOOLEAN NOT NULL DEFAULT FALSE,
+    is_lessee BOOLEAN NOT NULL DEFAULT FALSE,
+    is_farm_worker BOOLEAN NOT NULL DEFAULT FALSE,
+    is_farm_administrator BOOLEAN NOT NULL DEFAULT FALSE,
     INDEX landholdings_farmer_idx (farmer_id),
     FOREIGN KEY (farmer_id) REFERENCES farmers(id)
 );
@@ -219,13 +223,17 @@ CREATE TABLE IF NOT EXISTS delivery_schedules (
     schedule_date DATE NOT NULL,
     expected_bags DECIMAL(12,3) NOT NULL,
     confirmation_code VARCHAR(128) NOT NULL,
+    public_token CHAR(16) CHARACTER SET ascii COLLATE ascii_bin NULL,
+    public_tracking_enabled TINYINT(1) NOT NULL DEFAULT 1,
     status ENUM('Scheduled', 'Completed', 'Rescheduled', 'No-show') NOT NULL DEFAULT 'Scheduled',
     status_changed_at TIMESTAMP NULL,
     warehouse_id BIGINT UNSIGNED NOT NULL,
     created_by BIGINT UNSIGNED NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     INDEX delivery_schedules_date_warehouse (schedule_date, warehouse_id),
+    INDEX delivery_schedules_status_date (status, schedule_date),
     INDEX delivery_schedules_reference_idx (confirmation_code),
+    UNIQUE INDEX delivery_schedules_public_token_uq (public_token),
     FOREIGN KEY (farmer_id) REFERENCES farmers(id) ON DELETE SET NULL,
     FOREIGN KEY (farmer_organization_id) REFERENCES farmer_organizations(id) ON DELETE SET NULL,
     FOREIGN KEY (warehouse_id) REFERENCES warehouse_offices(id),
@@ -295,6 +303,10 @@ ALTER TABLE farmers ADD COLUMN IF NOT EXISTS province_id BIGINT UNSIGNED NULL;
 ALTER TABLE farmers ADD COLUMN IF NOT EXISTS photo_path VARCHAR(255) NULL;
 ALTER TABLE farmers ADD COLUMN IF NOT EXISTS valid_id_path VARCHAR(255) NULL;
 ALTER TABLE landholdings ADD COLUMN IF NOT EXISTS third_crop_yield_per_hectare DECIMAL(10,3) NULL;
+ALTER TABLE landholdings ADD COLUMN IF NOT EXISTS is_lessor TINYINT(1) NOT NULL DEFAULT 0;
+ALTER TABLE landholdings ADD COLUMN IF NOT EXISTS is_lessee TINYINT(1) NOT NULL DEFAULT 0;
+ALTER TABLE landholdings ADD COLUMN IF NOT EXISTS is_farm_worker TINYINT(1) NOT NULL DEFAULT 0;
+ALTER TABLE landholdings ADD COLUMN IF NOT EXISTS is_farm_administrator TINYINT(1) NOT NULL DEFAULT 0;
 ALTER TABLE farmers ADD COLUMN IF NOT EXISTS farmer_key VARCHAR(32) NULL AFTER id;
 ALTER TABLE farmers ADD COLUMN IF NOT EXISTS is_ip_group_member TINYINT(1) NOT NULL DEFAULT 0;
 ALTER TABLE farmers ADD COLUMN IF NOT EXISTS mao_certification VARCHAR(60) NULL;

@@ -25,8 +25,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $controller = new DashboardController();
+$isPublicScheduleStatus = $_SERVER['REQUEST_METHOD'] === 'GET'
+    && ($_GET['page'] ?? '') === 'schedule-status';
 
-if ($controller->enforceMaintenanceLogout($action === 'maintenance-status')) {
+if (!$isPublicScheduleStatus && $controller->enforceMaintenanceLogout($action === 'maintenance-status')) {
     exit;
 }
 
@@ -97,6 +99,7 @@ if (isset($_GET['notification_id'])) {
 }
 
 match ($_GET['page'] ?? 'dashboard') {
+    'schedule-status' => $controller->deliverySchedulePublicStatus($_GET),
     'records' => $controller->records($_GET),
     'farmers' => $controller->farmerRecords($_GET),
     'farmer-view' => $controller->farmerView($_GET),

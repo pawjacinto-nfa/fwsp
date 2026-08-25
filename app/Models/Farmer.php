@@ -429,14 +429,14 @@ final class Farmer
 
     private static function landholdingsForFarmer(int $farmerId): array
     {
-        $stmt = Database::connection()->prepare("SELECT id, classification AS landholding, CASE WHEN irrigated = 1 THEN 'Yes' ELSE 'No' END AS irrigated, COALESCE(palay_location, '') AS palay_location, COALESCE(harvested_area_hectares, '') AS harvest_area, COALESCE(average_yield_per_hectare, '') AS main_crop_yield, COALESCE(summer_yield_per_hectare, '') AS summer_crop_yield, COALESCE(third_crop_yield_per_hectare, '') AS third_crop_yield FROM landholdings WHERE farmer_id = :farmer_id ORDER BY id ASC");
+        $stmt = Database::connection()->prepare("SELECT id, classification AS landholding, CASE WHEN irrigated = 1 THEN 'Yes' ELSE 'No' END AS irrigated, COALESCE(palay_location, '') AS palay_location, COALESCE(harvested_area_hectares, '') AS harvest_area, COALESCE(average_yield_per_hectare, '') AS main_crop_yield, COALESCE(summer_yield_per_hectare, '') AS summer_crop_yield, COALESCE(third_crop_yield_per_hectare, '') AS third_crop_yield, is_lessor, is_lessee, is_farm_worker, is_farm_administrator FROM landholdings WHERE farmer_id = :farmer_id ORDER BY id ASC");
         $stmt->execute(['farmer_id' => $farmerId]);
         return array_map([self::class, 'decodeJsonFields'], $stmt->fetchAll());
     }
 
     private static function saveLandholdings(\PDO $db, int $farmerId, array $farms): void
     {
-        $statement = $db->prepare('INSERT INTO landholdings (farmer_id, classification, irrigated, palay_location, harvested_area_hectares, average_yield_per_hectare, summer_yield_per_hectare, third_crop_yield_per_hectare) VALUES (:farmer_id, :classification, :irrigated, :palay_location, :harvest_area, :main_crop_yield, :summer_crop_yield, :third_crop_yield)');
+        $statement = $db->prepare('INSERT INTO landholdings (farmer_id, classification, irrigated, palay_location, harvested_area_hectares, average_yield_per_hectare, summer_yield_per_hectare, third_crop_yield_per_hectare, is_lessor, is_lessee, is_farm_worker, is_farm_administrator) VALUES (:farmer_id, :classification, :irrigated, :palay_location, :harvest_area, :main_crop_yield, :summer_crop_yield, :third_crop_yield, :is_lessor, :is_lessee, :is_farm_worker, :is_farm_administrator)');
         foreach ($farms as $farm) {
             $statement->execute([
                 'farmer_id' => $farmerId,
@@ -447,6 +447,10 @@ final class Farmer
                 'main_crop_yield' => self::nullable($farm['main_crop_yield'] ?? null),
                 'summer_crop_yield' => self::nullable($farm['summer_crop_yield'] ?? null),
                 'third_crop_yield' => self::nullable($farm['third_crop_yield'] ?? null),
+                'is_lessor' => in_array('Lessor', $farm['landholding'] ?? [], true) || in_array('Landowner/Lessor', $farm['landholding'] ?? [], true) ? 1 : 0,
+                'is_lessee' => in_array('Lessee', $farm['landholding'] ?? [], true) ? 1 : 0,
+                'is_farm_worker' => in_array('Farm Worker', $farm['landholding'] ?? [], true) ? 1 : 0,
+                'is_farm_administrator' => in_array('Farm Administrator', $farm['landholding'] ?? [], true) ? 1 : 0,
             ]);
         }
     }
@@ -474,6 +478,10 @@ final class Farmer
         $db->exec('ALTER TABLE farmers MODIFY rsbsa_number VARCHAR(60) NULL');
         $db->exec('ALTER TABLE landholdings ADD COLUMN IF NOT EXISTS summer_yield_per_hectare DECIMAL(10,3) NULL AFTER average_yield_per_hectare');
         $db->exec('ALTER TABLE landholdings ADD COLUMN IF NOT EXISTS third_crop_yield_per_hectare DECIMAL(10,3) NULL AFTER summer_yield_per_hectare');
+        $db->exec('ALTER TABLE landholdings ADD COLUMN IF NOT EXISTS is_lessor TINYINT(1) NOT NULL DEFAULT 0');
+        $db->exec('ALTER TABLE landholdings ADD COLUMN IF NOT EXISTS is_lessee TINYINT(1) NOT NULL DEFAULT 0');
+        $db->exec('ALTER TABLE landholdings ADD COLUMN IF NOT EXISTS is_farm_worker TINYINT(1) NOT NULL DEFAULT 0');
+        $db->exec('ALTER TABLE landholdings ADD COLUMN IF NOT EXISTS is_farm_administrator TINYINT(1) NOT NULL DEFAULT 0');
         $db->exec('ALTER TABLE landholdings MODIFY harvested_area_hectares DECIMAL(10,3) NULL, MODIFY average_yield_per_hectare DECIMAL(10,3) NULL, MODIFY summer_yield_per_hectare DECIMAL(10,3) NULL');
         $db->exec('CREATE INDEX IF NOT EXISTS landholdings_farmer_idx ON landholdings (farmer_id)');
         $uniqueStmt = $db->prepare("SELECT COUNT(*) FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'landholdings' AND INDEX_NAME = 'farmer_landholding_unique'");
