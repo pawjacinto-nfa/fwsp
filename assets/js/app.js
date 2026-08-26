@@ -1203,6 +1203,63 @@ document.querySelectorAll("[data-duplicate-check]").forEach((input) => {
     input.addEventListener("blur", check);
 });
 
+document.querySelectorAll("[data-farmer-group-duplicate-form]").forEach((form) => {
+    const nameInput = form.querySelector("[data-farmer-group-name]");
+    const submitButton = form.querySelector('button[type="submit"]');
+
+    if (!nameInput) return;
+
+    form.addEventListener("submit", async (event) => {
+        if (form.dataset.duplicateConfirmed === "true") {
+            return;
+        }
+
+        const name = nameInput.value.trim();
+        if (!name) {
+            return;
+        }
+
+        event.preventDefault();
+        if (submitButton) submitButton.disabled = true;
+
+        try {
+            const query = new URLSearchParams({
+                duplicate_check: "1",
+                field: "farmer_group_name",
+                value: name,
+                classification: form.querySelector('[name="classification"]')?.value || "organizations",
+            });
+            const id = form.querySelector('[name="id"]')?.value || "";
+            if (id) query.set("exclude_id", id);
+
+            const response = await fetch(`index.php?${query.toString()}`, { credentials: "same-origin" });
+            const result = await response.json();
+            const matches = Array.isArray(result.matches) ? result.matches : [];
+
+            if (matches.length > 0) {
+                const matchList = matches
+                    .map((match) => `- ${match.name}${match.warehouse_name ? ` (${match.warehouse_name})` : ""}`)
+                    .join("\n");
+                const confirmed = window.confirm(
+                    `There is a likely same farmer group already saved in the database:\n\n${matchList}\n\nContinue to save "${name}" anyway?`
+                );
+
+                if (!confirmed) {
+                    if (submitButton) submitButton.disabled = false;
+                    nameInput.focus();
+                    return;
+                }
+            }
+
+            form.dataset.duplicateConfirmed = "true";
+            form.submit();
+        } catch (_) {
+            form.dataset.duplicateConfirmed = "true";
+            form.submit();
+        }
+    });
+});
+
 (() => {
     const notification = window.FSR_TOAST_NOTIFICATION;
     if (!notification?.id || sessionStorage.getItem(`fsr-toast-${notification.id}`)) return;

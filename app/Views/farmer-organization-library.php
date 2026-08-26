@@ -48,7 +48,7 @@ $classificationUrl = $activeClassification === 'indigenous' ? $indigenousTabUrl 
     <?php if (!empty($canManageClassifications)): ?>
     <section class="panel farmer-organization-library">
         <div class="panel-head"><h2><?= $editOrganization ? 'Edit ' : 'Add ' ?><?= e($classificationLabel) ?></h2></div>
-        <form method="post" class="mini-form">
+        <form method="post" class="mini-form" data-farmer-group-duplicate-form>
             <input type="hidden" name="action" value="<?= $editOrganization ? 'farmer-organization-update' : 'farmer-organization-add' ?>">
             <input type="hidden" name="classification" value="<?= e($activeClassification) ?>">
             <?php foreach (['region_id', 'branch_id', 'province_id', 'warehouse_id'] as $filterKey): ?>
@@ -63,7 +63,7 @@ $classificationUrl = $activeClassification === 'indigenous' ? $indigenousTabUrl 
             <div class="row g-3">
                 <div class="col-md-4">
                     <label class="form-label"><?= e($classificationLabel) ?> Name</label>
-                    <input required name="name" class="form-control" value="<?= e($editOrganization['name'] ?? '') ?>" placeholder="Enter <?= strtolower(e($classificationLabel)) ?> name">
+                    <input required name="name" class="form-control" value="<?= e($editOrganization['name'] ?? '') ?>" placeholder="Enter <?= strtolower(e($classificationLabel)) ?> name" data-farmer-group-name>
                 </div>
                 <div class="col-md-2">
                     <label class="form-label">Total Members</label>
@@ -116,6 +116,7 @@ $classificationUrl = $activeClassification === 'indigenous' ? $indigenousTabUrl 
                 <tbody>
                 <?php foreach (($farmerOrganizations ?? []) as $organization): ?>
                     <?php
+                    $isDeleted = !empty($organization['deleted_at']);
                     $officeLocation = trim((string) ($organization['office_location'] ?? ''));
                     $assignedLocation = trim(implode(' / ', array_filter([
                         $organization['region_name'] ?? '',
@@ -124,15 +125,38 @@ $classificationUrl = $activeClassification === 'indigenous' ? $indigenousTabUrl 
                         $organization['warehouse_name'] ?? '',
                     ])));
                     ?>
-                    <tr>
-                        <td><?= e($organization['name']) ?></td>
+                    <tr class="<?= $isDeleted ? 'table-danger' : '' ?>">
+                        <td>
+                            <strong><?= e($organization['name']) ?></strong>
+                            <?php if (($_SESSION['role'] ?? '') === 'System Admin'): ?>
+                                <small class="d-block text-muted">
+                                    ID #<?= e($organization['id']) ?>
+                                    <?php if ($isDeleted): ?>
+                                        <span class="badge text-bg-secondary">Deleted</span>
+                                    <?php endif; ?>
+                                </small>
+                            <?php endif; ?>
+                        </td>
                         <td><?= number_format((int) ($organization['total_members'] ?? 0)) ?></td>
                         <td class="table-location-cell"><?= e($officeLocation ?: 'Not set') ?></td>
                         <td class="table-location-cell"><?= e($assignedLocation ?: 'Unassigned') ?></td>
                         <td>
                             <a class="btn btn-sm btn-outline-success" href="index.php?page=farmer-organization-view&id=<?= e($organization['id']) ?>&classification=<?= e($activeClassification) ?>">View</a>
-                            <?php if (!empty($canManageClassifications)): ?>
+                            <?php if (!empty($canManageClassifications) && !$isDeleted): ?>
                                 <a class="btn btn-sm btn-warning" href="<?= e($classificationUrl) ?>&edit_id=<?= e($organization['id']) ?>">Edit</a>
+                            <?php endif; ?>
+                            <?php if (($_SESSION['role'] ?? '') === 'System Admin' && !$isDeleted): ?>
+                                <form method="post" class="d-inline">
+                                    <input type="hidden" name="action" value="farmer-organization-delete">
+                                    <input type="hidden" name="id" value="<?= e($organization['id']) ?>">
+                                    <input type="hidden" name="classification" value="<?= e($activeClassification) ?>">
+                                    <?php foreach (['region_id', 'branch_id', 'province_id', 'warehouse_id'] as $filterKey): ?>
+                                        <?php if (($locationFilters[$filterKey] ?? '') !== ''): ?>
+                                            <input type="hidden" name="<?= e($filterKey) ?>" value="<?= e($locationFilters[$filterKey]) ?>">
+                                        <?php endif; ?>
+                                    <?php endforeach; ?>
+                                    <button class="btn btn-sm btn-outline-danger" type="submit" onclick="return confirm('Mark this farmer group as deleted? It will be hidden from regular user lists.')">Delete</button>
+                                </form>
                             <?php endif; ?>
                         </td>
                     </tr>

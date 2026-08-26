@@ -655,6 +655,15 @@ final class DashboardController
         $field = (string) ($query['field'] ?? '');
         $value = $this->clean($query['value'] ?? '');
         $excludeId = (int) ($query['exclude_id'] ?? 0);
+        if ($field === 'farmer_group_name') {
+            $classification = ($query['classification'] ?? 'organizations') === 'indigenous'
+                ? FarmerOrganization::CLASSIFICATION_INDIGENOUS
+                : FarmerOrganization::CLASSIFICATION_ORGANIZATION;
+            $matches = FarmerOrganization::likelyDuplicates($value, $classification, $excludeId);
+            echo json_encode(['exists' => $matches !== [], 'matches' => $matches]);
+            return;
+        }
+
         $exists = match ($field) {
             'rsbsa', 'mao_certification' => Farmer::duplicateIdentifierExists($field, $value, $excludeId),
             'wsr' => Transaction::duplicateWsrExists($value, $excludeId),
@@ -901,6 +910,9 @@ final class DashboardController
             : 'organizations';
         $locationFilters = array_intersect_key($filters, array_flip(['region_id', 'branch_id', 'province_id', 'warehouse_id']));
         $editOrganization = !empty($filters['edit_id']) ? FarmerOrganization::find((int) $filters['edit_id']) : null;
+        if ($editOrganization && !empty($editOrganization['deleted_at'])) {
+            $editOrganization = null;
+        }
         if ($editOrganization && !isset($filters['classification'])) {
             $classification = ($editOrganization['classification_type'] ?? '') === FarmerOrganization::CLASSIFICATION_INDIGENOUS
                 ? 'indigenous'
@@ -908,7 +920,7 @@ final class DashboardController
         }
         $isIndigenousTab = $classification === 'indigenous';
         $organizations = array_values(array_filter(
-            FarmerOrganization::all($locationFilters),
+            FarmerOrganization::all($locationFilters + ['include_deleted' => ($_SESSION['role'] ?? '') === 'System Admin']),
             fn (array $organization): bool => ($organization['classification_type'] ?? FarmerOrganization::CLASSIFICATION_ORGANIZATION)
                 === ($isIndigenousTab ? FarmerOrganization::CLASSIFICATION_INDIGENOUS : FarmerOrganization::CLASSIFICATION_ORGANIZATION)
         ));
@@ -932,6 +944,9 @@ final class DashboardController
 
         $id = (int) ($filters['id'] ?? 0);
         $organization = $id > 0 ? FarmerOrganization::find($id) : null;
+        if ($organization && !empty($organization['deleted_at']) && ($_SESSION['role'] ?? '') !== 'System Admin') {
+            $organization = null;
+        }
         $classification = ($organization['classification_type'] ?? '') === FarmerOrganization::CLASSIFICATION_INDIGENOUS
             ? 'indigenous'
             : 'organizations';
@@ -1010,6 +1025,36 @@ final class DashboardController
         Activity::add('Farmer group edited: ' . $name . '.');
         $this->flash('success', 'Farmer group updated.');
         $this->redirect($redirectUrl);
+    }
+
+    public function deleteFarmerOrganization(array $payload): void
+    {
+        if (($_SESSION['role'] ?? '') !== 'System Admin') {
+            $this->flash('danger', 'Only System Admin can delete farmer groups.');
+            $this->redirect('?page=farmer-organization-library');
+            return;
+        }
+
+        $id = (int) ($payload['id'] ?? 0);
+        $organization = $id > 0 ? FarmerOrganization::find($id) : null;
+        $classification = ($payload['classification'] ?? 'organizations') === 'indigenous' ? 'indigenous' : 'organizations';
+        $redirectParams = ['page' => 'farmer-organization-library', 'classification' => $classification];
+        foreach (['region_id', 'branch_id', 'province_id', 'warehouse_id'] as $key) {
+            if (!empty($payload[$key])) {
+                $redirectParams[$key] = $payload[$key];
+            }
+        }
+
+        if (!$organization) {
+            $this->flash('danger', 'Farmer group was not found.');
+            $this->redirect('?' . http_build_query($redirectParams));
+            return;
+        }
+
+        $deleted = FarmerOrganization::softDelete($id);
+        Activity::add('Farmer group marked deleted: ' . $organization['name'] . '.');
+        $this->flash($deleted ? 'success' : 'warning', $deleted ? 'Farmer group marked as deleted.' : 'Farmer group was already marked as deleted.');
+        $this->redirect('?' . http_build_query($redirectParams));
     }
 
     public function updateFarmerOrganizationLocation(array $payload): void

@@ -373,11 +373,12 @@ final class Farmer
             return null;
         }
 
+        FarmerOrganization::ensureSchema();
         $db = Database::connection();
         $stmt = $db->prepare('INSERT IGNORE INTO farmer_organizations (name) VALUES (:name)');
         $stmt->execute(['name' => $name]);
 
-        $select = $db->prepare('SELECT id FROM farmer_organizations WHERE name = :name LIMIT 1');
+        $select = $db->prepare('SELECT id FROM farmer_organizations WHERE name = :name AND deleted_at IS NULL LIMIT 1');
         $select->execute(['name' => $name]);
 
         return (int) $select->fetchColumn();

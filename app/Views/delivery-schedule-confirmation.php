@@ -24,6 +24,7 @@ $bookingUserName = trim((string) ($schedule['created_by_name'] ?? ''));
 $bookingUserName = $bookingUserName !== '' ? mb_convert_case($bookingUserName, MB_CASE_TITLE, 'UTF-8') : '';
 $bookingUserPosition = trim((string) ($schedule['created_by_designation'] ?? ''));
 $publicStatusUrl = delivery_schedule_public_url((string) ($schedule['public_token'] ?? ''));
+$publicStatusQrAvailable = \App\Support\QrCode::isAvailable();
 $publicStatusQr = \App\Support\QrCode::dataUri($publicStatusUrl);
 $blank = '<span class="po-manual-line" aria-label="Blank field"></span>';
 $shortBlank = '<span class="po-manual-line is-short" aria-label="Blank field"></span>';
@@ -264,7 +265,7 @@ $recipientName = $isOrganization ? ($representativeName ?: $scheduledName) : $sc
         </section>
 
         <section class="po-tracking">
-            <img src="<?= e($publicStatusQr) ?>" alt="QR code for the online appointment status">
+            <img src="<?= e($publicStatusQr) ?>" alt="<?= $publicStatusQrAvailable ? 'QR code for the online appointment status' : 'Use the printed short link to check the appointment status' ?>">
             <div>
                 <h2><?= e($labels['tracking_title']) ?></h2>
                 <p><?= e($labels['tracking_text']) ?></p>

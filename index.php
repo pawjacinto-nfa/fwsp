@@ -60,6 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'central-office-delete' => $controller->deleteCentralOfficeLocation($_POST),
         'farmer-organization-add' => $controller->storeFarmerOrganization($_POST),
         'farmer-organization-update' => $controller->updateFarmerOrganization($_POST),
+        'farmer-organization-delete' => $controller->deleteFarmerOrganization($_POST),
         'farmer-organization-location-update' => $controller->updateFarmerOrganizationLocation($_POST),
         'farmer' => $controller->storeFarmer($_POST, $_FILES),
         'farmer-update' => $controller->updateFarmer($_POST, $_FILES),
