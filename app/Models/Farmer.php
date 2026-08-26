@@ -183,6 +183,9 @@ final class Farmer
     {
         self::ensureFarmerKeySchema();
         RecordVersion::forRecord('farmer', 0);
+        // Schema checks issue DDL statements in MySQL, which can implicitly commit an
+        // open transaction. Ensure the organization table is ready before saving.
+        FarmerOrganization::ensureSchema();
         $db = Database::connection();
         $warehouseId = self::nullable($farmer['warehouse_id'] ?? '');
         $db->beginTransaction();
@@ -236,7 +239,9 @@ final class Farmer
             $db->commit();
             return $farmerId;
         } catch (\Throwable $exception) {
-            $db->rollBack();
+            if ($db->inTransaction()) {
+                $db->rollBack();
+            }
             throw $exception;
         }
     }
@@ -245,6 +250,8 @@ final class Farmer
     {
         self::ensureFarmerKeySchema();
         RecordVersion::forRecord('farmer', 0);
+        // Keep schema initialization outside the data transaction; DDL may commit it.
+        FarmerOrganization::ensureSchema();
         if ($id <= 0) {
             return;
         }
@@ -319,7 +326,9 @@ final class Farmer
 
             $db->commit();
         } catch (\Throwable $exception) {
-            $db->rollBack();
+            if ($db->inTransaction()) {
+                $db->rollBack();
+            }
             throw $exception;
         }
     }
