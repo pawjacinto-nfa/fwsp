@@ -30,6 +30,16 @@
                 </form>
             </div>
             <div class="panel mt-3">
+                <h4 class="h5">Transaction Controls</h4>
+                <p class="text-muted">By default, farmers without an RSBSA or MAO Certification can only have one delivery transaction.</p>
+                <form method="post" class="maintenance-control mb-0" data-module-maintenance-form>
+                    <input type="hidden" name="action" value="no-control-number-transactions">
+                    <input type="hidden" name="allow_no_control_number_transactions" value="0">
+                    <div class="maintenance-control-title"><div><strong id="noControlNumberTransactionsLabel">Allow Transactions from Farmers without control numbers</strong><small class="d-block text-muted">When ON, orange-tagged farmers may transact even after their first delivery.</small></div><span class="badge <?= !empty($allowNoControlNumberTransactions) ? 'text-bg-success' : 'text-bg-warning' ?>"><?= !empty($allowNoControlNumberTransactions) ? 'ON' : 'OFF' ?></span></div>
+                    <div class="maintenance-switch"><span>OFF</span><div class="form-check form-switch m-0"><input class="form-check-input" type="checkbox" role="switch" name="allow_no_control_number_transactions" value="1" aria-labelledby="noControlNumberTransactionsLabel" data-module-maintenance-toggle <?= !empty($allowNoControlNumberTransactions) ? 'checked' : '' ?>></div><span>ON</span></div>
+                </form>
+            </div>
+            <div class="panel mt-3">
                 <h4 class="h5">Modular Restrictions</h4>
                 <p class="text-muted">System Admin accounts retain access. Turning a module off blocks the menu and direct access for other encoders.</p>
                 <?php foreach ([

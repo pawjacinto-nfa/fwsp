@@ -11,6 +11,26 @@ final class SystemSetting
     private const MAINTENANCE_SCHEDULE = 'maintenance_schedule';
     private const ENCODING_MODE = 'encoding_mode';
     private const DELIVERY_SCHEDULE_MODE = 'delivery_schedule_mode';
+    private const ALLOW_NO_CONTROL_NUMBER_TRANSACTIONS = 'allow_no_control_number_transactions';
+
+    /** Whether orange-tagged farmers may be recorded for more than one delivery. */
+    public static function allowsNoControlNumberTransactions(): bool
+    {
+        self::ensureSchema();
+        return self::value(self::ALLOW_NO_CONTROL_NUMBER_TRANSACTIONS) === '1';
+    }
+
+    public static function setAllowsNoControlNumberTransactions(bool $allowed): void
+    {
+        self::ensureSchema();
+        $stmt = Database::connection()->prepare(
+            'INSERT INTO system_settings (setting_key, setting_value) VALUES (:setting_key, :setting_value) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)'
+        );
+        $stmt->execute([
+            'setting_key' => self::ALLOW_NO_CONTROL_NUMBER_TRANSACTIONS,
+            'setting_value' => $allowed ? '1' : '0',
+        ]);
+    }
 
     public static function maintenanceModeEnabled(): bool
     {
@@ -113,7 +133,7 @@ final class SystemSetting
             "INSERT IGNORE INTO system_settings (setting_key, setting_value)
              VALUES ('maintenance_schedule', '')"
         );
-        Database::connection()->exec("INSERT IGNORE INTO system_settings (setting_key, setting_value) VALUES ('encoding_mode', '0'), ('delivery_schedule_mode', '0')");
+        Database::connection()->exec("INSERT IGNORE INTO system_settings (setting_key, setting_value) VALUES ('encoding_mode', '0'), ('delivery_schedule_mode', '0'), ('allow_no_control_number_transactions', '0')");
         $ready = true;
     }
 }

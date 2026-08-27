@@ -51,6 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'user-access-bulk' => $controller->updateUserAccessBulk($_POST),
         'maintenance-mode' => $controller->updateMaintenanceMode($_POST),
         'module-maintenance' => $controller->updateModuleMaintenance($_POST),
+        'no-control-number-transactions' => $controller->updateNoControlNumberTransactionSetting($_POST),
         'maintenance-status' => $controller->maintenanceStatus(),
         'location-add' => $controller->storeLocation($_POST),
         'location-update' => $controller->updateLocation($_POST),

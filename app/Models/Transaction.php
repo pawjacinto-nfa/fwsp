@@ -255,7 +255,7 @@ final class Transaction
             self::assertMembersBelongToOrganization($deliveredFarmerIds, $organizationId);
         }
 
-        if (($transaction['type'] ?? '') === 'Farmer Organization' && $deliveredFarmerIds !== []) {
+        if (!SystemSetting::allowsNoControlNumberTransactions() && ($transaction['type'] ?? '') === 'Farmer Organization' && $deliveredFarmerIds !== []) {
             $db = Database::connection();
             $flagged = $db->prepare('SELECT id FROM farmers WHERE id = :id AND no_available_control_number = 1');
             foreach ($deliveredFarmerIds as $memberId) {
@@ -270,7 +270,7 @@ final class Transaction
             $db = Database::connection();
             $flagStmt = $db->prepare('SELECT no_available_control_number FROM farmers WHERE id = :id');
             $flagStmt->execute(['id' => $farmerId]);
-            if ((int) $flagStmt->fetchColumn() === 1 && self::farmerTransactionCount($farmerId) > 0) {
+            if (!SystemSetting::allowsNoControlNumberTransactions() && (int) $flagStmt->fetchColumn() === 1 && self::farmerTransactionCount($farmerId) > 0) {
                 throw new \DomainException('Transaction declined');
             }
             $existingBags = self::individualAnnualBags($farmerId, $deliveryYear);

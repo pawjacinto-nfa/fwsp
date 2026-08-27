@@ -587,6 +587,7 @@ final class DashboardController
             'maintenanceSchedule' => SystemSetting::maintenanceSchedule(),
             'encodingEnabled' => SystemSetting::moduleEnabled('encoding'),
             'deliveryScheduleEnabled' => SystemSetting::moduleEnabled('delivery_schedule'),
+            'allowNoControlNumberTransactions' => SystemSetting::allowsNoControlNumberTransactions(),
             'tables' => $tables,
             'selectedTable' => $selectedTable,
             'schema' => $schema,
@@ -1641,6 +1642,21 @@ final class DashboardController
         SystemSetting::setModuleEnabled($module, $enabled);
         Activity::add(ucwords(str_replace('_', ' ', $module)) . ' set to ' . ($enabled ? 'ON.' : 'OFF.'));
         $this->flash('success', ucwords(str_replace('_', ' ', $module)) . ' is now ' . ($enabled ? 'available.' : 'closed for maintenance.'));
+        $this->redirect('?page=system-maintenance&tab=maintenance');
+    }
+
+    public function updateNoControlNumberTransactionSetting(array $payload): void
+    {
+        if (($_SESSION['role'] ?? '') !== 'System Admin') {
+            $this->flash('danger', 'Only System Admin can change transaction controls.');
+            $this->redirect();
+            return;
+        }
+
+        $allowed = ($payload['allow_no_control_number_transactions'] ?? '0') === '1';
+        SystemSetting::setAllowsNoControlNumberTransactions($allowed);
+        Activity::add('Transactions from farmers without control numbers set to ' . ($allowed ? 'allowed.' : 'restricted.'));
+        $this->flash('success', 'Transactions from farmers without control numbers are now ' . ($allowed ? 'allowed.' : 'restricted.'));
         $this->redirect('?page=system-maintenance&tab=maintenance');
     }
 
