@@ -18,6 +18,7 @@ use App\Models\RecordVersion;
 use App\Models\Signatory;
 use App\Models\SupportTicket;
 use App\Models\SystemSetting;
+use App\Models\SyncQueue;
 use App\Models\Transaction;
 use App\Models\User;
 
@@ -36,6 +37,9 @@ final class DashboardController
         ];
         if (isset($_SESSION['role'], $legacyRoles[$_SESSION['role']])) {
             $_SESSION['role'] = $legacyRoles[$_SESSION['role']];
+        }
+        if (!empty($_SESSION['user_id'])) {
+            SupportTicket::processAutoClosures();
         }
     }
 
@@ -989,6 +993,8 @@ final class DashboardController
             $classification === 'indigenous',
             !empty($payload['organization_warehouse_id']) ? (int) $payload['organization_warehouse_id'] : null
         );
+        $organizationId = FarmerOrganization::idByName($name);
+        if ($organizationId) SyncQueue::enqueue('farmer_organization', (string) $organizationId, 'upsert', FarmerOrganization::find($organizationId) ?? []);
         Activity::add('Farmer group added: ' . $name . '.');
         $this->flash('success', 'Farmer group saved.');
         $this->redirect($redirectUrl);
@@ -1023,6 +1029,8 @@ final class DashboardController
             $classification === 'indigenous',
             !empty($payload['organization_warehouse_id']) ? (int) $payload['organization_warehouse_id'] : null
         );
+        $organizationId = (int) ($payload['id'] ?? 0);
+        if ($organizationId) SyncQueue::enqueue('farmer_organization', (string) $organizationId, 'upsert', FarmerOrganization::find($organizationId) ?? []);
         Activity::add('Farmer group edited: ' . $name . '.');
         $this->flash('success', 'Farmer group updated.');
         $this->redirect($redirectUrl);
@@ -1937,6 +1945,7 @@ final class DashboardController
             return;
         }
         Activity::add('Farmer profile added for ' . $farmer['first_name'] . ' ' . $farmer['last_name'] . '.');
+        SyncQueue::enqueue('farmer', (string) $farmerId, 'upsert', Farmer::find($farmerId) ?? $farmer);
         $farmerIdentifier = $farmer['rsbsa'] ?: ($farmer['mao_certification'] ?: trim($farmer['first_name'] . ' ' . $farmer['last_name']));
         Notification::add('New farmer record uploaded: ' . $farmerIdentifier . '.', null, 'index.php?page=farmer-view&id=' . $farmerId, 'farmer_new');
         $this->flash('success', 'Farmer profile saved.');
@@ -2013,6 +2022,7 @@ final class DashboardController
             return;
         }
         Activity::add('Farmer profile updated for ' . $farmer['first_name'] . ' ' . $farmer['last_name'] . '.');
+        SyncQueue::enqueue('farmer', (string) $id, 'upsert', Farmer::find($id) ?? $farmer);
         $this->flash('success', 'Farmer profile updated.');
         $this->redirect('?page=farmer-view&id=' . $id);
     }
@@ -2057,6 +2067,7 @@ final class DashboardController
         }
 
         Activity::add('Warehouse transaction recorded for ' . ($transaction['rsbsa'] ?: $transaction['fo_name']) . '.');
+        SyncQueue::enqueue('transaction', (string) $transactionResult['transaction_id'], 'upsert', $transaction + ['local_id' => (int) $transactionResult['transaction_id']]);
         Notification::add('New palay delivery awaiting manager review.', null, 'index.php?page=transactions&transaction_id=' . (int) $transactionResult['transaction_id'], $transaction['type'] === 'Farmer Organization' ? 'farmer_delivery_fo' : 'farmer_delivery_individual');
         $flashMessage = 'Transaction recorded.';
         if (!empty($transactionResult['reached_annual_limit'])) {

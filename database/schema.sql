@@ -409,6 +409,7 @@ CREATE TABLE IF NOT EXISTS support_tickets (
     status VARCHAR(30) NOT NULL DEFAULT 'Open',
     reporter_archived BOOLEAN NOT NULL DEFAULT FALSE,
     admin_archived BOOLEAN NOT NULL DEFAULT FALSE,
+    auto_close_warning_sent_at TIMESTAMP NULL,
     resolved_by BIGINT UNSIGNED NULL,
     resolved_at TIMESTAMP NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -521,3 +522,15 @@ INSERT IGNORE INTO notifications (user_id, message, is_read) VALUES
 INSERT IGNORE INTO audit_logs (user_id, action, details) VALUES
 ((SELECT id FROM users WHERE username = '940640'), 'Database schema created and seeded.', JSON_OBJECT('source', 'database/schema.sql')),
 ((SELECT id FROM users WHERE username = 'warehouse'), 'Seed warehouse transactions recorded.', JSON_OBJECT('count', 2));
+CREATE TABLE IF NOT EXISTS sync_queue (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    entity_type VARCHAR(64) NOT NULL,
+    client_key VARCHAR(191) NOT NULL,
+    operation_name VARCHAR(32) NOT NULL,
+    payload_json LONGTEXT NOT NULL,
+    sync_status ENUM('pending','uploading','uploaded','failed','conflict') NOT NULL DEFAULT 'pending',
+    queued_at DATETIME NOT NULL,
+    uploaded_at DATETIME NULL,
+    last_error TEXT NULL,
+    UNIQUE KEY sync_queue_entity_key (entity_type, client_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

@@ -18,6 +18,7 @@ $allManualSections = [
     'farmer-profiles' => 'Farmer Profiles',
     'organizations' => 'Farmer Groups',
     'deliveries' => 'Delivery Encoding',
+    'delivery-schedules' => 'Delivery Schedules',
     'records' => 'Records',
     'reports' => 'Reports & Analytics',
     'libraries' => 'Libraries',
@@ -31,7 +32,7 @@ $allManualSections = [
 $manualSections = [];
 foreach ($allManualSections as $sectionId => $sectionLabel) {
     $allowed = match ($sectionId) {
-        'dashboard', 'farmer-profiles', 'deliveries' => $canEncode,
+        'dashboard', 'farmer-profiles', 'deliveries', 'delivery-schedules' => $canEncode,
         'organizations', 'records' => $canReviewRecords,
         'libraries' => $canManageLibraries,
         'administration' => $isSystemAdmin,
@@ -123,7 +124,7 @@ $roleDescriptions = [
                 </ul>
 
                 <h3>Scope and Limitations</h3>
-                <p>The system covers farmer-seller and farmer-organization registration, palay delivery encoding, record searching, location and reference-list maintenance, reports, user access management, and technical-support concerns. Access to these functions depends on the user's assigned role and organizational location.</p>
+                <p>The system covers farmer-seller and farmer-group registration, delivery scheduling, palay delivery encoding, record searching, location and reference-list maintenance, reports, notifications, display-photo submissions, user access management, system maintenance, and technical-support concerns. Access to these functions depends on the user's assigned role and organizational location.</p>
                 <div class="manual-callout is-warning">
                     <strong>System limitations</strong>
                     <p>The accuracy of reports and records depends on the completeness and correctness of encoded information. The system is intended for authorized NFA personnel and its assigned operational scope; it does not replace required NFA approvals, policies, or source-document verification. Users may only view or manage information allowed by their role and location assignment.</p>
@@ -184,6 +185,7 @@ $roleDescriptions = [
                 <p>After login, use the top menu to move between system modules. The dashboard provides activity shortcuts for users who can encode records. Select the activity card that matches the work you are about to perform.</p>
                 <div class="manual-grid">
                     <div class="manual-feature"><strong>Encode</strong><span>Create a farmer profile or record an individual or organization delivery.</span></div>
+                    <div class="manual-feature"><strong>Delivery Schedules</strong><span>Reserve delivery appointments, print confirmations, and mark schedules completed, rescheduled, or no-show.</span></div>
                     <div class="manual-feature"><strong>Records</strong><span>Search farmers, farmer organizations, and transactions.</span></div>
                     <div class="manual-feature"><strong>Library</strong><span>Maintain the operational location and Central Office reference lists.</span></div>
                     <div class="manual-feature"><strong>Reports</strong><span>Generate summary, full-list, and sex-disaggregated outputs.</span></div>
@@ -199,13 +201,17 @@ $roleDescriptions = [
                 <p>Open <strong>Encode → Farmer Profile</strong> to register a farmer before recording their first individual delivery.</p>
                 <ol class="manual-steps">
                     <li><span>1</span><div>Enter the farmer's RSBSA number and complete the name, address, birth, civil-status, and contact fields.</div></li>
-                    <li><span>2</span><div>Complete sex, gender orientation, sector, and landholding information as applicable.</div></li>
-                    <li><span>3</span><div>Enter production details such as irrigated area, palay location, harvest area, and average yield.</div></li>
-                    <li><span>4</span><div>Select the farmer organization and assigned facility when applicable, add a photo if available, then save.</div></li>
+                    <li><span>2</span><div>Complete sex, gender orientation, sector, Indigenous People Group membership, landholding information, and farm-location details as applicable.</div></li>
+                    <li><span>3</span><div>Enter production details such as irrigated area, palay location, harvest area, main-crop yield, and summer-crop yield.</div></li>
+                    <li><span>4</span><div>Select the farmer group and assigned facility when applicable, upload a farmer photo or Farmer Passbook / Valid ID image if available, then save.</div></li>
                 </ol>
-                <div class="manual-callout is-warning"><strong>Data quality</strong><p>Verify the RSBSA number and spelling before saving. Use accurate, current contact and location information; these values affect searches and reports.</p></div>
+                <div class="manual-callout is-warning"><strong>Data quality</strong><p>Verify the RSBSA number, MAO Certification, spelling, farm location, and assigned province/facility before saving. The system checks duplicate RSBSA and MAO values while encoding, and these values affect searches, reports, and delivery validation.</p></div>
+                <div class="manual-callout">
+                    <strong>No available control number</strong>
+                    <p>If a farmer has no available RSBSA number or MAO Certification, use the <strong>No available control number</strong> option and leave both identifier fields blank. These profiles are clearly marked for review, and repeat delivery controls may restrict additional transactions until the record is completed or administrator settings allow the workflow.</p>
+                </div>
                 <h3>Review or update a farmer</h3>
-                <p>Go to <strong>Records → Farmers</strong>, search by name or RSBSA number, and open the farmer record. Review the profile and use the available edit action to correct or update details.</p>
+                <p>Go to <strong>Records → Farmers</strong>, search by name, Farmer Key, RSBSA number, or MAO Certification, and open the farmer record. Review the profile and use the available edit action to correct or update details. Updated farmer records keep a version history showing who changed the record and the previous and updated values.</p>
             </section>
 
             <?php endif; ?>
@@ -218,7 +224,10 @@ $roleDescriptions = [
                 <p>Open <strong>Records → Farmer Groups</strong> to review Farmer Organizations and Indigenous People Groups for your assigned location. Select <strong>View</strong> to inspect a group and its members. Manager access is read-only on this page.</p>
                 <?php else: ?>
                 <p>Open <strong>Records → Farmer Groups</strong>, then choose Farmer Organizations or Indigenous People Groups. Enter the official group name, total membership, and office location, then save. Select an existing group to view or edit its details and membership information.</p>
-                <p>Create the organization before encoding an organization delivery so it can be selected consistently and reported under one official name.</p>
+                <p>Create the group before encoding a group delivery so it can be selected consistently and reported under one official name. The system warns about possible duplicate group names; confirm only when you have verified that the record is truly separate.</p>
+                <?php endif; ?>
+                <?php if ($isSystemAdmin): ?>
+                <div class="manual-callout is-warning"><strong>Deleting farmer groups</strong><p>System Admins may mark farmer groups as deleted. Deleted groups are preserved for history and review, while ordinary users do not see them as active choices.</p></div>
                 <?php endif; ?>
             </section>
 
@@ -231,10 +240,14 @@ $roleDescriptions = [
                 <h3>Individual delivery</h3>
                 <ol class="manual-steps">
                     <li><span>1</span><div>Open <strong>Encode → Individual Delivery</strong> and locate the registered farmer by RSBSA number.</div></li>
-                    <li><span>2</span><div>Select the procurement method and confirm the delivery date, warehouse stock receipt (WSR), buying price, net kilograms, number of bags, and receiving facility.</div></li>
+                    <li><span>2</span><div>Select the procurement method and confirm the delivery date, warehouse stock receipt (WSR), palay variety, buying price, net kilograms, number of bags, total amount, and receiving facility.</div></li>
                     <li><span>3</span><div>Review all figures against the source document, then submit the transaction.</div></li>
                 </ol>
                 <div class="manual-callout is-warning"><strong>Annual delivery limit</strong><p>Each individual farmer may deliver up to 400 bags per calendar year. The system blocks quantities above the remaining allowance, notifies the encoder when the farmer reaches 400 bags, and marks that farmer with a red exclamation point in the Farmers list.</p></div>
+                <div class="manual-callout">
+                    <strong>Delivery validation</strong>
+                    <p>WSR number is required for individual deliveries. The system warns about duplicate WSR numbers before submission and protects against duplicate offline uploads by using a unique client control number. Delivery quantities, metric-ton equivalents, and monetary amounts are displayed to three decimal places across forms, records, and reports.</p>
+                </div>
                 <h3>Farmer-organization delivery</h3>
                 <ol class="manual-steps">
                     <li><span>1</span><div>Open <strong>Encode → Farmers Organization Delivery</strong> and select the organization.</div></li>
@@ -242,6 +255,29 @@ $roleDescriptions = [
                     <li><span>3</span><div>Select the farmer-members included in the delivery where required, verify the totals, and submit.</div></li>
                 </ol>
                 <div class="manual-callout"><strong>Cross-location deliveries</strong><p>When an individual farmer sells palay to a facility other than their home facility, the system may notify responsible users at the farmer's assigned location.</p></div>
+                <h3>Editing transactions</h3>
+                <p>Authorized users may edit a transaction within the permitted 14-day editing period. The delivery form is prefilled with the existing data, and saved changes are recorded in the transaction version history for review.</p>
+                <h3>Offline delivery work</h3>
+                <p>Warehouse Personnel and System Admin accounts may enable offline mode from Account Settings. When offline mode is prepared on the device, individual and farmer-group delivery forms remain available without a connection. Saved inputs stay on the device until the connection returns, then the user can upload pending inputs for server validation.</p>
+            </section>
+
+            <?php endif; ?>
+
+            <?php if ($canEncode): ?>
+            <section class="manual-section" id="delivery-schedules">
+                <p class="manual-kicker"><?= e($manualSectionNumbers['delivery-schedules']) ?></p>
+                <h2>Delivery Schedules</h2>
+                <p>Open <strong>Encode → Delivery Schedules</strong> to reserve delivery appointments for individual farmers or Farmer Groups at the assigned receiving facility.</p>
+                <ol class="manual-steps">
+                    <li><span>1</span><div>Select the schedule month and facility, then choose an available delivery date from the calendar.</div></li>
+                    <li><span>2</span><div>Choose whether the appointment is for an individual farmer or a Farmer Group, then enter or select the seller details, representative information, expected bags, and assigned location.</div></li>
+                    <li><span>3</span><div>Save the schedule and print the confirmation form. The confirmation includes a reference code, the delivery date, facility, expected quantity, and public appointment-status link.</div></li>
+                    <li><span>4</span><div>Use the schedule list to mark appointments <strong>Completed</strong>, <strong>Rescheduled</strong>, or <strong>No-show</strong>. Completing a schedule opens the correct delivery form with available schedule details prefilled.</div></li>
+                </ol>
+                <div class="manual-callout is-warning">
+                    <strong>Schedule controls</strong>
+                    <p>The system prevents duplicate active schedules and checks that the delivery date, selected seller, and facility remain consistent. If the Delivery Schedules module is under maintenance, non-admin users see it as unavailable until a System Admin re-enables it.</p>
+                </div>
             </section>
 
             <?php endif; ?>
@@ -250,13 +286,17 @@ $roleDescriptions = [
             <section class="manual-section" id="records">
                 <p class="manual-kicker"><?= e($manualSectionNumbers['records']) ?></p>
                 <h2>Searching and Reviewing Records</h2>
-                <p>Use <strong>Records → Farmers</strong> or <strong>Records → Transactions</strong>. Search by farmer name, RSBSA, or WSR and narrow results by location, procurement method, or date range. Select <strong>Filter</strong> to apply the criteria.</p>
+                <p>Use <strong>Records → Farmers</strong>, <strong>Records → Farmer Groups</strong>, or <strong>Records → Transactions</strong>. Search by farmer name, Farmer Key, RSBSA, MAO Certification, group name, or WSR and narrow results by location, procurement method, or date range. Select <strong>Filter</strong> to apply the criteria.</p>
                 <ul class="manual-list">
                     <li>Open a farmer row to review the complete profile.</li>
                     <li>Open a transaction to review delivery details and, for organization deliveries, included farmer-members.</li>
-                    <li>Use the table headings to sort results and the page controls to move through longer lists.</li>
+                    <li>Use the table headings to sort results, clickable rows or View/Edit controls to open records, and the page controls to move through longer lists.</li>
+                    <li>Review version history panels on edited farmer profiles and transactions to compare previous and updated values.</li>
                     <li>Clear or replace filters when a known record does not appear.</li>
                 </ul>
+                <?php if ($isSystemAdmin): ?>
+                <div class="manual-callout is-warning"><strong>Deleted records</strong><p>System Admins can mark farmer profiles, farmer groups, and transactions as deleted. Deleted rows are highlighted for review and their history is preserved; deletion should be used only after confirming the record should no longer be active.</p></div>
+                <?php endif; ?>
             </section>
 
             <?php endif; ?>
@@ -264,14 +304,16 @@ $roleDescriptions = [
             <section class="manual-section" id="reports">
                 <p class="manual-kicker"><?= e($manualSectionNumbers['reports']) ?></p>
                 <h2>Reports and SDD Analytics</h2>
-                <p>Open <strong>Reports → Summary Report</strong> and choose the required output. Available formats include the standard summary, branch/region summary, SDD summary, and the full FSR list of individual farmers and organizations.</p>
+                <p>Open <strong>Reports → Summary Report</strong> and choose the required output. Available formats include the standard summary, branch/region summary, provincial summary, SDD summary, monthly SDD report, full FSR list of individual farmers and farmer groups, and IP Group Delivery report.</p>
                 <ol class="manual-steps">
                     <li><span>1</span><div>Select the report format or result basis.</div></li>
                     <li><span>2</span><div>Set the date range and applicable region, branch, province, and facility filters.</div></li>
-                    <li><span>3</span><div>Generate the report, review its title, scope, totals, and rows, then use the print option when a hard copy or PDF is needed.</div></li>
+                    <li><span>3</span><div>Generate the report, review its title, scope, totals, and rows, then use print or Excel-compatible download when a hard copy, PDF, or spreadsheet file is needed.</div></li>
                 </ol>
                 <h3>Sex-disaggregated data</h3>
-                <p>Open <strong>Reports → SDD Analytics</strong> to view sex, sectoral, and SOGIE distributions. Apply location and date filters before interpreting charts so the population and reporting period are clear.</p>
+                <p>Open <strong>Reports → SDD Analytics</strong> to view sex, sectoral, and SOGIE distributions. Apply location and date filters before interpreting charts so the population and reporting period are clear. Checkbox SDD filters combine choices within the same category as alternatives, while selections across different categories are applied together.</p>
+                <h3>Printed and exported outputs</h3>
+                <p>Before releasing a report, confirm the report title, date range, location scope, selected signatories, three-decimal quantity and amount totals, and metric-ton equivalents. Use <strong>Reports → Report Settings</strong> to maintain signatory names and designations when your role permits it.</p>
                 <div class="manual-callout is-warning"><strong>Reporting check</strong><p>The default reporting period begins on January 1 of the current year and ends today. Always verify the displayed dates and location scope before issuing a report.</p></div>
             </section>
 
@@ -292,8 +334,13 @@ $roleDescriptions = [
             <section class="manual-section" id="account">
                 <p class="manual-kicker"><?= e($manualSectionNumbers['account']) ?></p>
                 <h2>Account and Notifications</h2>
-                <p>Select your name in the upper-right corner to see notifications and the link to <strong>Edit Profile Settings</strong>. Notifications identify important record and support activity; select one to open its related page. Use <strong>Clear all</strong> only when you no longer need the current list.</p>
+                <p>Select your name in the upper-right corner to see recent notifications, hear or view new-notice alerts, and open <strong>See all notifications</strong> for the complete per-user notification list. Notifications identify important record, delivery, schedule, account, and support activity; select one to open its related page or filtered results. Use <strong>Clear all</strong> only when you no longer need the current list.</p>
+                <p>On the Notifications page, adjust notification preferences such as location level, individual or farmer-group delivery notices, farmer profile updates, annual 400-bag alerts, cross-location deliveries, tech support updates, and account/access updates.</p>
                 <p>On the Account page, update your profile image, name, email, contact number, designation, or password. Enter and confirm the same new password before saving. Organizational location may be controlled by your administrator.</p>
+                <p>Users may also submit a 4K landing-page photo from Account settings. Submitted photos require System Admin review before appearing in the landing slideshow.</p>
+                <?php if ($canEncode): ?>
+                <p>Warehouse Personnel and System Admin accounts may enable offline mode from Account Settings. Prepare the offline workspace while connected, then use the pending-input badge and upload prompt when returning online.</p>
+                <?php endif; ?>
             </section>
 
             <section class="manual-section" id="support">
@@ -307,6 +354,10 @@ $roleDescriptions = [
                     <li><span>4</span><div>Return to the ticket list to read replies and status updates. Archive it when no longer needed.</div></li>
                 </ol>
                 <p>Do not include passwords or other unnecessary sensitive information in a ticket or screenshot.</p>
+                <div class="manual-callout">
+                    <strong>Reply window</strong>
+                    <p>When the developer team or System Admin replies to a ticket and the user does not respond within three working days, the system adds a warning that the ticket may be closed. If there is still no user reply within another three working days, the ticket can be automatically marked completed and the user is notified.</p>
+                </div>
                 <?php if ($isSystemAdmin): ?>
                 <h3>Administrator ticket handling</h3>
                 <ul class="manual-list">
@@ -315,6 +366,8 @@ $roleDescriptions = [
                     <li>Reply with the action taken or the next required step so the reporting user has a clear trail.</li>
                     <li>Mark a ticket completed only after the concern has been answered, corrected, or transferred to the proper support process.</li>
                     <li>Archive completed tickets to keep the working queue readable while preserving the support history.</li>
+                    <li>Use the archive view and bulk actions when several tickets can be completed or archived together after review.</li>
+                    <li>Watch for auto-close warning messages; a user reply resets the warning window, while continued inactivity allows automatic completion.</li>
                 </ul>
                 <?php endif; ?>
             </section>
@@ -338,10 +391,13 @@ $roleDescriptions = [
                 <p>When a user requests a password reset, validate that the request is legitimate before approval. Do not ask users to send passwords through Tech Support. After approval, the user should complete the reset through the system-provided reset flow.</p>
 
                 <h3>Display Settings</h3>
-                <p>Open <strong>Help → Display Settings</strong> to manage landing-page photo submissions and display behavior. Approve only appropriate, official, and clear images; keep the public landing experience professional and relevant to NFA operations.</p>
+                <p>Open <strong>Help → Display Settings</strong> to manage landing-page photo submissions, slideshow ordering, and display behavior. Approve only appropriate, official, clear 4K images; approved photos are optimized for display and submitters are notified of the review result.</p>
 
-                <h3>Database Management</h3>
-                <p>Open <strong>Help → Database Management</strong> when you need to inspect the database structure. Treat this area as a sensitive administrative tool. Use it for verification and maintenance awareness, and avoid changing database-backed workflows without a tested update plan.</p>
+                <h3>System Maintenance</h3>
+                <p>Open <strong>Help → System Maintenance</strong> to control maintenance mode, schedule maintenance windows, manage module availability, and inspect the database tab. Maintenance mode prevents new non-admin sign-ins and signs out active non-admin users while the system is unavailable. Module maintenance can temporarily disable encoding or Delivery Schedules for non-admin users while keeping System Admin access available for checking and recovery.</p>
+
+                <h3>Database review</h3>
+                <p>Use the database tab in <strong>System Maintenance</strong> when you need to inspect the database structure. Treat this area as a sensitive administrative tool. Use it for verification and maintenance awareness, and avoid changing database-backed workflows without a tested update plan.</p>
 
                 <h3>Reference-data stewardship</h3>
                 <p>Before renaming or deleting regions, branches, provinces, facilities, departments, divisions, services, or units, check whether accounts or records already depend on them. Correct spelling errors where possible and avoid creating duplicate entries for the same official office.</p>
@@ -351,6 +407,7 @@ $roleDescriptions = [
                     <li>Grant the minimum role needed for the user's duties.</li>
                     <li>Confirm the correct location before activating an account.</li>
                     <li>Keep location and Central Office reference libraries clean, current, and non-duplicated.</li>
+                    <li>Schedule maintenance windows before disruptive work and notify users through the system where applicable.</li>
                     <li>Review audit activity when investigating unexpected access, record, or support changes.</li>
                     <li>Use the Tech Support queue to reply to users, mark resolved tickets completed, and archive closed work.</li>
                     <li>Use report filters and signatory settings to verify official printed outputs before release.</li>
@@ -470,7 +527,7 @@ $roleDescriptions = [
                         </ul></div>
                     </article>
                     <article class="manual-version-entry">
-                        <div class="manual-version-date"><time datetime="2026-07-31">July 31, 2026</time><span>Current release</span></div>
+                        <div class="manual-version-date"><time datetime="2026-07-31">July 31, 2026</time><span>Feature update</span></div>
                         <div><h3>Delivery controls, data outputs, and record visibility refined</h3><ul class="manual-list">
                             <li>Added WSR-number validation for individual deliveries, preventing a transaction from being saved without a WSR number and reporting duplicate WSR entries to the encoder.</li>
                             <li>Added a calculated Total Amount field to delivery forms. It uses the entered price per kilogram and net kilograms, and is stored with the transaction.</li>
@@ -492,8 +549,8 @@ $roleDescriptions = [
                             <li>Added per-user read tracking, so selecting a notification removes its highlight only for the user who attended to it.</li>
                         </ul></div>
                     </article>
-                    <article class="manual-version-entry is-current">
-                        <div class="manual-version-date"><time datetime="2026-08-16">August 16, 2026</time><span>Current release</span></div>
+                    <article class="manual-version-entry">
+                        <div class="manual-version-date"><time datetime="2026-08-16">August 16, 2026</time><span>Feature update</span></div>
                         <div><h3>Scheduling, maintenance, notifications, and FSR workflow patch</h3><ul class="manual-list">
                             <li>Added the <strong>Delivery Schedules</strong> module, available from the Encode menu and dashboard, for reserving individual or Farmer Group delivery dates by facility.</li>
                             <li>Added a monthly delivery calendar, daily status controls, a scheduled-deliveries list, and individual schedule statuses for Completed, Rescheduled, and No-show.</li>
@@ -511,6 +568,16 @@ $roleDescriptions = [
                             <li>Added System Admin delete controls that safely mark farmer profiles and transactions as deleted, preserve their history, and highlight deleted rows for review.</li>
                             <li>Refined the dashboard and navigation with a Schedule Delivery shortcut, NFA web link, branded system visuals, and screensaver-mode support.</li>
                             <li>Reworked record-version details into a clean Previous → Updated comparison, converting raw array-style values into readable change summaries.</li>
+                        </ul></div>
+                    </article>
+                    <article class="manual-version-entry is-current">
+                        <div class="manual-version-date"><time datetime="2026-09-03">September 3, 2026</time><span>Current release</span></div>
+                        <div><h3>Tech Support follow-up and sync safeguards added</h3><ul class="manual-list">
+                            <li>Added automatic Tech Support follow-up warnings when the latest administrator reply has not received a user response within three working days.</li>
+                            <li>Added automatic completion for support tickets that still receive no user reply within another three working days after the warning.</li>
+                            <li>Added notification handling for auto-close warnings and automatic ticket completion, while resetting the warning window when the reporting user replies.</li>
+                            <li>Added a durable local synchronization queue for farmer, farmer-group, and transaction changes so pending record updates can be tracked safely for deployment and future sync workflows.</li>
+                            <li>Updated this System Guide so the body sections explain schedules, maintenance, notification preferences, record history, deleted-record review, report exports, display photos, and support-ticket auto-closure behavior.</li>
                         </ul></div>
                     </article>
                 </div>
