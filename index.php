@@ -122,6 +122,7 @@ match ($_GET['page'] ?? 'dashboard') {
     'display-settings' => $controller->displaySettings(),
     'tech-support' => $controller->techSupport(),
     'tech-support-archive' => $controller->archivedTechSupport(),
+    'fsr-application-installer' => $controller->applicationInstaller(),
     'user-manual' => $controller->userManual(),
     'locations' => $controller->locationLibrary(),
     'central-office-directory' => $controller->centralOfficeLibrary(),

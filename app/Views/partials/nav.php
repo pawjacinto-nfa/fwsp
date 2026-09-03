@@ -80,6 +80,7 @@ if ($notifications !== []): ?>
                         <a class="nav-link dropdown-toggle" href="index.php?page=tech-support" role="button" data-bs-toggle="dropdown" aria-expanded="false">Help</a>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="index.php?page=tech-support">Tech Support</a></li>
+                            <li><a class="dropdown-item" href="index.php?page=fsr-application-installer">FSR Application Installer</a></li>
                             <li><a class="dropdown-item" href="index.php?page=user-manual">System Guide</a></li>
                             <?php if (($_SESSION['role'] ?? '') === 'System Admin'): ?>
                                 <li><a class="dropdown-item" href="index.php?page=display-settings">Display Settings</a></li>

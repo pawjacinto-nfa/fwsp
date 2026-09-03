@@ -689,6 +689,18 @@ final class DashboardController
         ]);
     }
 
+    public function applicationInstaller(): void
+    {
+        if (!$this->authorizeHelp()) {
+            return;
+        }
+
+        View::render('application-installer', [
+            'title' => 'FSR Application Installer',
+            'alert' => $this->pullFlash(),
+        ]);
+    }
+
     public function storeSupportTicket(array $payload, array $files): void
     {
         if (!$this->authorizeHelp()) {
