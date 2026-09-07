@@ -56,6 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'location-add' => $controller->storeLocation($_POST),
         'location-update' => $controller->updateLocation($_POST),
         'location-delete' => $controller->deleteLocation($_POST),
+        'location-record-reassign' => $controller->reassignLocationRecord($_POST),
         'central-office-add' => $controller->storeCentralOfficeLocation($_POST),
         'central-office-update' => $controller->updateCentralOfficeLocation($_POST),
         'central-office-delete' => $controller->deleteCentralOfficeLocation($_POST),

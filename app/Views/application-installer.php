@@ -12,9 +12,9 @@
         <div>
             <span class="installer-file-label">Windows application</span>
             <h2>Farmer-Seller Registry Setup</h2>
-            <p>Version 1.1.0 · approximately 73 MB · requires an internet connection</p>
+            <p>Version 2.0.0 · approximately 73 MB · supports prepared offline encoding</p>
         </div>
-        <a class="btn btn-success btn-lg" href="assets/downloads/FSR-Application-Installer-1.1.0.exe" download="FSR-Application-Installer-1.1.0.exe">Download installer</a>
+        <a class="btn btn-success btn-lg" href="assets/downloads/FSR-Application-Installer-2.0.0.exe" download="FSR-Application-Installer-2.0.0.exe">Download installer</a>
     </div>
 
     <section class="installer-steps" aria-labelledby="installationStepsTitle">
@@ -23,7 +23,7 @@
         </div>
         <ol>
             <li><strong>Download the installer.</strong><span>Select the green <em>Download installer</em> button above. Wait until the download is complete.</span></li>
-            <li><strong>Open the downloaded file.</strong><span>Open your <em>Downloads</em> folder and double-click <em>FSR-Application-Installer-1.1.0.exe</em>.</span></li>
+            <li><strong>Open the downloaded file.</strong><span>Open your <em>Downloads</em> folder and double-click <em>FSR-Application-Installer-2.0.0.exe</em>.</span></li>
             <li><strong>Follow the installation window.</strong><span>Select <em>Next</em>, choose the installation location if asked, then select <em>Install</em>. Keep the default choices if you are unsure.</span></li>
             <li><strong>Open Farmer-Seller Registry.</strong><span>Select <em>Finish</em>. Afterwards, use the desktop or Start Menu shortcut named <em>Farmer-Seller Registry</em>.</span></li>
         </ol>
@@ -33,7 +33,9 @@
         <h2 id="beforeTitle">Before you begin</h2>
         <ul>
             <li>This installer is for Windows computers.</li>
-            <li>Keep an internet connection while using the application. It connects to the official FSR sandbox.</li>
+            <li>For the first use, sign in while connected to the internet and keep the app open for a few minutes so it can prepare its offline workspace.</li>
+            <li>After setup, supported encoding forms can be saved while offline. A red bar and a <strong>Not uploaded online</strong> message identify records waiting to upload.</li>
+            <li>When the internet returns, keep the app open and signed in; saved records retry automatically.</li>
             <li>If Windows asks whether you want to allow the installer to make changes, select <strong>Yes</strong>.</li>
             <li>If a Windows protection message appears, contact your System Administrator or submit a Tech Support request before continuing.</li>
         </ul>

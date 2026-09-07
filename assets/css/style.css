@@ -1887,6 +1887,125 @@ body.route-fade::before {
     margin-bottom: 16px;
 }
 
+.field-office-browser {
+    display: grid;
+    gap: 18px;
+}
+
+.field-office-region-picker {
+    max-width: 440px;
+}
+
+.field-office-region-panel {
+    display: grid;
+    gap: 18px;
+}
+
+.field-office-selected-heading,
+.field-office-level-heading {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.field-office-selected-heading h3,
+.field-office-level-heading h4 {
+    margin: 2px 0 0;
+    color: var(--green-800);
+}
+
+.field-office-step {
+    display: block;
+    color: color-mix(in srgb, var(--ink), transparent 36%);
+    font-size: 0.74rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.field-office-columns {
+    display: grid;
+    grid-template-columns: minmax(220px, 0.9fr) minmax(250px, 1fr) minmax(280px, 1.15fr);
+    gap: 16px;
+    align-items: start;
+}
+
+.field-office-level {
+    display: grid;
+    gap: 12px;
+    min-height: 220px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--panel), var(--green-100) 20%);
+}
+
+.field-office-detail-level {
+    background: var(--panel);
+}
+
+.field-office-item-list {
+    display: grid;
+    gap: 7px;
+    max-height: 400px;
+    overflow: auto;
+}
+
+.field-office-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 9px 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--ink);
+    background: var(--panel);
+    font-weight: 650;
+    text-align: left;
+}
+
+.field-office-item:hover,
+.field-office-item:focus-visible,
+.field-office-item.is-selected {
+    border-color: var(--green-700);
+    color: #fff;
+    background: var(--green-800);
+    outline: none;
+}
+
+.field-office-add-form,
+.field-office-edit-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    align-items: center;
+}
+
+.field-office-warehouse-list .field-office-edit-form {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+}
+
+.field-office-selected-heading .field-office-edit-form {
+    grid-template-columns: minmax(180px, 1fr) auto auto;
+}
+
+.field-office-empty,
+.field-office-empty-level {
+    margin: 0;
+    color: color-mix(in srgb, var(--ink), transparent 34%);
+}
+
+.field-office-empty-level {
+    padding: 10px 0;
+    font-size: 0.9rem;
+}
+
+.field-office-icon-form {
+    margin: 0;
+}
+
 .farmer-organization-library {
     margin-bottom: 16px;
 }
@@ -4168,6 +4287,15 @@ body.screensaver-mode .floating-home-link { pointer-events: none; opacity: 0; tr
 }
 
 @media (max-width: 720px) {
+    .field-office-columns {
+        grid-template-columns: 1fr;
+    }
+
+    .field-office-selected-heading {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
     .library-add-row {
         grid-template-columns: 1fr;
     }

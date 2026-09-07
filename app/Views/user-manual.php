@@ -570,7 +570,7 @@ $roleDescriptions = [
                             <li>Reworked record-version details into a clean Previous → Updated comparison, converting raw array-style values into readable change summaries.</li>
                         </ul></div>
                     </article>
-                    <article class="manual-version-entry is-current">
+                    <article class="manual-version-entry">
                         <div class="manual-version-date"><time datetime="2026-09-03">September 3, 2026</time><span>Current release</span></div>
                         <div><h3>Tech Support follow-up and sync safeguards added</h3><ul class="manual-list">
                             <li>Added automatic Tech Support follow-up warnings when the latest administrator reply has not received a user response within three working days.</li>
@@ -578,6 +578,18 @@ $roleDescriptions = [
                             <li>Added notification handling for auto-close warnings and automatic ticket completion, while resetting the warning window when the reporting user replies.</li>
                             <li>Added a durable local synchronization queue for farmer, farmer-group, and transaction changes so pending record updates can be tracked safely for deployment and future sync workflows.</li>
                             <li>Updated this System Guide so the body sections explain schedules, maintenance, notification preferences, record history, deleted-record review, report exports, display photos, and support-ticket auto-closure behavior.</li>
+                        </ul></div>
+                    </article>
+                    <article class="manual-version-entry is-current">
+                        <div class="manual-version-date"><time datetime="2026-09-07">September 7, 2026</time><span>Current release</span></div>
+                        <div><h3>Field Office Library hierarchy and province workflow improved</h3><ul class="manual-list">
+                            <li>Rebuilt the <strong>Field Office Library</strong> into a guided Region → Branch → Province → Warehouse/Facility hierarchy, replacing the flat master-location list.</li>
+                            <li>Added click-to-drill-down management: selecting a region reveals its branches, selecting a branch reveals its provinces, and selecting a province reveals its facilities.</li>
+                            <li>Moved Add Branch, Add Province, and Add Warehouse actions into their corresponding hierarchy level, while keeping inline rename and guarded delete controls available for each location type.</li>
+                            <li>Allowed provinces without facilities to remain visible and selectable in farmer location workflows; farmer records now retain the selected province even when no facility is assigned.</li>
+                            <li>Added a guarded location-deletion workflow that lists affected farmers, transactions, farmer groups, and user accounts in an accordion modal, where only their location details may be reassigned before deletion is retried.</li>
+                            <li>Standardized legacy numeric region entries to Roman-numeral region names and added <strong>Davao de Oro</strong> under Region XI / Davao del Norte.</li>
+                            <li>Expanded automatic error reports and their Tech Support display with a traceable reference number, precise failure message, source location, stack trace, request and response context, browser state, and signed-in user context while redacting passwords and security tokens.</li>
                         </ul></div>
                     </article>
                 </div>

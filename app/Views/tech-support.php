@@ -126,7 +126,11 @@ $archiveKey = $isSuperAdmin ? 'admin_archived' : 'reporter_archived';
                                     <div class="support-ticket-detail">
                                         <div class="support-ticket-description">
                                             <strong>Description</strong>
-                                            <p><?= nl2br(e($ticket['description'])) ?></p>
+                                            <?php if (($ticket['category'] ?? '') === 'System Error'): ?>
+                                                <pre class="support-error-diagnostics mt-2 p-3 bg-light border rounded small text-wrap" style="max-height: 60vh; overflow: auto"><?= e($ticket['description']) ?></pre>
+                                            <?php else: ?>
+                                                <p><?= nl2br(e($ticket['description'])) ?></p>
+                                            <?php endif; ?>
                                             <?php if (!empty($ticket['screenshot_path'])): ?>
                                                 <a class="support-screenshot-link" href="<?= e($ticket['screenshot_path']) ?>" target="_blank" rel="noopener">View uploaded screenshot</a>
                                             <?php endif; ?>

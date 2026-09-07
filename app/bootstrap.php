@@ -42,24 +42,100 @@ if ($isPublicScheduleRequest) {
 /** Keep unexpected PHP failures user-visible and reportable instead of rendering a blank page. */
 ob_start();
 
+function system_error_reference(): string
+{
+    try {
+        $suffix = strtoupper(bin2hex(random_bytes(3)));
+    } catch (\Throwable) {
+        $suffix = strtoupper(substr(hash('sha256', uniqid('', true)), 0, 6));
+    }
+
+    return 'FSR-' . gmdate('Ymd-His') . '-' . $suffix;
+}
+
+function redact_error_details(string $details): string
+{
+    $details = str_replace("\0", '', $details);
+    $details = preg_replace('/(?i)(password|passwd|secret|authorization|cookie|csrf(?:_token)?|access[_-]?token|api[_-]?key)(\s*[:=]\s*)([^\s&;,]+)/', '$1$2[REDACTED]', $details) ?? $details;
+    $details = preg_replace('/(?i)(Bearer\s+)[A-Za-z0-9._~+\/=-]+/', '$1[REDACTED]', $details) ?? $details;
+
+    return $details;
+}
+
+function truncate_error_details(string $details, int $maximumBytes): string
+{
+    if (strlen($details) <= $maximumBytes) {
+        return $details;
+    }
+
+    return function_exists('mb_strcut')
+        ? mb_strcut($details, 0, $maximumBytes, 'UTF-8')
+        : substr($details, 0, $maximumBytes);
+}
+
+function throwable_error_report(\Throwable $error, string $reference): string
+{
+    $lines = [
+        'Error reference: ' . $reference,
+        'Occurred at: ' . date(DATE_ATOM),
+        'Source: Server / PHP',
+        'Error type: ' . $error::class,
+        'Message: ' . ($error->getMessage() !== '' ? $error->getMessage() : '(no exception message)'),
+        'Error code: ' . (string) $error->getCode(),
+        'Request method: ' . ($_SERVER['REQUEST_METHOD'] ?? 'Unknown'),
+        'Request URI: ' . ($_SERVER['REQUEST_URI'] ?? 'Unknown'),
+        'Signed-in user: ' . (!empty($_SESSION['user_id'])
+            ? '#' . (int) $_SESSION['user_id'] . ' - ' . ($_SESSION['user'] ?? 'Unknown name') . ' (' . ($_SESSION['role'] ?? 'Unknown role') . ')'
+            : 'Anonymous'),
+        'PHP version: ' . PHP_VERSION,
+        'Source location: ' . $error->getFile() . ':' . $error->getLine(),
+        '',
+        'Stack trace:',
+        $error->getTraceAsString() !== '' ? $error->getTraceAsString() : '(no stack trace available)',
+    ];
+
+    $previous = $error->getPrevious();
+    $depth = 0;
+    while ($previous !== null && $depth < 5) {
+        $lines[] = '';
+        $lines[] = sprintf(
+            'Caused by: %s: %s at %s:%d',
+            $previous::class,
+            $previous->getMessage() !== '' ? $previous->getMessage() : '(no exception message)',
+            $previous->getFile(),
+            $previous->getLine()
+        );
+        $lines[] = $previous->getTraceAsString();
+        $previous = $previous->getPrevious();
+        $depth++;
+    }
+
+    return truncate_error_details(redact_error_details(implode("\n", $lines)), 54000);
+}
+
 function render_system_error(\Throwable $error): never
 {
     http_response_code(500);
+    $reference = system_error_reference();
     if (!headers_sent()) {
         header('Content-Type: text/html; charset=UTF-8');
+        header('X-FSR-Error-Reference: ' . $reference);
     }
     while (ob_get_level() > 0) {
         ob_end_clean();
     }
 
-    $description = $error->getMessage() . "\n" . $error->getFile() . ':' . $error->getLine();
+    $description = throwable_error_report($error, $reference);
+    error_log(str_replace("\n", ' | ', $description));
     $payload = json_encode([
+        'reference' => $reference,
         'description' => $description,
-        'pageUrl' => ($_SERVER['REQUEST_URI'] ?? ''),
-        'browser' => ($_SERVER['HTTP_USER_AGENT'] ?? ''),
+        'pageUrl' => redact_error_details((string) ($_SERVER['REQUEST_URI'] ?? '')),
+        'browser' => redact_error_details((string) ($_SERVER['HTTP_USER_AGENT'] ?? '')),
         'csrfToken' => csrf_token(),
-    ], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
-    $modal = '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>System error</title><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"></head><body><div class="modal d-block" tabindex="-1" role="dialog" aria-modal="true"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h1 class="modal-title fs-5">System Error</h1></div><div class="modal-body"><p>"An error occured: ' . e($description) . '"</p></div><div class="modal-footer"><button class="btn btn-outline-secondary" type="button" onclick="history.back()">Don\'t Send Error Report</button><button class="btn btn-danger" type="button" id="sendError">Send Error to System Administrator</button></div></div></div></div><script>const errorReport=' . $payload . ';document.getElementById("sendError").addEventListener("click",async()=>{if(!confirm("Are you sure you want to send an error report?"))return;const body=new URLSearchParams({action:"error-report",csrf_token:errorReport.csrfToken,description:errorReport.description,page_url:errorReport.pageUrl,browser:errorReport.browser});const response=await fetch("index.php",{method:"POST",headers:{"X-Requested-With":"fetch","Content-Type":"application/x-www-form-urlencoded"},body,credentials:"same-origin"});if(response.ok){document.getElementById("sendError").textContent="Error report sent";document.getElementById("sendError").disabled=true;}else{alert("The error report could not be sent.");}});</script></body></html>';
+    ], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_INVALID_UTF8_SUBSTITUTE);
+    $summary = redact_error_details($error->getMessage() !== '' ? $error->getMessage() : 'The application encountered an unexpected server error.');
+    $modal = '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>System error</title><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"><style>pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:45vh;overflow:auto;background:#f8f9fa;padding:1rem;border-radius:.5rem;font-size:.8rem}</style></head><body><div class="modal d-block" tabindex="-1" role="dialog" aria-modal="true"><div class="modal-dialog modal-dialog-centered modal-lg"><div class="modal-content"><div class="modal-header"><h1 class="modal-title fs-5">System Error</h1></div><div class="modal-body"><p><strong>The request could not be completed.</strong> ' . e($summary) . '</p><p class="mb-2">Error reference: <strong>' . e($reference) . '</strong>. You can send the complete diagnostic details below to the System Administrator.</p><details><summary>Technical details</summary><pre data-server-error-details>' . e($description) . '</pre></details></div><div class="modal-footer"><button class="btn btn-outline-secondary" type="button" onclick="history.back()">Don\'t Send Error Report</button><button class="btn btn-danger" type="button" id="sendError">Send Error to System Administrator</button></div></div></div></div><script>const errorReport=' . $payload . ';document.getElementById("sendError").addEventListener("click",async()=>{if(!confirm("Send this complete diagnostic report to the System Administrator?"))return;const button=document.getElementById("sendError");button.disabled=true;button.textContent="Sending error report...";try{const body=new URLSearchParams({action:"error-report",csrf_token:errorReport.csrfToken,report_id:errorReport.reference,description:errorReport.description,page_url:errorReport.pageUrl,browser:errorReport.browser});const response=await fetch("index.php",{method:"POST",headers:{"X-Requested-With":"fetch","Content-Type":"application/x-www-form-urlencoded"},body,credentials:"same-origin"});const result=await response.json().catch(()=>({}));if(!response.ok)throw new Error(result.message||"The server rejected the error report.");button.textContent="Error report sent (Ticket #"+result.ticket_id+")";}catch(error){button.disabled=false;button.textContent="Retry sending error report";alert(error.message||"The error report could not be sent.");}});</script></body></html>';
     echo $modal;
     exit;
 }

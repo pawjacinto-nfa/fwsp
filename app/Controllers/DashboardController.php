@@ -298,7 +298,11 @@ final class DashboardController
             $this->flash('success', 'Delivery scheduled. Your confirmation is ready to preview or print.');
             $this->redirect('?page=delivery-schedule-confirmation&id=' . $id);
         } catch (\DomainException $e) { $this->flash('danger', $e->getMessage()); $this->redirect('?page=delivery-schedules&month=' . substr($date, 0, 7)); }
-        catch (\Throwable $e) { error_log('Delivery schedule failed: ' . $e->getMessage()); $this->flash('danger', 'The delivery schedule could not be saved.'); $this->redirect('?page=delivery-schedules'); }
+        catch (\Throwable $e) {
+            $report = $this->captureUnexpectedError($e, 'Saving a delivery schedule');
+            $this->flash('danger', 'The delivery schedule could not be saved. Review the error prompt for the exact cause. Reference: ' . $report['reference'] . '.');
+            $this->redirect('?page=delivery-schedules');
+        }
     }
 
     public function deliveryScheduleConfirmation(array $filters): void
@@ -366,8 +370,8 @@ final class DashboardController
             $this->flash('danger', $e->getMessage());
             $this->redirect('?page=delivery-schedules');
         } catch (\Throwable $e) {
-            error_log('Delivery schedule status update failed: ' . $e->getMessage());
-            $this->flash('danger', 'The schedule status could not be updated.');
+            $report = $this->captureUnexpectedError($e, 'Updating a delivery schedule status');
+            $this->flash('danger', 'The schedule status could not be updated. Review the error prompt for the exact cause. Reference: ' . $report['reference'] . '.');
             $this->redirect('?page=delivery-schedules');
         }
     }
@@ -391,9 +395,9 @@ final class DashboardController
             DeliverySchedule::setDayStatus($date, $warehouseId, $status);
             echo json_encode(['success' => true, 'status' => $status]);
         } catch (\Throwable $e) {
-            error_log('Delivery schedule day status update failed: ' . $e->getMessage());
-            http_response_code(422);
-            echo json_encode(['success' => false, 'message' => 'The day slot setting could not be saved.']);
+            $report = $this->captureUnexpectedError($e, 'Updating a delivery-day slot setting', false);
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => $report['summary'], 'error_report' => $report]);
         }
     }
 
@@ -746,6 +750,7 @@ final class DashboardController
         header('Content-Type: application/json');
 
         $description = trim((string) ($payload['description'] ?? ''));
+        $reportId = strtoupper(trim((string) ($payload['report_id'] ?? '')));
         $pageUrl = trim((string) ($payload['page_url'] ?? ''));
         $browser = trim((string) ($payload['browser'] ?? ''));
         if ($description === '') {
@@ -754,16 +759,24 @@ final class DashboardController
             return;
         }
 
-        $description = mb_substr(strip_tags($description), 0, 10000);
+        if (!preg_match('/^FSR-\d{8}-\d{6}-[A-F0-9]{6}$/', $reportId)) {
+            $reportId = system_error_reference();
+        }
+
+        $description = truncate_error_details(redact_error_details($description), 54000);
         $context = implode("\n", array_filter([
-            'Page: ' . mb_substr(strip_tags($pageUrl), 0, 1000),
-            'Browser: ' . mb_substr(strip_tags($browser), 0, 1000),
+            'Report received at: ' . date(DATE_ATOM),
+            'Reported page: ' . mb_substr(redact_error_details(strip_tags($pageUrl)), 0, 1000),
+            'Reported browser: ' . mb_substr(redact_error_details(strip_tags($browser)), 0, 1000),
+            'Reporter session: ' . (!empty($_SESSION['user_id'])
+                ? '#' . (int) $_SESSION['user_id'] . ' - ' . ($_SESSION['user'] ?? 'Unknown name') . ' (' . ($_SESSION['role'] ?? 'Unknown role') . ')'
+                : 'Anonymous'),
         ], static fn (string $value): bool => trim($value) !== ''));
         $ticketId = SupportTicket::create([
             'reporter_id' => !empty($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : null,
-            'title' => 'Automatic error report',
+            'title' => 'Automatic error report - ' . $reportId,
             'category' => 'System Error',
-            'description' => $description . ($context !== '' ? "\n\n" . $context : ''),
+            'description' => truncate_error_details($description . ($context !== '' ? "\n\nSubmission context:\n" . $context : ''), 64000),
             'screenshot_path' => null,
         ]);
 
@@ -775,7 +788,7 @@ final class DashboardController
             Activity::add($_SESSION['user'] . ' submitted automatic error report #' . $ticketId . '.');
         }
 
-        echo json_encode(['success' => true, 'ticket_id' => $ticketId]);
+        echo json_encode(['success' => true, 'ticket_id' => $ticketId, 'report_id' => $reportId]);
     }
 
     public function replySupportTicket(array $payload): void
@@ -897,6 +910,7 @@ final class DashboardController
             'regions' => Location::allRegions(),
             'branches' => Location::allBranches(),
             'provinces' => Location::allProvinces(),
+            'locationDeletionImpact' => !empty($_GET['resolve_location_records']) ? ($_SESSION['location_delete_impact'] ?? null) : null,
         ]);
     }
 
@@ -1795,10 +1809,17 @@ final class DashboardController
             return;
         }
 
+        $type = $this->clean($payload['type'] ?? '');
+        $id = (int) ($payload['id'] ?? 0);
+        if ($impact = Location::deletionImpact($type, $id)) {
+            $_SESSION['location_delete_impact'] = ['type' => $type, 'id' => $id, 'records' => $impact];
+            $this->redirect('?page=locations&resolve_location_records=1');
+            return;
+        }
+
         try {
             Location::delete(
-                $this->clean($payload['type'] ?? ''),
-                (int) ($payload['id'] ?? 0)
+                $type, $id
             );
         } catch (\RuntimeException $exception) {
             $this->flash('danger', $exception->getMessage());
@@ -1808,6 +1829,23 @@ final class DashboardController
 
         Activity::add('Location deleted from library.');
         $this->flash('success', 'Location deleted.');
+        $this->redirect('?page=locations');
+    }
+
+    public function reassignLocationRecord(array $payload): void
+    {
+        if (!$this->authorizeLocationLibrary()) return;
+        try {
+            Location::reassignRecord($this->clean($payload['record_type'] ?? ''), (int) ($payload['record_id'] ?? 0), [
+                'region_id' => (int) ($payload['region_id'] ?? 0), 'branch_id' => (int) ($payload['branch_id'] ?? 0),
+                'province_id' => (int) ($payload['province_id'] ?? 0), 'warehouse_id' => (int) ($payload['warehouse_id'] ?? 0),
+            ]);
+            Activity::add('Record location reassigned before location deletion.');
+            $this->flash('success', 'Record location updated. Re-open deletion when all affected records have been reassigned.');
+        } catch (\Throwable $exception) {
+            $report = $this->captureUnexpectedError($exception, 'Reassigning a record location');
+            $this->flash('danger', 'The record location could not be updated. Review the error prompt for the exact cause. Reference: ' . $report['reference'] . '.');
+        }
         $this->redirect('?page=locations');
     }
 
@@ -1894,8 +1932,6 @@ final class DashboardController
             return;
         }
 
-        $photoPath = $this->saveFarmerPhoto($files['farmer_photo'] ?? null);
-        $validIdPath = $this->saveFarmerPhoto($files['farmer_valid_id'] ?? null);
         $genderOrientation = [];
         $genderSelection = $this->clean($payload['gender_orientation'] ?? '');
         if ($genderSelection !== '') {
@@ -1929,8 +1965,8 @@ final class DashboardController
             'organization' => $this->clean($payload['organization'] ?? ''),
             'province_id' => $this->clean($payload['province_id'] ?? ''),
             'warehouse_id' => $this->clean($payload['warehouse_id'] ?? ''),
-            'photo_path' => $photoPath,
-            'valid_id_path' => $validIdPath,
+            'photo_path' => null,
+            'valid_id_path' => null,
         ];
 
         if ($farmer['is_ip_group_member'] && !in_array('Indigenous People', $farmer['sector'], true)) {
@@ -1948,11 +1984,18 @@ final class DashboardController
             return;
         }
 
+        if ($this->rejectDuplicateFarmerIdentifiers($farmer, 0, '?page=encode-farmer')) {
+            return;
+        }
+
+        $farmer['photo_path'] = $this->saveFarmerPhoto($files['farmer_photo'] ?? null);
+        $farmer['valid_id_path'] = $this->saveFarmerPhoto($files['farmer_valid_id'] ?? null);
+
         try {
             $farmerId = Farmer::create($farmer);
         } catch (\Throwable $e) {
-            error_log('Farmer creation failed: ' . $e->getMessage());
-            $this->flash('danger', 'The farmer profile could not be saved. Check for duplicate identifiers and verify the required fields.');
+            $report = $this->captureUnexpectedError($e, 'Saving a farmer profile');
+            $this->flash('danger', 'The farmer profile could not be saved. Review the error prompt for the exact cause. Reference: ' . $report['reference'] . '.');
             $this->redirect('?page=encode-farmer');
             return;
         }
@@ -2025,11 +2068,15 @@ final class DashboardController
             return;
         }
 
+        if ($this->rejectDuplicateFarmerIdentifiers($farmer, $id, '?page=farmer-view&id=' . $id)) {
+            return;
+        }
+
         try {
             Farmer::update($id, $farmer);
         } catch (\Throwable $e) {
-            error_log('Farmer update failed: ' . $e->getMessage());
-            $this->flash('danger', 'The farmer profile could not be updated. Check for duplicate identifiers and verify the required fields.');
+            $report = $this->captureUnexpectedError($e, 'Updating a farmer profile');
+            $this->flash('danger', 'The farmer profile could not be updated. Review the error prompt for the exact cause. Reference: ' . $report['reference'] . '.');
             $this->redirect('?page=farmer-view&id=' . $id);
             return;
         }
@@ -2072,8 +2119,8 @@ final class DashboardController
             $this->redirect(($transaction['type'] === 'Farmer Organization') ? '?page=organization-delivery' : '?page=individual-delivery');
             return;
         } catch (\Throwable $exception) {
-            error_log('Transaction creation failed: ' . $exception->getMessage());
-            $this->flash('danger', 'The transaction could not be recorded. Check for a duplicate WSR number and verify all required values.');
+            $report = $this->captureUnexpectedError($exception, 'Recording a transaction');
+            $this->flash('danger', 'The transaction could not be recorded. Review the error prompt for the exact cause. Reference: ' . $report['reference'] . '.');
             $this->redirect(($transaction['type'] === 'Farmer Organization') ? '?page=organization-delivery' : '?page=individual-delivery');
             return;
         }
@@ -2123,7 +2170,12 @@ final class DashboardController
         ];
         if ($transaction['client_control_number'] === '') { http_response_code(422); echo json_encode(['success' => false, 'message' => 'Offline control number is missing.']); return; }
         try { $result = Transaction::create($transaction); Activity::add('Offline delivery uploaded: ' . $transaction['client_control_number'] . '.'); echo json_encode(['success' => true, 'duplicate' => $result['duplicate'] ?? false, 'id' => $result['transaction_id'] ?? null]); }
-        catch (\Throwable $e) { http_response_code(422); echo json_encode(['success' => false, 'message' => $e->getMessage()]); }
+        catch (\DomainException $e) { http_response_code(422); echo json_encode(['success' => false, 'message' => $e->getMessage()]); }
+        catch (\Throwable $e) {
+            $report = $this->captureUnexpectedError($e, 'Uploading an offline delivery', false);
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => $report['summary'], 'error_report' => $report]);
+        }
     }
 
     public function updateTransaction(array $payload): void
@@ -2152,8 +2204,8 @@ final class DashboardController
         } catch (\DomainException $e) {
             $this->flash('danger', $e->getMessage());
         } catch (\Throwable $e) {
-            error_log('Transaction update failed: ' . $e->getMessage());
-            $this->flash('danger', 'The transaction could not be updated. Verify the values and try again.');
+            $report = $this->captureUnexpectedError($e, 'Updating a transaction');
+            $this->flash('danger', 'The transaction could not be updated. Review the error prompt for the exact cause. Reference: ' . $report['reference'] . '.');
         }
         $this->redirect('?page=' . (($existing['seller_type'] ?? '') === 'Farmer Organization' ? 'organization-delivery' : 'individual-delivery') . '&transaction_id=' . $id);
     }
@@ -2502,6 +2554,26 @@ final class DashboardController
         $_SESSION['flash'] = compact('type', 'message');
     }
 
+    /** Preserve complete diagnostics for the error modal and automatic support report. */
+    private function captureUnexpectedError(\Throwable $error, string $operation, bool $queueForNextPage = true): array
+    {
+        $reference = system_error_reference();
+        $summary = redact_error_details($operation . ' failed: ' . ($error->getMessage() !== '' ? $error->getMessage() : 'No error message was provided.'));
+        $description = 'Operation: ' . $operation . "\n" . throwable_error_report($error, $reference);
+        $report = [
+            'reference' => $reference,
+            'summary' => mb_substr($summary, 0, 800),
+            'description' => truncate_error_details($description, 54000),
+        ];
+
+        error_log(str_replace("\n", ' | ', $report['description']));
+        if ($queueForNextPage) {
+            $_SESSION['pending_system_error'] = $report;
+        }
+
+        return $report;
+    }
+
     private function clearAuthenticationSession(): void
     {
         unset(
@@ -2523,6 +2595,33 @@ final class DashboardController
             'message' => 'The username is already used. Please log in using the username and password.',
         ];
         $this->redirect('?show_register=1');
+    }
+
+    /** Block duplicate RSBSA/MAO records before any new farmer data is saved. */
+    private function rejectDuplicateFarmerIdentifiers(array $farmer, int $excludeId, string $redirect): bool
+    {
+        foreach (['rsbsa' => 'RSBSA Number', 'mao_certification' => 'MAO Certification'] as $field => $label) {
+            $value = trim((string) ($farmer[$field] ?? ''));
+            $existing = Farmer::duplicateIdentifierRecord($field, $value, $excludeId);
+            if ($existing === null) {
+                continue;
+            }
+
+            $name = trim(implode(' ', array_filter([
+                $existing['first_name'] ?? '', $existing['middle_name'] ?? '', $existing['last_name'] ?? '',
+            ])));
+            $details = array_filter([
+                'Farmer Key: ' . ($existing['farmer_key'] ?: ('#' . $existing['id'])),
+                'Name: ' . ($name ?: 'Not recorded'),
+                !empty($existing['birthdate']) ? 'Birth date: ' . $existing['birthdate'] : null,
+                !empty($existing['address']) ? 'Address: ' . $existing['address'] : null,
+            ]);
+            $this->flash('danger', 'An existing farmer has the same ' . $label . ' (' . $value . '). No profile was saved. Verify this matching record: ' . implode('; ', $details) . '.');
+            $this->redirect($redirect);
+            return true;
+        }
+
+        return false;
     }
 
     private function pullFlash(): ?array

@@ -272,6 +272,50 @@ final class Location
         };
     }
 
+    public static function deletionImpact(string $type, int $id): array
+    {
+        self::ensureSchema();
+        if ($id <= 0 || !in_array($type, ['region', 'branch', 'province', 'warehouse'], true)) return [];
+        $db = Database::connection();
+        $column = $type . '_id';
+        $rows = [];
+        $sources = [
+            ['farmer', 'farmers', 'f', "CONCAT(f.first_name, ' ', f.last_name)", 'f.province_id', 'f.warehouse_id'],
+            ['transaction', 'transactions', 't', "CONCAT('WSR: ', t.warehouse_stock_receipt_number)", 'NULL', 't.warehouse_id'],
+            ['organization', 'farmer_organizations', 'o', 'o.name', 'NULL', 'o.warehouse_id'],
+            ['user', 'users', 'u', "CONCAT(u.full_name, ' (', u.username, ')')", 'u.province_id', 'u.warehouse_id'],
+        ];
+        foreach ($sources as [$kind, $table, $alias, $label, $provinceColumn, $warehouseColumn]) {
+            $condition = match ($type) {
+                'region' => "{$alias}.region_id = :id",
+                'branch' => "{$alias}.branch_id = :id",
+                'province' => "{$provinceColumn} = :id",
+                'warehouse' => "{$warehouseColumn} = :id",
+            };
+            if (in_array($kind, ['transaction', 'organization'], true) && $type !== 'warehouse') continue;
+            if ($kind === 'farmer' && !in_array($type, ['province', 'warehouse'], true)) continue;
+            $sql = "SELECT '{$kind}' AS record_type, {$alias}.id, {$label} AS label FROM {$table} {$alias} WHERE {$condition}";
+            $stmt = $db->prepare($sql); $stmt->execute(['id' => $id]);
+            foreach ($stmt->fetchAll() as $row) $rows[] = $row;
+        }
+        return $rows;
+    }
+
+    public static function reassignRecord(string $type, int $id, array $location): void
+    {
+        self::ensureSchema();
+        $db = Database::connection();
+        $params = ['id' => $id, 'region_id' => $location['region_id'] ?: null, 'branch_id' => $location['branch_id'] ?: null, 'province_id' => $location['province_id'] ?: null, 'warehouse_id' => $location['warehouse_id'] ?: null];
+        $sql = match ($type) {
+            'farmer' => 'UPDATE farmers SET province_id = :province_id, warehouse_id = :warehouse_id WHERE id = :id',
+            'transaction' => 'UPDATE transactions SET warehouse_id = :warehouse_id WHERE id = :id',
+            'organization' => 'UPDATE farmer_organizations SET warehouse_id = :warehouse_id WHERE id = :id',
+            'user' => 'UPDATE users SET region_id = :region_id, branch_id = :branch_id, province_id = :province_id, warehouse_id = :warehouse_id WHERE id = :id',
+            default => throw new \RuntimeException('Invalid record selected.'),
+        };
+        $stmt = $db->prepare($sql); $stmt->execute($params);
+    }
+
     private static function deleteGuarded(string $table, int $id, string $label, array $checks): void
     {
         $db = Database::connection();

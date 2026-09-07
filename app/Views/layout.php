@@ -90,14 +90,19 @@
 </div>
 
 <div class="modal fade auth-modal" id="systemErrorModal" tabindex="-1" aria-labelledby="systemErrorModalTitle" aria-hidden="true" data-system-error-modal>
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h2 class="modal-title fs-5" id="systemErrorModalTitle">System Error</h2>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p data-system-error-description></p>
+                <p class="mb-2" data-system-error-description></p>
+                <p class="small text-muted">The report includes the exact error, where it occurred, a stack trace when available, and relevant page and browser details. Passwords and security tokens are removed.</p>
+                <details data-system-error-details-wrapper>
+                    <summary>Technical details</summary>
+                    <pre class="mt-2 p-3 bg-light border rounded small text-wrap" style="max-height: 45vh; overflow: auto" data-system-error-details></pre>
+                </details>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Don't Send Error Report</button>
@@ -107,6 +112,10 @@
     </div>
 </div>
 
+<?php
+$pendingSystemError = $_SESSION['pending_system_error'] ?? null;
+unset($_SESSION['pending_system_error']);
+?>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 window.FSR_LOCATIONS = <?= json_encode(\App\Models\Location::hierarchy(), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;
@@ -120,6 +129,10 @@ window.FSR_MAINTENANCE = <?= json_encode([
 window.FSR_ERROR_REPORT = <?= json_encode([
     'url' => 'index.php',
     'csrfToken' => csrf_token(),
+    'userId' => (int) ($_SESSION['user_id'] ?? 0),
+    'userName' => (string) ($_SESSION['user'] ?? 'Anonymous'),
+    'userRole' => (string) ($_SESSION['role'] ?? 'Anonymous'),
+    'pendingError' => is_array($pendingSystemError) ? $pendingSystemError : null,
 ], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;
 <?php $offlineUser = !empty($_SESSION['user_id']) ? \App\Models\User::find((int) $_SESSION['user_id']) : null; ?>
 window.FSR_OFFLINE = <?= json_encode([

@@ -349,14 +349,21 @@ final class Farmer
 
     public static function duplicateIdentifierExists(string $field, string $value, int $excludeId = 0): bool
     {
+        return self::duplicateIdentifierRecord($field, $value, $excludeId) !== null;
+    }
+
+    /** Returns the existing profile details needed for a pre-save duplicate warning. */
+    public static function duplicateIdentifierRecord(string $field, string $value, int $excludeId = 0): ?array
+    {
         self::ensureFarmerKeySchema();
         $column = $field === 'mao_certification' ? 'mao_certification' : 'rsbsa_number';
         $value = trim($value);
-        if ($value === '') return false;
+        if ($value === '') return null;
 
-        $stmt = Database::connection()->prepare("SELECT 1 FROM farmers WHERE {$column} = :value AND id <> :exclude_id LIMIT 1");
+        $stmt = Database::connection()->prepare("SELECT id, farmer_key, first_name, middle_name, last_name, address, birthdate, birthplace, rsbsa_number, mao_certification FROM farmers WHERE {$column} = :value AND id <> :exclude_id LIMIT 1");
         $stmt->execute(['value' => $value, 'exclude_id' => $excludeId]);
-        return (bool) $stmt->fetchColumn();
+        $farmer = $stmt->fetch();
+        return $farmer ?: null;
     }
 
     public static function areIpGroupMembers(array $farmerIds): bool

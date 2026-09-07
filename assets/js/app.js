@@ -200,7 +200,7 @@ document.querySelectorAll("form").forEach((form) => {
     window.addEventListener("focus", checkMaintenance);
 })();
 
-/* One shared error prompt for browser, JavaScript, and unexpected server failures. */
+/* One shared error prompt for browser, JavaScript, HTTP, and unexpected server failures. */
 (() => {
     const modalNode = document.querySelector("[data-system-error-modal]");
     const config = window.FSR_ERROR_REPORT || {};
@@ -208,50 +208,145 @@ document.querySelectorAll("form").forEach((form) => {
 
     const modal = bootstrap.Modal.getOrCreateInstance(modalNode);
     const descriptionNode = modalNode.querySelector("[data-system-error-description]");
+    const detailsNode = modalNode.querySelector("[data-system-error-details]");
+    const detailsWrapper = modalNode.querySelector("[data-system-error-details-wrapper]");
     const sendButton = modalNode.querySelector("[data-send-error-report]");
     let currentError = "";
+    let currentReference = "";
     let lastSignature = "";
 
-    const describe = (error, source = "") => {
-        if (error instanceof Error) return [error.message, error.stack].filter(Boolean).join("\n");
-        if (typeof error === "string") return error;
-        return source || "An unknown system error occurred.";
+    const createReference = () => {
+        const stamp = new Date().toISOString().replace(/[-:TZ.]/g, "").slice(0, 14);
+        const bytes = new Uint8Array(3);
+        if (window.crypto?.getRandomValues) window.crypto.getRandomValues(bytes);
+        else bytes.forEach((_, index) => { bytes[index] = Math.floor(Math.random() * 256); });
+        return `FSR-${stamp}-${[...bytes].map((value) => value.toString(16).padStart(2, "0")).join("").toUpperCase()}`;
     };
-    const show = (error, source = "") => {
-        const description = describe(error, source).trim();
-        const signature = `${source}|${description}`;
+
+    const redact = (value) => String(value || "")
+        .replace(/\0/g, "")
+        .replace(/(password|passwd|secret|authorization|cookie|csrf(?:_token)?|access[_-]?token|api[_-]?key)(\s*[:=]\s*)([^\s&;,]+)/gi, "$1$2[REDACTED]")
+        .replace(/(Bearer\s+)[A-Za-z0-9._~+/=-]+/gi, "$1[REDACTED]");
+
+    const errorParts = (error) => {
+        if (error instanceof Error) {
+            const parts = {
+                "Error type": error.name || error.constructor?.name || "Error",
+                Message: error.message || "(no error message)",
+                "Stack trace": error.stack || "(no stack trace available)",
+            };
+            if (error.cause) parts.Cause = error.cause instanceof Error
+                ? `${error.cause.name}: ${error.cause.message}\n${error.cause.stack || ""}`.trim()
+                : String(error.cause);
+            return parts;
+        }
+        if (typeof error === "string") return { Message: error };
+        try { return { Message: JSON.stringify(error) }; }
+        catch (_) { return { Message: String(error || "Unknown error") }; }
+    };
+
+    const show = (error, context = {}) => {
+        const reference = context.reference || createReference();
+        const parts = {
+            "Error reference": reference,
+            "Occurred at": new Date().toISOString(),
+            Source: context.source || "Browser / JavaScript",
+            ...errorParts(error),
+            ...context.details,
+            Page: window.location.href,
+            "Signed-in user": config.userId ? `#${config.userId} - ${config.userName} (${config.userRole})` : "Anonymous",
+            Browser: navigator.userAgent,
+            Platform: navigator.userAgentData?.platform || navigator.platform || "Unknown",
+            Viewport: `${window.innerWidth} x ${window.innerHeight}`,
+            "Connection state": navigator.onLine ? "Online" : "Offline",
+            "Document state": document.visibilityState,
+        };
+        const description = redact(Object.entries(parts)
+            .filter(([, value]) => value !== undefined && value !== null && String(value).trim() !== "")
+            .map(([label, value]) => `${label}: ${String(value).trim()}`)
+            .join("\n")).slice(0, 54000);
+        const signature = `${parts.Source}|${parts["Error type"] || ""}|${parts.Message || ""}|${parts["Request URL"] || ""}`;
         if (!description || signature === lastSignature) return;
         lastSignature = signature;
         currentError = description;
-        descriptionNode.textContent = `"An error occured: ${description}"`;
+        currentReference = reference;
+        const summary = context.summary || parts.Message || "An unexpected error occurred.";
+        descriptionNode.textContent = `The requested action could not be completed: ${summary} Error reference: ${reference}.`;
+        if (detailsNode) detailsNode.textContent = description;
+        if (detailsWrapper) detailsWrapper.open = false;
         sendButton.disabled = false;
         sendButton.textContent = "Send Error to System Administrator";
         modal.show();
     };
 
     window.addEventListener("error", (event) => {
-        const location = event.filename ? `\n${event.filename}:${event.lineno || 0}:${event.colno || 0}` : "";
-        show(event.error || event.message, `${event.message || "Script error"}${location}`);
+        const resource = event.target && event.target !== window
+            ? event.target.currentSrc || event.target.src || event.target.href || event.target.tagName
+            : "";
+        show(event.error || event.message || "A page resource failed to load.", {
+            source: resource ? "Browser resource loading" : "Browser / JavaScript",
+            summary: event.message || (resource ? `A required page resource failed to load: ${resource}` : "A script error occurred."),
+            details: {
+                "Script or resource": event.filename || resource || "Unknown",
+                Line: event.lineno || "Unknown",
+                Column: event.colno || "Unknown",
+            },
+        });
     }, true);
-    window.addEventListener("unhandledrejection", (event) => show(event.reason, "Unhandled promise rejection"));
+    window.addEventListener("unhandledrejection", (event) => show(event.reason, {
+        source: "Unhandled promise rejection",
+        summary: event.reason?.message || "A background operation failed unexpectedly.",
+    }));
 
     const nativeFetch = window.fetch.bind(window);
     window.fetch = async (...args) => {
+        const request = args[0];
+        const options = args[1] || {};
+        const requestUrl = request instanceof Request ? request.url : String(request || "");
+        const requestMethod = String(options.method || (request instanceof Request ? request.method : "GET")).toUpperCase();
         try {
             const response = await nativeFetch(...args);
-            const requestUrl = String(args[0] || "");
             if (response.status >= 500 && !requestUrl.includes("error-report")) {
-                show(`The server returned ${response.status} ${response.statusText}.`, requestUrl);
+                let responseDetails = "";
+                try {
+                    const contentType = response.headers.get("content-type") || "";
+                    if (/json|text|html|xml/i.test(contentType)) {
+                        const responseText = (await response.clone().text()).slice(0, 16000);
+                        if (/html/i.test(contentType)) {
+                            const parsed = new DOMParser().parseFromString(responseText, "text/html");
+                            responseDetails = parsed.querySelector("[data-server-error-details]")?.textContent?.trim()
+                                || parsed.body?.innerText?.trim()
+                                || responseText;
+                        } else responseDetails = responseText;
+                    }
+                } catch (_) { responseDetails = "The response body could not be read."; }
+                const serverReference = response.headers.get("X-FSR-Error-Reference") || "";
+                show(new Error(`The server returned HTTP ${response.status} ${response.statusText || "Server Error"}.`), {
+                    reference: serverReference || undefined,
+                    source: "HTTP request",
+                    summary: `The server failed while processing ${requestMethod} ${requestUrl || "the request"} (HTTP ${response.status}).`,
+                    details: {
+                        "Request method": requestMethod,
+                        "Request URL": requestUrl || "Unknown",
+                        "HTTP status": `${response.status} ${response.statusText}`.trim(),
+                        "Response content type": response.headers.get("content-type") || "Not provided",
+                        "Server response": responseDetails || "No readable diagnostic response was returned.",
+                    },
+                });
             }
             return response;
         } catch (error) {
-            show(error, "Network request failed");
+            show(error, {
+                source: "Network request",
+                summary: `The application could not reach the server for ${requestMethod} ${requestUrl || "the request"}. Check the connection and try again.`,
+                details: { "Request method": requestMethod, "Request URL": requestUrl || "Unknown" },
+            });
             throw error;
         }
     };
 
     sendButton.addEventListener("click", async () => {
-        if (!currentError || !window.confirm("Are you sure you want to send an error report?")) return;
+        if (!currentError || !window.confirm("Send this complete diagnostic report to the System Administrator?")) return;
         sendButton.disabled = true;
         sendButton.textContent = "Sending error report…";
         try {
@@ -261,20 +356,31 @@ document.querySelectorAll("form").forEach((form) => {
                 body: new URLSearchParams({
                     action: "error-report",
                     csrf_token: config.csrfToken || "",
+                    report_id: currentReference,
                     description: currentError,
                     page_url: window.location.href,
                     browser: navigator.userAgent,
                 }),
                 credentials: "same-origin",
             });
-            if (!response.ok) throw new Error("The error report could not be saved.");
-            sendButton.textContent = "Error report sent";
+            const result = await response.json().catch(() => ({}));
+            if (!response.ok) throw new Error(result.message || "The error report could not be saved.");
+            sendButton.textContent = `Error report sent (Ticket #${result.ticket_id})`;
         } catch (error) {
             sendButton.disabled = false;
-            sendButton.textContent = "Send Error to System Administrator";
-            window.alert(describe(error, "The error report could not be sent."));
+            sendButton.textContent = "Retry sending error report";
+            window.alert(error instanceof Error ? error.message : "The error report could not be sent.");
         }
     });
+
+    if (config.pendingError?.description) {
+        show(new Error(config.pendingError.summary || "A server operation failed unexpectedly."), {
+            reference: config.pendingError.reference,
+            source: "Server operation",
+            summary: config.pendingError.summary,
+            details: { "Server diagnostic report": config.pendingError.description },
+        });
+    }
 })();
 
 /* The landing artwork is loaded one image ahead, keeping the initial visit light. */
@@ -1872,6 +1978,57 @@ document.querySelectorAll("[data-location-add-stack]").forEach((stack) => {
 
     renderBranches();
 });
+
+document.querySelectorAll("[data-field-office-library]").forEach((library) => {
+    const regionSelect = library.querySelector("[data-field-office-region-select]");
+    const regionPanels = Array.from(library.querySelectorAll("[data-field-office-region-panel]"));
+    const emptyMessage = library.querySelector("[data-field-office-empty]");
+
+    const selectProvince = (regionPanel, provinceId) => {
+        regionPanel.querySelectorAll("[data-field-office-province-panel]").forEach((panel) => {
+            panel.hidden = panel.dataset.fieldOfficeProvincePanel !== String(provinceId);
+        });
+        const empty = regionPanel.querySelector("[data-field-office-province-empty]");
+        if (empty) empty.hidden = Boolean(provinceId);
+        regionPanel.querySelectorAll("[data-field-office-province-select]").forEach((button) => {
+            button.classList.toggle("is-selected", button.dataset.fieldOfficeProvinceSelect === String(provinceId));
+        });
+    };
+
+    const selectBranch = (regionPanel, branchId) => {
+        regionPanel.querySelectorAll("[data-field-office-branch-panel]").forEach((panel) => {
+            panel.hidden = panel.dataset.fieldOfficeBranchPanel !== String(branchId);
+        });
+        const empty = regionPanel.querySelector("[data-field-office-branch-empty]");
+        if (empty) empty.hidden = Boolean(branchId);
+        regionPanel.querySelectorAll("[data-field-office-branch-select]").forEach((button) => {
+            button.classList.toggle("is-selected", button.dataset.fieldOfficeBranchSelect === String(branchId));
+        });
+        selectProvince(regionPanel, "");
+    };
+
+    const selectRegion = (regionId) => {
+        regionPanels.forEach((panel) => {
+            const selected = panel.dataset.fieldOfficeRegionPanel === String(regionId);
+            panel.hidden = !selected;
+            if (selected) selectBranch(panel, "");
+        });
+        if (emptyMessage) emptyMessage.hidden = Boolean(regionId);
+    };
+
+    regionSelect?.addEventListener("change", () => selectRegion(regionSelect.value));
+    library.querySelectorAll("[data-field-office-branch-select]").forEach((button) => {
+        button.addEventListener("click", () => selectBranch(button.closest("[data-field-office-region-panel]"), button.dataset.fieldOfficeBranchSelect));
+    });
+    library.querySelectorAll("[data-field-office-province-select]").forEach((button) => {
+        button.addEventListener("click", () => selectProvince(button.closest("[data-field-office-region-panel]"), button.dataset.fieldOfficeProvinceSelect));
+    });
+});
+
+const locationReassignmentModal = document.querySelector("[data-location-reassignment-modal]");
+if (locationReassignmentModal && window.bootstrap?.Modal) {
+    bootstrap.Modal.getOrCreateInstance(locationReassignmentModal).show();
+}
 
 document.querySelectorAll("form").forEach((form) => {
     const registrationUsername = form.querySelector("[data-registration-username]");
