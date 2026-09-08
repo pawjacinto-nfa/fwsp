@@ -38,7 +38,11 @@ INSERT IGNORE INTO system_settings (setting_key, setting_value)
 VALUES ('maintenance_mode', '0');
 
 INSERT IGNORE INTO system_settings (setting_key, setting_value)
-VALUES ('maintenance_schedule', ''), ('encoding_mode', '0'), ('delivery_schedule_mode', '0');
+VALUES ('maintenance_schedule', ''),
+       ('encoding_mode', '0'),
+       ('delivery_schedule_mode', '0'),
+       ('allow_no_control_number_transactions', '0'),
+       ('allow_annual_bag_limit_exceeded', '0');
 
 CREATE TABLE IF NOT EXISTS report_signatories (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -298,6 +302,34 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS password_reset_requested_at TIMESTAMP
 ALTER TABLE users ADD COLUMN IF NOT EXISTS password_reset_approved_at TIMESTAMP NULL;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS deactivation_reason TEXT NULL;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS deactivated_at TIMESTAMP NULL;
+
+CREATE TABLE IF NOT EXISTS offline_devices (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT UNSIGNED NOT NULL,
+    device_id VARCHAR(128) NOT NULL UNIQUE,
+    device_name VARCHAR(160) NOT NULL,
+    token_hash CHAR(64) NOT NULL,
+    status ENUM('Active','Revoked') NOT NULL DEFAULT 'Active',
+    issued_at DATETIME NOT NULL,
+    expires_at DATETIME NOT NULL,
+    last_validated_at DATETIME NULL,
+    revoked_at DATETIME NULL,
+    KEY offline_devices_user_status (user_id, status),
+    CONSTRAINT offline_devices_user_fk FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS offline_submission_audit (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT UNSIGNED NOT NULL,
+    device_id VARCHAR(128) NOT NULL,
+    submission_id VARCHAR(128) NOT NULL UNIQUE,
+    action_name VARCHAR(64) NOT NULL,
+    payload_hash CHAR(64) NOT NULL,
+    sync_status ENUM('Reserved','Uploaded','Review') NOT NULL DEFAULT 'Reserved',
+    uploaded_at DATETIME NOT NULL,
+    KEY offline_submission_user_device (user_id, device_id),
+    CONSTRAINT offline_submission_user_fk FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
 ALTER TABLE farmers ADD COLUMN IF NOT EXISTS warehouse_id BIGINT UNSIGNED NULL;
 ALTER TABLE farmers ADD COLUMN IF NOT EXISTS province_id BIGINT UNSIGNED NULL;
 ALTER TABLE farmers ADD COLUMN IF NOT EXISTS photo_path VARCHAR(255) NULL;

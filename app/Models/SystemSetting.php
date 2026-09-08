@@ -12,6 +12,25 @@ final class SystemSetting
     private const ENCODING_MODE = 'encoding_mode';
     private const DELIVERY_SCHEDULE_MODE = 'delivery_schedule_mode';
     private const ALLOW_NO_CONTROL_NUMBER_TRANSACTIONS = 'allow_no_control_number_transactions';
+    private const ALLOW_ANNUAL_BAG_LIMIT_EXCEEDED = 'allow_annual_bag_limit_exceeded';
+
+    public static function allowsAnnualBagLimitExceeded(): bool
+    {
+        self::ensureSchema();
+        return self::value(self::ALLOW_ANNUAL_BAG_LIMIT_EXCEEDED) === '1';
+    }
+
+    public static function setAllowsAnnualBagLimitExceeded(bool $allowed): void
+    {
+        self::ensureSchema();
+        $stmt = Database::connection()->prepare(
+            'INSERT INTO system_settings (setting_key, setting_value) VALUES (:setting_key, :setting_value) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)'
+        );
+        $stmt->execute([
+            'setting_key' => self::ALLOW_ANNUAL_BAG_LIMIT_EXCEEDED,
+            'setting_value' => $allowed ? '1' : '0',
+        ]);
+    }
 
     /** Whether orange-tagged farmers may be recorded for more than one delivery. */
     public static function allowsNoControlNumberTransactions(): bool
@@ -133,7 +152,7 @@ final class SystemSetting
             "INSERT IGNORE INTO system_settings (setting_key, setting_value)
              VALUES ('maintenance_schedule', '')"
         );
-        Database::connection()->exec("INSERT IGNORE INTO system_settings (setting_key, setting_value) VALUES ('encoding_mode', '0'), ('delivery_schedule_mode', '0'), ('allow_no_control_number_transactions', '0')");
+        Database::connection()->exec("INSERT IGNORE INTO system_settings (setting_key, setting_value) VALUES ('encoding_mode', '0'), ('delivery_schedule_mode', '0'), ('allow_no_control_number_transactions', '0'), ('allow_annual_bag_limit_exceeded', '0')");
         $ready = true;
     }
 }

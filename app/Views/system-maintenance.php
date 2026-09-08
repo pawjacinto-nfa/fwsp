@@ -38,6 +38,36 @@
                     <div class="maintenance-control-title"><div><strong id="noControlNumberTransactionsLabel">Allow Transactions from Farmers without control numbers</strong><small class="d-block text-muted">When ON, orange-tagged farmers may transact even after their first delivery.</small></div><span class="badge <?= !empty($allowNoControlNumberTransactions) ? 'text-bg-success' : 'text-bg-warning' ?>"><?= !empty($allowNoControlNumberTransactions) ? 'ON' : 'OFF' ?></span></div>
                     <div class="maintenance-switch"><span>OFF</span><div class="form-check form-switch m-0"><input class="form-check-input" type="checkbox" role="switch" name="allow_no_control_number_transactions" value="1" aria-labelledby="noControlNumberTransactionsLabel" data-module-maintenance-toggle <?= !empty($allowNoControlNumberTransactions) ? 'checked' : '' ?>></div><span>ON</span></div>
                 </form>
+                <div class="accordion mt-3" id="annualBagLimitAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="annualBagLimitHeading">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#annualBagLimitPanel" aria-expanded="false" aria-controls="annualBagLimitPanel">
+                                Annual 400-Bag Limit Override <span class="badge ms-2 <?= !empty($allowAnnualBagLimitExceeded) ? 'text-bg-warning' : 'text-bg-success' ?>"><?= !empty($allowAnnualBagLimitExceeded) ? 'OVERRIDE ON' : 'ENFORCED' ?></span>
+                            </button>
+                        </h2>
+                        <div id="annualBagLimitPanel" class="accordion-collapse collapse" aria-labelledby="annualBagLimitHeading" data-bs-parent="#annualBagLimitAccordion">
+                            <div class="accordion-body">
+                                <p class="text-muted">When enabled, encoders may save individual farmer deliveries that bring a calendar-year total above 400 bags. Farmer Organization/IP Group deliveries are not affected.</p>
+                                <form method="post" class="maintenance-control mb-3" data-module-maintenance-form>
+                                    <input type="hidden" name="action" value="annual-bag-limit-setting">
+                                    <input type="hidden" name="allow_annual_bag_limit_exceeded" value="0">
+                                    <div class="maintenance-control-title"><div><strong id="annualBagLimitLabel">Allow transactions exceeding 400 bags per year</strong><small class="d-block text-muted">Use only when an authorized exception permits the annual limit to be exceeded.</small></div><span class="badge <?= !empty($allowAnnualBagLimitExceeded) ? 'text-bg-warning' : 'text-bg-success' ?>"><?= !empty($allowAnnualBagLimitExceeded) ? 'ON' : 'OFF' ?></span></div>
+                                    <div class="maintenance-switch"><span>OFF</span><div class="form-check form-switch m-0"><input class="form-check-input" type="checkbox" role="switch" name="allow_annual_bag_limit_exceeded" value="1" aria-labelledby="annualBagLimitLabel" data-module-maintenance-toggle <?= !empty($allowAnnualBagLimitExceeded) ? 'checked' : '' ?>></div><span>ON</span></div>
+                                </form>
+                                <h3 class="h6">Farmers currently exceeding 400 bags</h3>
+                                <?php if (empty($annualBagLimitExceededDetails)): ?>
+                                    <p class="text-muted mb-0">No individual farmer annual totals currently exceed 400 bags.</p>
+                                <?php else: ?>
+                                    <div class="table-responsive"><table class="table table-sm align-middle mb-0"><thead><tr><th>Farmer</th><th>Year</th><th>Annual bags</th><th>Date</th><th>WSR No.</th><th>Transaction bags</th><th>Net kg</th><th>Total amount</th></tr></thead><tbody>
+                                    <?php foreach ($annualBagLimitExceededDetails as $detail): ?>
+                                        <tr><td><a href="index.php?page=farmer-view&id=<?= e($detail['farmer_id']) ?>"><?= e($detail['farmer_name']) ?></a><small class="d-block text-muted"><?= e($detail['farmer_key'] ?: $detail['rsbsa']) ?></small></td><td><?= e($detail['delivery_year']) ?></td><td class="fw-semibold text-danger"><?= number_format((float) $detail['annual_bags'], 3) ?></td><td><?= e($detail['delivery_date']) ?></td><td><?= e($detail['wsr']) ?></td><td><?= number_format((float) $detail['bags'], 3) ?></td><td><?= number_format((float) $detail['net_kg'], 3) ?></td><td><?= number_format((float) $detail['total_amount'], 3) ?></td></tr>
+                                    <?php endforeach; ?>
+                                    </tbody></table></div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="panel mt-3">
                 <h4 class="h5">Modular Restrictions</h4>

@@ -49,6 +49,10 @@
                     <div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" name="offline_enabled" value="1" id="offlineEnabled" data-offline-enable <?= !empty($user['offline_enabled']) ? 'checked' : '' ?>><label class="form-check-label" for="offlineEnabled">Available on this device</label></div>
                 </div>
             <?php endif; ?>
+            <?php if (in_array($user['role'] ?? '', ['Warehouse Personnel', 'System Admin'], true)): ?>
+                <div class="panel mt-3"><div class="panel-head"><div><p class="eyebrow">Offline devices</p><h4>Registered devices</h4><p class="mb-0 text-muted">A device is registered after you enable offline mode and sign in through the FSR desktop application.</p></div></div>
+                <?php if ($offlineDevices === []): ?><p class="mb-0 text-muted">No devices registered yet.</p><?php else: ?><div class="table-responsive"><table class="table mb-0"><thead><tr><th>Device</th><th>Status</th><th>Expires</th></tr></thead><tbody><?php foreach ($offlineDevices as $device): ?><tr><td><?= e($device['device_name']) ?></td><td><span class="badge text-bg-<?= $device['status'] === 'Active' ? 'success' : 'secondary' ?>"><?= e($device['status']) ?></span></td><td><?= e(date('M j, Y g:i A', strtotime($device['expires_at']))) ?></td></tr><?php endforeach; ?></tbody></table></div><?php endif; ?></div>
+            <?php endif; ?>
             <div class="form-actions"><button class="btn btn-success" type="submit">Update Account</button></div>
         </form>
         <form method="post" class="panel form-panel account-deactivate-panel mt-3">

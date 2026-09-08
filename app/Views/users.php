@@ -12,6 +12,8 @@
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="audit-logs-tab" type="button" role="tab" data-bs-toggle="tab" data-bs-target="#audit-logs-panel" aria-controls="audit-logs-panel" aria-selected="false">Audit Logs</button>
             </li>
+            <li class="nav-item" role="presentation"><button class="nav-link" id="offline-devices-tab" type="button" role="tab" data-bs-toggle="tab" data-bs-target="#offline-devices-panel" aria-controls="offline-devices-panel" aria-selected="false">Offline Devices</button></li>
+            <li class="nav-item" role="presentation"><button class="nav-link" id="offline-sync-tab" type="button" role="tab" data-bs-toggle="tab" data-bs-target="#offline-sync-panel" aria-controls="offline-sync-panel" aria-selected="false">Offline Sync Review</button></li>
         </ul>
 
         <div class="tab-content" id="userControlTabContent">
@@ -71,6 +73,10 @@
                 </table>
                 </div>
             </section>
+
+            <section class="tab-pane fade panel table-section" id="offline-devices-panel" role="tabpanel" aria-labelledby="offline-devices-tab" tabindex="0"><div class="table-responsive"><table class="table align-middle"><thead><tr><th>User</th><th>Device</th><th>Status</th><th>Expires</th><th></th></tr></thead><tbody><?php foreach (($offlineDevices ?? []) as $device): ?><tr><td><?= e($device['full_name']) ?><br><small><?= e($device['username']) ?></small></td><td><?= e($device['device_name']) ?></td><td><span class="badge text-bg-<?= $device['status'] === 'Active' ? 'success' : 'secondary' ?>"><?= e($device['status']) ?></span></td><td><?= e(date('M j, Y g:i A', strtotime($device['expires_at']))) ?></td><td><?php if ($device['status'] === 'Active'): ?><form method="post"><input type="hidden" name="action" value="offline-device-revoke"><input type="hidden" name="device_id" value="<?= (int) $device['id'] ?>"><button class="btn btn-sm btn-outline-danger" type="submit">Revoke</button></form><?php endif; ?></td></tr><?php endforeach; ?><?php if (($offlineDevices ?? []) === []): ?><tr><td colspan="5" class="text-muted">No offline devices are registered.</td></tr><?php endif; ?></tbody></table></div></section>
+
+            <section class="tab-pane fade panel table-section" id="offline-sync-panel" role="tabpanel" aria-labelledby="offline-sync-tab" tabindex="0"><p class="text-muted">Reserved records were interrupted before confirmation and must be checked before another upload attempt. Uploaded records are retained as an audit trail.</p><div class="table-responsive"><table class="table align-middle"><thead><tr><th>User</th><th>Submission</th><th>Action</th><th>Status</th><th>Time</th></tr></thead><tbody><?php foreach (($offlineSubmissions ?? []) as $submission): ?><tr><td><?= e($submission['full_name']) ?><br><small><?= e($submission['username']) ?></small></td><td><code><?= e($submission['submission_id']) ?></code></td><td><?= e($submission['action_name']) ?></td><td><span class="badge text-bg-<?= $submission['sync_status'] === 'Uploaded' ? 'success' : 'warning' ?>"><?= e($submission['sync_status'] === 'Reserved' ? 'Needs review' : $submission['sync_status']) ?></span></td><td><?= e(date('M j, Y g:i A', strtotime($submission['uploaded_at']))) ?></td></tr><?php endforeach; ?><?php if (($offlineSubmissions ?? []) === []): ?><tr><td colspan="5" class="text-muted">No offline submissions have been received.</td></tr><?php endif; ?></tbody></table></div></section>
 
             <section class="tab-pane fade panel table-section" id="audit-logs-panel" role="tabpanel" aria-labelledby="audit-logs-tab" tabindex="0">
                 <div class="table-responsive">

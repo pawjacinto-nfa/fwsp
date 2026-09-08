@@ -243,7 +243,7 @@ $roleDescriptions = [
                     <li><span>2</span><div>Select the procurement method and confirm the delivery date, warehouse stock receipt (WSR), palay variety, buying price, net kilograms, number of bags, total amount, and receiving facility.</div></li>
                     <li><span>3</span><div>Review all figures against the source document, then submit the transaction.</div></li>
                 </ol>
-                <div class="manual-callout is-warning"><strong>Annual delivery limit</strong><p>Each individual farmer may deliver up to 400 bags per calendar year. The system blocks quantities above the remaining allowance, notifies the encoder when the farmer reaches 400 bags, and marks that farmer with a red exclamation point in the Farmers list.</p></div>
+                <div class="manual-callout is-warning"><strong>Annual delivery limit</strong><p>Each individual farmer may deliver up to 400 bags per calendar year. The system blocks quantities above the remaining allowance, notifies the encoder when the farmer reaches 400 bags, and marks that farmer with a red exclamation point in the Farmers list. A System Admin may temporarily allow authorized exceptions from <strong>System Maintenance → Annual 400-Bag Limit Override</strong>; that panel also lists affected farmers and transactions for review.</p></div>
                 <div class="manual-callout">
                     <strong>Delivery validation</strong>
                     <p>WSR number is required for individual deliveries. The system warns about duplicate WSR numbers before submission and protects against duplicate offline uploads by using a unique client control number. Delivery quantities, metric-ton equivalents, and monetary amounts are displayed to three decimal places across forms, records, and reports.</p>
@@ -258,7 +258,8 @@ $roleDescriptions = [
                 <h3>Editing transactions</h3>
                 <p>Authorized users may edit a transaction within the permitted 14-day editing period. The delivery form is prefilled with the existing data, and saved changes are recorded in the transaction version history for review.</p>
                 <h3>Offline delivery work</h3>
-                <p>Warehouse Personnel and System Admin accounts may enable offline mode from Account Settings. When offline mode is prepared on the device, individual and farmer-group delivery forms remain available without a connection. Saved inputs stay on the device until the connection returns, then the user can upload pending inputs for server validation.</p>
+                <p>Warehouse Personnel and System Admin accounts may enable offline mode from Account Settings. Initial preparation requires an internet connection and the FSR desktop application. Choose a six-digit Offline PIN when prompted; the registered device authorization is valid for seven days and can be renewed by preparing offline mode again while connected.</p>
+                <p>After preparation, restart the desktop application without internet and enter the Offline PIN to open the cached encoding workspace. Individual and farmer-group delivery forms remain available without a connection. Saved inputs stay on the device until the connection returns, then the user can upload pending inputs for server validation. Device-bound authorization and unique submission identifiers prevent an unauthorized device or repeated upload from creating duplicate records.</p>
             </section>
 
             <?php endif; ?>
@@ -339,7 +340,7 @@ $roleDescriptions = [
                 <p>On the Account page, update your profile image, name, email, contact number, designation, or password. Enter and confirm the same new password before saving. Organizational location may be controlled by your administrator.</p>
                 <p>Users may also submit a 4K landing-page photo from Account settings. Submitted photos require System Admin review before appearing in the landing slideshow.</p>
                 <?php if ($canEncode): ?>
-                <p>Warehouse Personnel and System Admin accounts may enable offline mode from Account Settings. Prepare the offline workspace while connected, then use the pending-input badge and upload prompt when returning online.</p>
+                <p>Warehouse Personnel and System Admin accounts may enable offline mode from Account Settings. Prepare the offline workspace while connected, choose a six-digit Offline PIN, and confirm the device under <strong>Registered devices</strong>. When returning online, use the pending-input badge and upload prompt. System Admins can review or revoke authorizations from <strong>User Control → Offline Devices</strong> and inspect uploaded or interrupted submissions under <strong>Offline Sync Review</strong>.</p>
                 <?php endif; ?>
             </section>
 
@@ -571,7 +572,7 @@ $roleDescriptions = [
                         </ul></div>
                     </article>
                     <article class="manual-version-entry">
-                        <div class="manual-version-date"><time datetime="2026-09-03">September 3, 2026</time><span>Current release</span></div>
+                        <div class="manual-version-date"><time datetime="2026-09-03">September 3, 2026</time><span>Feature update</span></div>
                         <div><h3>Tech Support follow-up and sync safeguards added</h3><ul class="manual-list">
                             <li>Added automatic Tech Support follow-up warnings when the latest administrator reply has not received a user response within three working days.</li>
                             <li>Added automatic completion for support tickets that still receive no user reply within another three working days after the warning.</li>
@@ -580,8 +581,8 @@ $roleDescriptions = [
                             <li>Updated this System Guide so the body sections explain schedules, maintenance, notification preferences, record history, deleted-record review, report exports, display photos, and support-ticket auto-closure behavior.</li>
                         </ul></div>
                     </article>
-                    <article class="manual-version-entry is-current">
-                        <div class="manual-version-date"><time datetime="2026-09-07">September 7, 2026</time><span>Current release</span></div>
+                    <article class="manual-version-entry">
+                        <div class="manual-version-date"><time datetime="2026-09-07">September 7, 2026</time><span>Feature update</span></div>
                         <div><h3>Field Office Library hierarchy and province workflow improved</h3><ul class="manual-list">
                             <li>Rebuilt the <strong>Field Office Library</strong> into a guided Region → Branch → Province → Warehouse/Facility hierarchy, replacing the flat master-location list.</li>
                             <li>Added click-to-drill-down management: selecting a region reveals its branches, selecting a branch reveals its provinces, and selecting a province reveals its facilities.</li>
@@ -590,6 +591,16 @@ $roleDescriptions = [
                             <li>Added a guarded location-deletion workflow that lists affected farmers, transactions, farmer groups, and user accounts in an accordion modal, where only their location details may be reassigned before deletion is retried.</li>
                             <li>Standardized legacy numeric region entries to Roman-numeral region names and added <strong>Davao de Oro</strong> under Region XI / Davao del Norte.</li>
                             <li>Expanded automatic error reports and their Tech Support display with a traceable reference number, precise failure message, source location, stack trace, request and response context, browser state, and signed-in user context while redacting passwords and security tokens.</li>
+                        </ul></div>
+                    </article>
+                    <article class="manual-version-entry is-current">
+                        <div class="manual-version-date"><time datetime="2026-09-08">September 8, 2026</time><span>Current release</span></div>
+                        <div><h3>Offline authorization and annual-limit controls strengthened</h3><ul class="manual-list">
+                            <li>Added device-bound offline authorization for the Windows application, protected by a six-digit Offline PIN and a renewable seven-day authorization period.</li>
+                            <li>Added administrator views for registered offline devices and submission history, including device revocation and interrupted-upload review.</li>
+                            <li>Added server validation and reservation/completion checks that prevent unauthorized devices and repeated offline uploads from creating duplicate records.</li>
+                            <li>Added a System Maintenance override for authorized individual deliveries above the annual 400-bag limit, with a detailed review list of affected farmers and transactions.</li>
+                            <li>Updated the Windows installer to version 2.4.0 and added an offline rollout checklist for deployment testing.</li>
                         </ul></div>
                     </article>
                 </div>

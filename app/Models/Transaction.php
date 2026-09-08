@@ -275,7 +275,7 @@ final class Transaction
             }
             $existingBags = self::individualAnnualBags($farmerId, $deliveryYear);
             $annualBagsAfterDelivery = $existingBags + $bags;
-            if ($annualBagsAfterDelivery > self::MAX_INDIVIDUAL_ANNUAL_BAGS) {
+            if (!SystemSetting::allowsAnnualBagLimitExceeded() && $annualBagsAfterDelivery > self::MAX_INDIVIDUAL_ANNUAL_BAGS) {
                 throw new \DomainException(sprintf(
                     'This farmer has already delivered %s bags in %d. The annual maximum is %d bags, so only %s more bag(s) can be accepted.',
                     self::formatBagCount($existingBags),
@@ -422,7 +422,7 @@ final class Transaction
         if ($sellerType === 'Individual' && !empty($existing['farmer_id'])) {
             $deliveryYear = (int) substr((string) $deliveryDate, 0, 4);
             $otherBags = self::individualAnnualBags((int) $existing['farmer_id'], $deliveryYear, $id);
-            if ($otherBags + $bags > self::MAX_INDIVIDUAL_ANNUAL_BAGS) {
+            if (!SystemSetting::allowsAnnualBagLimitExceeded() && $otherBags + $bags > self::MAX_INDIVIDUAL_ANNUAL_BAGS) {
                 throw new \DomainException(sprintf(
                     'This farmer has already delivered %s other bags in %d. The annual maximum is %d bags, so only %s bag(s) can be saved for this transaction.',
                     self::formatBagCount($otherBags),
@@ -510,6 +510,34 @@ final class Transaction
         $farmerId = Farmer::idFromRsbsa($rsbsa);
 
         return $farmerId ? self::individualAnnualBags($farmerId, $deliveryYear) : 0;
+    }
+
+    /** Individual farmer deliveries in years whose total exceeds the annual 400-bag limit. */
+    public static function annualBagLimitExceededDetails(): array
+    {
+        self::ensureSchema();
+        $stmt = Database::connection()->query("
+            SELECT
+                t.id, t.delivery_date, t.warehouse_stock_receipt_number AS wsr,
+                t.bags_50kg AS bags, t.net_kilogram AS net_kg, t.total_amount,
+                f.id AS farmer_id, f.farmer_key, f.rsbsa_number AS rsbsa,
+                CONCAT_WS(' ', f.first_name, NULLIF(f.middle_name, ''), f.last_name) AS farmer_name,
+                totals.delivery_year, totals.annual_bags
+            FROM transactions t
+            INNER JOIN (
+                SELECT farmer_id, YEAR(delivery_date) AS delivery_year, SUM(bags_50kg) AS annual_bags
+                FROM transactions
+                WHERE seller_type = 'Individual'
+                    AND COALESCE(warehouse_stock_receipt_number, '') NOT LIKE 'DELETED-%'
+                GROUP BY farmer_id, YEAR(delivery_date)
+                HAVING SUM(bags_50kg) > " . self::MAX_INDIVIDUAL_ANNUAL_BAGS . "
+            ) totals ON totals.farmer_id = t.farmer_id AND totals.delivery_year = YEAR(t.delivery_date)
+            INNER JOIN farmers f ON f.id = t.farmer_id
+            WHERE t.seller_type = 'Individual'
+                AND COALESCE(t.warehouse_stock_receipt_number, '') NOT LIKE 'DELETED-%'
+            ORDER BY totals.delivery_year DESC, farmer_name, t.delivery_date DESC, t.id DESC
+        ");
+        return $stmt->fetchAll();
     }
 
     public static function deliveredMembers(int $transactionId): array

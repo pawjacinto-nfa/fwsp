@@ -13,6 +13,7 @@ use App\Models\Farmer;
 use App\Models\FarmerOrganization;
 use App\Models\Location;
 use App\Models\Notification;
+use App\Models\OfflineDevice;
 use App\Models\Report;
 use App\Models\RecordVersion;
 use App\Models\Signatory;
@@ -545,6 +546,7 @@ final class DashboardController
             'title' => 'Account Management',
             'alert' => $this->pullFlash(),
             'user' => $user,
+            'offlineDevices' => $user ? OfflineDevice::forUser((int) $user['id']) : [],
         ]);
     }
 
@@ -562,7 +564,67 @@ final class DashboardController
             'users' => User::all(),
             'auditLogs' => Activity::auditLogs(),
             'roles' => self::ROLES,
+            'offlineDevices' => OfflineDevice::all(),
+            'offlineSubmissions' => OfflineDevice::submissions(),
         ]);
+    }
+
+    public function enrollOfflineDevice(array $payload): void
+    {
+        header('Content-Type: application/json');
+        if (!$this->authorizeEncode()) return;
+        $deviceId = $this->clean($payload['device_id'] ?? '');
+        $deviceName = $this->clean($payload['device_name'] ?? '');
+        if (preg_match('/^[A-Za-z0-9_-]{16,128}$/', $deviceId) !== 1 || $deviceName === '' || strlen($deviceName) > 160) {
+            http_response_code(422); echo json_encode(['success' => false, 'message' => 'This device registration is invalid.']); return;
+        }
+        try {
+            $authorization = OfflineDevice::issue((int) $_SESSION['user_id'], $deviceId, $deviceName);
+            Activity::add('Offline device enrolled: ' . $deviceName . '.');
+            echo json_encode(['success' => true, 'authorization' => $authorization]);
+        } catch (\Throwable $error) {
+            http_response_code(500); echo json_encode(['success' => false, 'message' => 'The offline device could not be enrolled.']);
+        }
+    }
+
+    public function revokeOfflineDevice(array $payload): void
+    {
+        if (($_SESSION['role'] ?? '') !== 'System Admin') { $this->flash('danger', 'Only System Admin can revoke offline devices.'); $this->redirect('?page=users'); return; }
+        $revoked = OfflineDevice::revoke((int) ($payload['device_id'] ?? 0));
+        Activity::add($revoked ? 'Offline device authorization revoked.' : 'Offline device authorization was already inactive.');
+        $this->flash($revoked ? 'success' : 'warning', $revoked ? 'Offline device access revoked.' : 'This offline device was already inactive.');
+        $this->redirect('?page=users#offline-devices');
+    }
+
+    public function validateOfflineDevice(array $payload): void
+    {
+        header('Content-Type: application/json');
+        if (!$this->authorizeEncode()) return;
+        $authorization = OfflineDevice::validate((int) $_SESSION['user_id'], $this->clean($payload['device_id'] ?? ''), (string) ($payload['authorization_token'] ?? ''));
+        if (!$authorization) { http_response_code(403); echo json_encode(['success' => false, 'message' => 'This offline device is expired, revoked, or no longer authorized.']); return; }
+        echo json_encode(['success' => true, 'authorization' => $authorization]);
+    }
+
+    public function reserveOfflineSubmission(array $payload): void
+    {
+        header('Content-Type: application/json');
+        if (!$this->authorizeEncode()) return;
+        $authorization = OfflineDevice::validate((int) $_SESSION['user_id'], $this->clean($payload['device_id'] ?? ''), (string) ($payload['authorization_token'] ?? ''));
+        $submissionId = $this->clean($payload['submission_id'] ?? '');
+        $action = $this->clean($payload['submission_action'] ?? '');
+        if (!$authorization || preg_match('/^desktop-[A-Za-z0-9-]{12,128}$/', $submissionId) !== 1 || $action === '') { http_response_code(403); echo json_encode(['success' => false, 'message' => 'The offline submission was not authorized.']); return; }
+        $reservation = OfflineDevice::reserveSubmission($authorization, $submissionId, $action);
+        echo json_encode(['success' => true, 'state' => $reservation['state']]);
+    }
+
+    public function completeOfflineSubmission(array $payload): void
+    {
+        header('Content-Type: application/json');
+        if (!$this->authorizeEncode()) return;
+        $authorization = OfflineDevice::validate((int) $_SESSION['user_id'], $this->clean($payload['device_id'] ?? ''), (string) ($payload['authorization_token'] ?? ''));
+        $submissionId = $this->clean($payload['submission_id'] ?? '');
+        if (!$authorization || preg_match('/^desktop-[A-Za-z0-9-]{12,128}$/', $submissionId) !== 1) { http_response_code(403); echo json_encode(['success' => false, 'message' => 'The offline submission could not be completed.']); return; }
+        echo json_encode(['success' => OfflineDevice::completeSubmission($authorization, $submissionId)]);
     }
 
     public function databaseManagement(array $filters): void
@@ -596,6 +658,8 @@ final class DashboardController
             'encodingEnabled' => SystemSetting::moduleEnabled('encoding'),
             'deliveryScheduleEnabled' => SystemSetting::moduleEnabled('delivery_schedule'),
             'allowNoControlNumberTransactions' => SystemSetting::allowsNoControlNumberTransactions(),
+            'allowAnnualBagLimitExceeded' => SystemSetting::allowsAnnualBagLimitExceeded(),
+            'annualBagLimitExceededDetails' => Transaction::annualBagLimitExceededDetails(),
             'tables' => $tables,
             'selectedTable' => $selectedTable,
             'schema' => $schema,
@@ -1691,6 +1755,21 @@ final class DashboardController
         SystemSetting::setAllowsNoControlNumberTransactions($allowed);
         Activity::add('Transactions from farmers without control numbers set to ' . ($allowed ? 'allowed.' : 'restricted.'));
         $this->flash('success', 'Transactions from farmers without control numbers are now ' . ($allowed ? 'allowed.' : 'restricted.'));
+        $this->redirect('?page=system-maintenance&tab=maintenance');
+    }
+
+    public function updateAnnualBagLimitSetting(array $payload): void
+    {
+        if (($_SESSION['role'] ?? '') !== 'System Admin') {
+            $this->flash('danger', 'Only System Admin can change transaction controls.');
+            $this->redirect();
+            return;
+        }
+
+        $allowed = ($payload['allow_annual_bag_limit_exceeded'] ?? '0') === '1';
+        SystemSetting::setAllowsAnnualBagLimitExceeded($allowed);
+        Activity::add('Annual 400-bag transaction limit set to ' . ($allowed ? 'override allowed.' : 'enforced.'));
+        $this->flash('success', 'The annual 400-bag limit is now ' . ($allowed ? 'overrideable for encoders.' : 'enforced.'));
         $this->redirect('?page=system-maintenance&tab=maintenance');
     }
 
