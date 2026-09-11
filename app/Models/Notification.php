@@ -58,6 +58,16 @@ final class Notification
         return (int) $stmt->fetchColumn();
     }
 
+    /** Count every notification visible to one user, including notifications already read. */
+    public static function countForUser(int $userId): int
+    {
+        self::ensureSchema();
+        $stmt = Database::connection()->prepare('SELECT COUNT(*) FROM notifications WHERE user_id = :user_id OR user_id IS NULL');
+        $stmt->execute(['user_id' => $userId]);
+
+        return (int) $stmt->fetchColumn();
+    }
+
     public static function add(string $message, ?int $userId = null, string $targetUrl = '', string $category = 'account_updates'): void
     {
         self::ensureSchema();

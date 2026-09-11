@@ -1186,6 +1186,9 @@ body.route-fade::before {
 .schedule-type-toggle .btn-check:checked + label { background: var(--green-800); color: #fff; box-shadow: 0 2px 7px rgba(21, 76, 45, .2); }
 .schedule-party-panel { opacity: 0; transform: translateY(5px); transition: opacity .15s ease, transform .15s ease; }
 .schedule-party-panel.is-visible { opacity: 1; transform: translateY(0); }
+.farmer-record-toggle { max-width: 520px; }
+.farmer-record-panel { opacity: 0; transform: translateY(5px); transition: opacity .15s ease, transform .15s ease; }
+.farmer-record-panel.is-visible { opacity: 1; transform: translateY(0); }
 .schedule-creation-fields { min-width: 0; border: 0; transition: opacity .18s ease, filter .18s ease; }
 .schedule-creation-fields.is-disabled { opacity: .48; filter: grayscale(.35); }
 .scheduled-delivery-list { display: grid; gap: 12px; min-height: 180px; }
@@ -2929,6 +2932,28 @@ body.screensaver-mode .floating-home-link { pointer-events: none; opacity: 0; tr
 
 .notification-history .notification-item {
     padding: 16px 18px;
+}
+
+.notification-delete-panel {
+    margin-bottom: 1rem;
+}
+
+.notification-delete-tip {
+    display: flex;
+    gap: .55rem;
+    margin-top: 1rem;
+    padding: .75rem;
+    border-left: 4px solid var(--green-700);
+    border-radius: .35rem;
+    background: #eef8ef;
+    color: var(--ink);
+    font-size: .85rem;
+    line-height: 1.45;
+}
+
+.notification-delete-tip strong {
+    color: var(--green-800);
+    white-space: nowrap;
 }
 
 .filter-panel,

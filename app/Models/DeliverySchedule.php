@@ -54,15 +54,27 @@ final class DeliverySchedule
         if (!$valid || $valid->format('Y-m-d') !== $date) throw new \DomainException('Choose a valid delivery date.');
         $sellerType = (string) ($data['seller_type'] ?? 'Individual');
         if (!in_array($sellerType, ['Individual', 'Farmer Organization'], true)) throw new \DomainException('Select a valid schedule type.');
+        $farmerRecordType = (string) ($data['farmer_record_type'] ?? 'Enrolled');
         $farmerId = (int) ($data['farmer_id'] ?? 0);
         $temporary = trim((string) ($data['temporary_name'] ?? ''));
+        $temporaryAddress = trim((string) ($data['temporary_address'] ?? ''));
         $temporaryContact = trim((string) ($data['temporary_contact_number'] ?? ''));
         $organizationId = (int) ($data['farmer_organization_id'] ?? 0);
         $temporaryOrganization = trim((string) ($data['temporary_organization_name'] ?? ''));
         $representative = trim((string) ($data['representative_name'] ?? ''));
-        if ($sellerType === 'Individual' && (($farmerId <= 0 && $temporary === '') || ($farmerId > 0 && $temporary !== ''))) throw new \DomainException('Select an enrolled farmer or enter one temporary full name.');
+        if ($sellerType === 'Individual' && !in_array($farmerRecordType, ['Enrolled', 'Temporary'], true)) throw new \DomainException('Choose an enrolled or non-enrolled farmer.');
+        if ($sellerType === 'Individual' && $farmerRecordType === 'Enrolled' && $farmerId <= 0) throw new \DomainException('Select an enrolled farmer.');
+        if ($sellerType === 'Individual' && $farmerRecordType === 'Temporary' && $temporary === '') throw new \DomainException('Enter the non-enrolled farmer full name.');
+        if ($sellerType === 'Individual' && $farmerRecordType === 'Temporary' && $temporaryAddress === '') throw new \DomainException('Enter the non-enrolled farmer address.');
+        if ($sellerType === 'Individual' && $farmerRecordType === 'Enrolled') {
+            $temporary = '';
+            $temporaryAddress = '';
+            $temporaryContact = '';
+        }
+        if ($sellerType === 'Individual' && $farmerRecordType === 'Temporary') $farmerId = 0;
         if ($sellerType === 'Farmer Organization' && (($organizationId <= 0 && $temporaryOrganization === '') || ($organizationId > 0 && $temporaryOrganization !== ''))) throw new \DomainException('Select an enrolled farmer organization or enter one temporary organization name.');
         if ($sellerType === 'Farmer Organization' && $representative === '') throw new \DomainException('Enter the name of the farmer organization representative.');
+        if (mb_strlen($temporaryAddress) > 500) throw new \DomainException('Farmer address must not exceed 500 characters.');
         if (mb_strlen($temporaryContact) > 40) throw new \DomainException('Contact number must not exceed 40 characters.');
         if (!is_numeric($data['expected_bags'] ?? null) || (float) $data['expected_bags'] <= 0) throw new \DomainException('Number of bags must be greater than zero.');
         $db = Database::connection();
@@ -86,11 +98,12 @@ final class DeliverySchedule
         try {
             $reference = self::nextReferenceNumber($warehouse, $date);
             $publicToken = self::generatePublicToken($db);
-            $stmt = $db->prepare('INSERT INTO delivery_schedules (seller_type, farmer_id, temporary_name, temporary_contact_number, farmer_organization_id, temporary_organization_name, representative_name, schedule_date, expected_bags, confirmation_code, public_token, warehouse_id, created_by) VALUES (:seller_type, :farmer_id, :temporary_name, :temporary_contact_number, :farmer_organization_id, :temporary_organization_name, :representative_name, :schedule_date, :bags, :confirmation_code, :public_token, :warehouse_id, :created_by)');
+            $stmt = $db->prepare('INSERT INTO delivery_schedules (seller_type, farmer_id, temporary_name, temporary_address, temporary_contact_number, farmer_organization_id, temporary_organization_name, representative_name, schedule_date, expected_bags, confirmation_code, public_token, warehouse_id, created_by) VALUES (:seller_type, :farmer_id, :temporary_name, :temporary_address, :temporary_contact_number, :farmer_organization_id, :temporary_organization_name, :representative_name, :schedule_date, :bags, :confirmation_code, :public_token, :warehouse_id, :created_by)');
             $stmt->execute([
                 'seller_type' => $sellerType,
                 'farmer_id' => $sellerType === 'Individual' ? ($farmerId ?: null) : null,
                 'temporary_name' => $sellerType === 'Individual' ? ($temporary ?: null) : null,
+                'temporary_address' => $sellerType === 'Individual' && $farmerId <= 0 ? ($temporaryAddress ?: null) : null,
                 'temporary_contact_number' => $sellerType === 'Individual' && $farmerId <= 0 ? ($temporaryContact ?: null) : null,
                 'farmer_organization_id' => $sellerType === 'Farmer Organization' ? ($organizationId ?: null) : null,
                 'temporary_organization_name' => $sellerType === 'Farmer Organization' ? ($temporaryOrganization ?: null) : null,
@@ -231,7 +244,7 @@ final class DeliverySchedule
         $db = Database::connection();
         $db->exec("CREATE TABLE IF NOT EXISTS delivery_schedules (
             id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, seller_type ENUM('Individual','Farmer Organization') NOT NULL DEFAULT 'Individual',
-            farmer_id BIGINT UNSIGNED NULL, temporary_name VARCHAR(180) NULL, temporary_contact_number VARCHAR(40) NULL,
+            farmer_id BIGINT UNSIGNED NULL, temporary_name VARCHAR(180) NULL, temporary_address VARCHAR(500) NULL, temporary_contact_number VARCHAR(40) NULL,
             farmer_organization_id BIGINT UNSIGNED NULL,
             temporary_organization_name VARCHAR(180) NULL, representative_name VARCHAR(180) NULL,
             schedule_date DATE NOT NULL, expected_bags DECIMAL(12,3) NOT NULL, confirmation_code VARCHAR(128) NOT NULL,
@@ -258,6 +271,7 @@ final class DeliverySchedule
         $db->exec('ALTER TABLE delivery_schedules ADD COLUMN IF NOT EXISTS public_tracking_enabled TINYINT(1) NOT NULL DEFAULT 1 AFTER public_token');
         $db->exec('ALTER TABLE delivery_schedules ADD COLUMN IF NOT EXISTS status_changed_at TIMESTAMP NULL AFTER status');
         $db->exec("ALTER TABLE delivery_schedules ADD COLUMN IF NOT EXISTS seller_type ENUM('Individual','Farmer Organization') NOT NULL DEFAULT 'Individual' AFTER id");
+        $db->exec('ALTER TABLE delivery_schedules ADD COLUMN IF NOT EXISTS temporary_address VARCHAR(500) NULL AFTER temporary_name');
         $db->exec('ALTER TABLE delivery_schedules ADD COLUMN IF NOT EXISTS temporary_contact_number VARCHAR(40) NULL AFTER temporary_name');
         $db->exec('ALTER TABLE delivery_schedules ADD COLUMN IF NOT EXISTS farmer_organization_id BIGINT UNSIGNED NULL AFTER temporary_name');
         $db->exec('ALTER TABLE delivery_schedules ADD COLUMN IF NOT EXISTS temporary_organization_name VARCHAR(180) NULL AFTER farmer_organization_id');

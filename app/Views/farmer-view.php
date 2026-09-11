@@ -31,7 +31,7 @@
             ]];
         }
         ?>
-        <form method="post" enctype="multipart/form-data" class="panel form-panel farmer-profile-edit" data-farmer-profile-form>
+        <form method="post" enctype="multipart/form-data" class="panel form-panel farmer-profile-edit" data-farmer-profile-form data-possible-duplicate-warning="<?= !empty($possibleDuplicateWarningsEnabled) ? 'true' : 'false' ?>" data-possible-duplicate-type="farmer">
             <input type="hidden" name="action" value="farmer-update">
             <input type="hidden" name="farmer_id" value="<?= e($farmer['id']) ?>">
 

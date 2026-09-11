@@ -69,5 +69,6 @@
                 </table>
             </div>
         </section>
+        <?php require BASE_PATH . '/app/Views/partials/version-history.php'; ?>
     <?php endif; ?>
 </section>

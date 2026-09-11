@@ -21,6 +21,16 @@ final class Transaction
         return (bool) $stmt->fetchColumn();
     }
 
+    /** Existing individual deliveries for the same farmer/date, used as a pre-save concurrency warning. */
+    public static function possibleIndividualDuplicates(string $identifier, string $deliveryDate, int $excludeId = 0): array
+    {
+        $farmerId = Farmer::idFromRsbsa($identifier);
+        if (!$farmerId || $deliveryDate === '') return [];
+        $stmt = Database::connection()->prepare("\n            SELECT t.id, t.delivery_date, t.warehouse_stock_receipt_number AS wsr, t.bags_50kg AS bags,\n                   COALESCE(f.rsbsa_number, f.farmer_key, '') AS rsbsa,\n                   CONCAT_WS(' ', f.first_name, NULLIF(f.middle_name, ''), f.last_name) AS farmer_name\n            FROM transactions t\n            INNER JOIN farmers f ON f.id = t.farmer_id\n            WHERE t.seller_type = 'Individual' AND t.farmer_id = :farmer_id\n                AND t.delivery_date = :delivery_date AND t.id <> :exclude_id\n                AND COALESCE(t.warehouse_stock_receipt_number, '') NOT LIKE 'DELETED-%'\n            ORDER BY t.id DESC LIMIT 10\n        ");
+        $stmt->execute(['farmer_id' => $farmerId, 'delivery_date' => $deliveryDate, 'exclude_id' => $excludeId]);
+        return $stmt->fetchAll();
+    }
+
     public static function all(): array
     {
         self::ensureSchema();
@@ -30,7 +40,7 @@ final class Transaction
                 t.id,
                 t.seller_type AS type,
                 t.procurement_type AS procurement,
-                COALESCE(f.rsbsa_number, '') AS rsbsa,
+                COALESCE(NULLIF(f.rsbsa_number, ''), CASE WHEN f.farmer_key LIKE 'DELETED-%' THEN SUBSTRING(f.farmer_key, 9) ELSE f.farmer_key END, '') AS rsbsa,
                 COALESCE(fo.name, '') AS fo_name,
                 t.representative_name AS representative,
                 t.total_members AS members,
@@ -72,7 +82,7 @@ final class Transaction
                 t.id,
                 t.seller_type AS type,
                 t.procurement_type AS procurement,
-                COALESCE(f.rsbsa_number, '') AS rsbsa,
+                COALESCE(NULLIF(f.rsbsa_number, ''), CASE WHEN f.farmer_key LIKE 'DELETED-%' THEN SUBSTRING(f.farmer_key, 9) ELSE f.farmer_key END, '') AS rsbsa,
                 CONCAT(COALESCE(f.first_name, ''), ' ', COALESCE(f.last_name, '')) AS farmer_name,
                 COALESCE(fo.name, '') AS fo_name,
                 t.delivery_date,
@@ -167,7 +177,7 @@ final class Transaction
             SELECT
                 t.*,
                 t.warehouse_stock_receipt_number AS wsr,
-                COALESCE(NULLIF(f.rsbsa_number, ''), f.farmer_key, '') AS rsbsa,
+                COALESCE(NULLIF(f.rsbsa_number, ''), CASE WHEN f.farmer_key LIKE 'DELETED-%' THEN SUBSTRING(f.farmer_key, 9) ELSE f.farmer_key END, '') AS rsbsa,
                 CONCAT(COALESCE(f.first_name, ''), ' ', COALESCE(f.last_name, '')) AS farmer_name,
                 COALESCE(fo.name, '') AS fo_name,
                 CASE WHEN fo.classification_type = 'Indigenous People Group' THEN 1 ELSE 0 END AS is_ip_group_delivery,
@@ -210,6 +220,23 @@ final class Transaction
         $stmt = Database::connection()->prepare("UPDATE transactions SET warehouse_stock_receipt_number = CONCAT('DELETED-', LEFT(warehouse_stock_receipt_number, 72)) WHERE id = :id AND warehouse_stock_receipt_number NOT LIKE 'DELETED-%'");
         $stmt->execute(['id' => $id]);
         return $stmt->rowCount() > 0;
+    }
+
+    /** Transactions that must be reviewed before their linked farmer or farmer group is deleted. */
+    public static function affectedByFarmer(int $farmerId): array
+    {
+        self::ensureSchema();
+        $stmt = Database::connection()->prepare("\n            SELECT t.id, t.seller_type AS type, t.delivery_date, t.warehouse_stock_receipt_number AS wsr,\n                   t.bags_50kg AS bags, t.net_kilogram AS net_kg, t.total_amount,\n                   COALESCE(fo.name, '') AS farmer_group_name\n            FROM transactions t\n            LEFT JOIN farmer_organizations fo ON fo.id = t.farmer_organization_id\n            WHERE COALESCE(t.warehouse_stock_receipt_number, '') NOT LIKE 'DELETED-%'\n              AND (t.farmer_id = :individual_farmer_id OR EXISTS (\n                    SELECT 1 FROM transaction_farmer_members tfm\n                    WHERE tfm.transaction_id = t.id AND tfm.farmer_id = :member_farmer_id\n              ))\n            ORDER BY t.delivery_date DESC, t.id DESC\n        ");
+        $stmt->execute(['individual_farmer_id' => $farmerId, 'member_farmer_id' => $farmerId]);
+        return $stmt->fetchAll();
+    }
+
+    public static function affectedByFarmerOrganization(int $organizationId): array
+    {
+        self::ensureSchema();
+        $stmt = Database::connection()->prepare("\n            SELECT t.id, t.seller_type AS type, t.delivery_date, t.warehouse_stock_receipt_number AS wsr,\n                   t.bags_50kg AS bags, t.net_kilogram AS net_kg, t.total_amount,\n                   COALESCE(fo.name, '') AS farmer_group_name\n            FROM transactions t\n            LEFT JOIN farmer_organizations fo ON fo.id = t.farmer_organization_id\n            WHERE COALESCE(t.warehouse_stock_receipt_number, '') NOT LIKE 'DELETED-%'\n              AND t.farmer_organization_id = :organization_id\n            ORDER BY t.delivery_date DESC, t.id DESC\n        ");
+        $stmt->execute(['organization_id' => $organizationId]);
+        return $stmt->fetchAll();
     }
 
     public static function create(array $transaction): array
@@ -407,7 +434,11 @@ final class Transaction
         self::ensureSchema();
         RecordVersion::forRecord('transaction', 0);
         $existing = self::find($id);
-        if (!$existing || strtotime((string) $existing['created_at']) < strtotime('-14 days')) throw new \DomainException('This transaction is no longer editable after two weeks.');
+        $isSystemAdmin = ($_SESSION['role'] ?? '') === 'System Admin';
+        $isPastStandardEditWindow = $existing !== null && strtotime((string) $existing['created_at']) < strtotime('-14 days');
+        if (!$existing || (!$isSystemAdmin && $isPastStandardEditWindow)) {
+            throw new \DomainException('This transaction is no longer editable after two weeks.');
+        }
 
         $sellerType = (string) ($existing['seller_type'] ?? '');
         self::assertValidInput(['type' => $sellerType] + $transaction);
@@ -462,6 +493,9 @@ final class Transaction
         $normalized['warehouse_id'] = self::nullable($transaction['warehouse_id'] ?? null);
         $normalized['fo_name'] = $sellerType === 'Farmer Organization' ? (string) ($transaction['fo_name'] ?? '') : '';
         $normalized['delivered_farmer_ids'] = $sellerType === 'Farmer Organization' ? $deliveredFarmerIds : [];
+        if ($isSystemAdmin && $isPastStandardEditWindow) {
+            $normalized['edit_authorization'] = 'System Admin override: edited after the two-week window';
+        }
         if ($sellerType === 'Farmer Organization' && $deliveredFarmerIds !== []) {
             $normalized['members'] = count($deliveredFarmerIds);
         }

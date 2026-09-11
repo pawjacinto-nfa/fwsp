@@ -6,7 +6,7 @@ $scheduledOrganizationName = $schedulePrefill && ($schedulePrefill['seller_type'
     ? ($schedulePrefill['enrolled_organization_name'] ?: $schedulePrefill['temporary_organization_name'])
     : '';
 ?>
-<form method="post" class="panel form-panel tracked-form">
+<form method="post" class="panel form-panel tracked-form" data-possible-duplicate-warning="<?= !empty($possibleDuplicateWarningsEnabled) ? 'true' : 'false' ?>" data-possible-duplicate-type="transaction">
     <input type="hidden" name="action" value="<?= $editingTransaction ? 'transaction-update' : 'transaction' ?>">
     <?php if ($editingTransaction): ?><input type="hidden" name="transaction_id" value="<?= e($editingTransaction['id']) ?>"><?php endif; ?>
     <input type="hidden" name="client_control_number" value="">

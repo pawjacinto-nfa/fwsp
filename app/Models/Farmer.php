@@ -174,7 +174,9 @@ final class Farmer
     public static function softDelete(int $id): bool
     {
         self::ensureFarmerKeySchema();
-        $stmt = Database::connection()->prepare("UPDATE farmers SET farmer_key = CONCAT('DELETED-', COALESCE(farmer_key, id)), rsbsa_number = NULL, mao_certification = NULL WHERE id = :id AND COALESCE(farmer_key, '') NOT LIKE 'DELETED-%'");
+        // Keep the identifiers intact: historic delivery transactions resolve these
+        // values through the farmer relationship and must remain readable after deletion.
+        $stmt = Database::connection()->prepare("UPDATE farmers SET farmer_key = CONCAT('DELETED-', COALESCE(farmer_key, id)) WHERE id = :id AND COALESCE(farmer_key, '') NOT LIKE 'DELETED-%'");
         $stmt->execute(['id' => $id]);
         return $stmt->rowCount() > 0;
     }
@@ -339,7 +341,7 @@ final class Farmer
         if (self::extractRsbsa($rsbsa) === '') {
             return null;
         }
-        $stmt = Database::connection()->prepare('SELECT id FROM farmers WHERE rsbsa_number = :rsbsa OR farmer_key = :farmer_key LIMIT 1');
+        $stmt = Database::connection()->prepare("SELECT id FROM farmers WHERE (rsbsa_number = :rsbsa OR farmer_key = :farmer_key) AND COALESCE(farmer_key, '') NOT LIKE 'DELETED-%' LIMIT 1");
         $identifier = self::extractRsbsa($rsbsa);
         $stmt->execute(['rsbsa' => $identifier, 'farmer_key' => $identifier]);
         $id = $stmt->fetchColumn();
@@ -360,10 +362,33 @@ final class Farmer
         $value = trim($value);
         if ($value === '') return null;
 
-        $stmt = Database::connection()->prepare("SELECT id, farmer_key, first_name, middle_name, last_name, address, birthdate, birthplace, rsbsa_number, mao_certification FROM farmers WHERE {$column} = :value AND id <> :exclude_id LIMIT 1");
+        $stmt = Database::connection()->prepare("SELECT id, farmer_key, first_name, middle_name, last_name, address, birthdate, birthplace, rsbsa_number, mao_certification FROM farmers WHERE {$column} = :value AND id <> :exclude_id AND COALESCE(farmer_key, '') NOT LIKE 'DELETED-%' LIMIT 1");
         $stmt->execute(['value' => $value, 'exclude_id' => $excludeId]);
         $farmer = $stmt->fetch();
         return $farmer ?: null;
+    }
+
+    /** Active profiles matching an entered full name and/or RSBSA, for pre-save warnings. */
+    public static function possibleDuplicates(string $firstName, string $middleName, string $lastName, string $rsbsa = '', int $excludeId = 0): array
+    {
+        self::ensureFarmerKeySchema();
+        $name = trim(implode(' ', array_filter([trim($firstName), trim($middleName), trim($lastName)], static fn (string $part): bool => $part !== '')));
+        $rsbsa = self::extractRsbsa($rsbsa);
+        if ($name === '' && $rsbsa === '') return [];
+
+        $conditions = [];
+        $params = ['exclude_id' => $excludeId];
+        if ($name !== '') {
+            $conditions[] = "LOWER(TRIM(CONCAT_WS(' ', first_name, NULLIF(middle_name, ''), last_name))) = LOWER(:full_name)";
+            $params['full_name'] = $name;
+        }
+        if ($rsbsa !== '') {
+            $conditions[] = 'rsbsa_number = :rsbsa';
+            $params['rsbsa'] = $rsbsa;
+        }
+        $stmt = Database::connection()->prepare("SELECT id, farmer_key, rsbsa_number AS rsbsa, first_name, middle_name, last_name, address, birthdate FROM farmers WHERE id <> :exclude_id AND COALESCE(farmer_key, '') NOT LIKE 'DELETED-%' AND (" . implode(' OR ', $conditions) . ') ORDER BY id DESC LIMIT 10');
+        $stmt->execute($params);
+        return $stmt->fetchAll();
     }
 
     public static function areIpGroupMembers(array $farmerIds): bool

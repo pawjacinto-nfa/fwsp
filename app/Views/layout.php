@@ -28,6 +28,34 @@
 
 <?php require BASE_PATH . '/app/Views/partials/auth-modals.php'; ?>
 
+<?php
+$showNotificationCleanupPrompt = !empty($_SESSION['show_notification_cleanup_prompt']);
+unset($_SESSION['show_notification_cleanup_prompt']);
+?>
+<?php if ($showNotificationCleanupPrompt): ?>
+    <div class="modal fade auth-modal" id="notificationCleanupPromptModal" tabindex="-1" aria-labelledby="notificationCleanupPromptTitle" aria-hidden="true" data-notification-cleanup-prompt>
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title fs-5" id="notificationCleanupPromptTitle">Review your notifications</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>You have 100 or more notifications. To help keep storage organized, review your notifications first and delete ones you no longer need.</p>
+                    <p class="mb-0 text-muted">Deleting notifications is permanent and does not stop new notifications from appearing.</p>
+                </div>
+                <div class="modal-footer">
+                    <a class="btn btn-outline-success" href="index.php?page=notifications">Review notifications</a>
+                    <form method="post" class="d-inline">
+                        <input type="hidden" name="action" value="notifications-delete-all">
+                        <button class="btn btn-danger" type="submit" data-notification-cleanup-delete>Delete all my notifications</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+<?php endif; ?>
+
 <?php if (!empty($alert)): ?>
     <?php
     $flashType = in_array($alert['type'] ?? '', ['success', 'danger', 'warning', 'info'], true) ? $alert['type'] : 'info';
@@ -85,6 +113,16 @@
                 <button class="btn btn-outline-success" type="button" data-bs-dismiss="modal">Cancel</button>
                 <button class="btn btn-danger" type="button" data-confirm-accept>Delete</button>
             </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade auth-modal" id="possibleDuplicatesModal" tabindex="-1" aria-labelledby="possibleDuplicatesModalTitle" aria-hidden="true" data-possible-duplicates-modal>
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header"><h2 class="modal-title fs-5" id="possibleDuplicatesModalTitle">Possible duplicates</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+            <div class="modal-body"><p data-possible-duplicates-message>A possible matching farmer record was found.</p><ul class="list-group" data-possible-duplicates-list></ul></div>
+            <div class="modal-footer"><button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Return to form</button><button class="btn btn-success" type="button" data-possible-duplicates-continue>Continue saving</button></div>
         </div>
     </div>
 </div>
@@ -148,6 +186,7 @@ window.FSR_AUTH_MODAL = <?= json_encode([
     'showPasswordResetCheck' => isset($_GET['password_reset_check']),
     'showChangePassword' => !empty($_SESSION['password_reset_user_id']) || isset($_GET['password_reset']),
 ], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;
+window.FSR_NOTIFICATION_CLEANUP_PROMPT = <?= $showNotificationCleanupPrompt ? 'true' : 'false' ?>;
 </script>
 <script src="assets/js/app.js?v=<?= e((string) filemtime(BASE_PATH . '/assets/js/app.js')) ?>"></script>
 </body>

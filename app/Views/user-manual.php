@@ -593,14 +593,23 @@ $roleDescriptions = [
                             <li>Expanded automatic error reports and their Tech Support display with a traceable reference number, precise failure message, source location, stack trace, request and response context, browser state, and signed-in user context while redacting passwords and security tokens.</li>
                         </ul></div>
                     </article>
-                    <article class="manual-version-entry is-current">
-                        <div class="manual-version-date"><time datetime="2026-09-08">September 8, 2026</time><span>Current release</span></div>
+                    <article class="manual-version-entry">
+                        <div class="manual-version-date"><time datetime="2026-09-08">September 8, 2026</time><span>Feature update</span></div>
                         <div><h3>Offline authorization and annual-limit controls strengthened</h3><ul class="manual-list">
                             <li>Added device-bound offline authorization for the Windows application, protected by a six-digit Offline PIN and a renewable seven-day authorization period.</li>
                             <li>Added administrator views for registered offline devices and submission history, including device revocation and interrupted-upload review.</li>
                             <li>Added server validation and reservation/completion checks that prevent unauthorized devices and repeated offline uploads from creating duplicate records.</li>
                             <li>Added a System Maintenance override for authorized individual deliveries above the annual 400-bag limit, with a detailed review list of affected farmers and transactions.</li>
                             <li>Updated the Windows installer to version 2.4.0 and added an offline rollout checklist for deployment testing.</li>
+                        </ul></div>
+                    </article>
+                    <article class="manual-version-entry is-current">
+                        <div class="manual-version-date"><time datetime="2026-09-11">September 11, 2026</time><span>Current release</span></div>
+                        <div><h3>Delivery-schedule farmer details and selection improved</h3><ul class="manual-list">
+                            <li>Changed individual scheduling to use mutually exclusive <strong>Enrolled Farmer</strong> and <strong>Non-enrolled Farmer</strong> selections, preventing both record types from being submitted together.</li>
+                            <li>Added <strong>Farmer Address</strong> to the delivery-scheduling form and saved it with temporary farmer schedules for use in the confirmation form.</li>
+                            <li>When an enrolled farmer is selected, the farmer's address, RSBSA number, and contact number are filled from the existing profile and locked against editing.</li>
+                            <li>When a non-enrolled farmer is selected, the temporary full name, address, and contact number fields are shown for manual entry.</li>
                         </ul></div>
                     </article>
                 </div>

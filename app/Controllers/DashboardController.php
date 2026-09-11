@@ -102,6 +102,7 @@ final class DashboardController
             'farmer' => $farmer,
             'versions' => $farmer ? RecordVersion::forRecord('farmer', (int) $farmer['id']) : [],
             'farmerOrganizations' => FarmerOrganization::all(),
+            'possibleDuplicateWarningsEnabled' => SystemSetting::possibleDuplicateWarningsEnabled(),
         ]);
     }
 
@@ -162,6 +163,7 @@ final class DashboardController
             'nextFarmerKey' => Farmer::nextKeyPreview(),
             'locationDefaults' => $this->currentUserLocationValues(),
             'farmerOrganizations' => FarmerOrganization::all(),
+            'possibleDuplicateWarningsEnabled' => SystemSetting::possibleDuplicateWarningsEnabled(),
         ]);
     }
 
@@ -192,6 +194,7 @@ final class DashboardController
             'transaction' => $transaction,
             'scheduledDelivery' => $scheduledDelivery,
             'versions' => $transaction ? RecordVersion::forRecord('transaction', (int) $transaction['id']) : [],
+            'possibleDuplicateWarningsEnabled' => SystemSetting::possibleDuplicateWarningsEnabled(),
         ]);
     }
 
@@ -223,6 +226,7 @@ final class DashboardController
             'transaction' => $transaction,
             'scheduledDelivery' => $scheduledDelivery,
             'versions' => $transaction ? RecordVersion::forRecord('transaction', (int) $transaction['id']) : [],
+            'possibleDuplicateWarningsEnabled' => SystemSetting::possibleDuplicateWarningsEnabled(),
         ]);
     }
 
@@ -286,8 +290,10 @@ final class DashboardController
             $id = DeliverySchedule::create([
                 'schedule_date' => $date,
                 'seller_type' => $this->clean($payload['seller_type'] ?? 'Individual'),
+                'farmer_record_type' => $this->clean($payload['farmer_record_type'] ?? 'Enrolled'),
                 'farmer_id' => (int) ($payload['farmer_id'] ?? 0),
                 'temporary_name' => $this->clean($payload['temporary_name'] ?? ''),
+                'temporary_address' => $this->clean($payload['temporary_address'] ?? ''),
                 'temporary_contact_number' => $this->clean($payload['temporary_contact_number'] ?? ''),
                 'farmer_organization_id' => (int) ($payload['farmer_organization_id'] ?? 0),
                 'temporary_organization_name' => $this->clean($payload['temporary_organization_name'] ?? ''),
@@ -659,6 +665,7 @@ final class DashboardController
             'deliveryScheduleEnabled' => SystemSetting::moduleEnabled('delivery_schedule'),
             'allowNoControlNumberTransactions' => SystemSetting::allowsNoControlNumberTransactions(),
             'allowAnnualBagLimitExceeded' => SystemSetting::allowsAnnualBagLimitExceeded(),
+            'possibleDuplicateWarningsEnabled' => SystemSetting::possibleDuplicateWarningsEnabled(),
             'annualBagLimitExceededDetails' => Transaction::annualBagLimitExceededDetails(),
             'tables' => $tables,
             'selectedTable' => $selectedTable,
@@ -734,6 +741,28 @@ final class DashboardController
                 : FarmerOrganization::CLASSIFICATION_ORGANIZATION;
             $matches = FarmerOrganization::likelyDuplicates($value, $classification, $excludeId);
             echo json_encode(['exists' => $matches !== [], 'matches' => $matches]);
+            return;
+        }
+        if ($field === 'farmer_possible_duplicate') {
+            $matches = Farmer::possibleDuplicates(
+                $this->clean($query['first_name'] ?? ''),
+                $this->clean($query['middle_name'] ?? ''),
+                $this->clean($query['last_name'] ?? ''),
+                $this->clean($query['rsbsa'] ?? $query['value'] ?? ''),
+                $excludeId
+            );
+            $enteredRsbsa = Farmer::extractRsbsa($this->clean($query['rsbsa'] ?? $query['value'] ?? ''));
+            $hasExactRsbsa = $enteredRsbsa !== '' && array_filter($matches, static fn (array $match): bool => ($match['rsbsa'] ?? '') === $enteredRsbsa) !== [];
+            echo json_encode(['exists' => $matches !== [], 'matches' => $matches, 'has_exact_rsbsa' => $hasExactRsbsa]);
+            return;
+        }
+        if ($field === 'transaction_possible_duplicate') {
+            $matches = Transaction::possibleIndividualDuplicates(
+                $this->clean($query['rsbsa'] ?? $query['value'] ?? ''),
+                $this->clean($query['delivery_date'] ?? ''),
+                $excludeId
+            );
+            echo json_encode(['exists' => $matches !== [], 'matches' => $matches, 'has_exact_rsbsa' => false]);
             return;
         }
 
@@ -1052,6 +1081,7 @@ final class DashboardController
             'organization' => $organization,
             'members' => $id > 0 ? FarmerOrganization::members($id) : [],
             'activeClassification' => $classification,
+            'versions' => $organization ? RecordVersion::forRecord('farmer_organization', $id) : [],
         ]);
     }
 
@@ -1150,7 +1180,28 @@ final class DashboardController
             return;
         }
 
+        $affectedTransactions = Transaction::affectedByFarmerOrganization($id);
+        if ($affectedTransactions !== [] && empty($payload['confirm_delete_after_review'])) {
+            View::render('deletion-impact', [
+                'title' => 'Review Affected Transactions',
+                'alert' => $this->pullFlash(),
+                'recordType' => 'Farmer Group',
+                'recordName' => $organization['name'],
+                'transactions' => $affectedTransactions,
+                'deleteAction' => 'farmer-organization-delete',
+                'deleteFields' => array_merge(['id' => $id, 'classification' => $classification], array_filter($payload, fn ($key): bool => in_array($key, ['region_id', 'branch_id', 'province_id', 'warehouse_id'], true), ARRAY_FILTER_USE_KEY)),
+                'cancelUrl' => '?' . http_build_query($redirectParams),
+            ]);
+            return;
+        }
+
         $deleted = FarmerOrganization::softDelete($id);
+        if ($deleted) {
+            RecordVersion::record('farmer_organization', $id,
+                ['record_status' => 'Active', 'linked_transactions_reviewed' => 'No', 'duplicate_validation' => 'Included'],
+                ['record_status' => 'Deleted', 'linked_transactions_reviewed' => $affectedTransactions !== [] ? 'Yes' : 'Not applicable', 'duplicate_validation' => 'Excluded from new-record duplicate checks']
+            );
+        }
         Activity::add('Farmer group marked deleted: ' . $organization['name'] . '.');
         $this->flash($deleted ? 'success' : 'warning', $deleted ? 'Farmer group marked as deleted.' : 'Farmer group was already marked as deleted.');
         $this->redirect('?' . http_build_query($redirectParams));
@@ -1260,6 +1311,7 @@ final class DashboardController
         $_SESSION['role'] = $user['role'];
         $_SESSION['profile_image'] = $user['profile_image'] ?? '';
         $_SESSION['default_location'] = User::locationLabel(User::find((int) $user['id']) ?: $user);
+        $_SESSION['show_notification_cleanup_prompt'] = Notification::countForUser((int) $user['id']) >= 100;
         Activity::add($_SESSION['user'] . ' logged in.');
         $this->flash('success', 'Welcome back, ' . $_SESSION['user'] . '.');
         $this->redirect();
@@ -1773,6 +1825,20 @@ final class DashboardController
         $this->redirect('?page=system-maintenance&tab=maintenance');
     }
 
+    public function updatePossibleDuplicateWarningSetting(array $payload): void
+    {
+        if (($_SESSION['role'] ?? '') !== 'System Admin') {
+            $this->flash('danger', 'Only System Admin can change transaction controls.');
+            $this->redirect();
+            return;
+        }
+        $enabled = ($payload['possible_duplicate_warnings'] ?? '0') === '1';
+        SystemSetting::setPossibleDuplicateWarningsEnabled($enabled);
+        Activity::add('Possible duplicate warnings set to ' . ($enabled ? 'ON.' : 'OFF.'));
+        $this->flash('success', 'Possible duplicate warnings are now ' . ($enabled ? 'ON.' : 'OFF.'));
+        $this->redirect('?page=system-maintenance&tab=maintenance');
+    }
+
     public function updateUserAccessBulk(array $payload): void
     {
         if (($_SESSION['role'] ?? '') !== 'System Admin') {
@@ -1836,6 +1902,17 @@ final class DashboardController
         }
 
         $this->redirect($returnTo);
+    }
+
+    public function deleteAllNotifications(): void
+    {
+        if (!$this->authorizeAuthenticated()) {
+            return;
+        }
+
+        Notification::clearForUser((int) $_SESSION['user_id']);
+        $this->flash('success', 'All notifications have been permanently deleted.');
+        $this->redirect('?page=notifications');
     }
 
     public function storeLocation(array $payload): void
@@ -2046,6 +2123,7 @@ final class DashboardController
             'warehouse_id' => $this->clean($payload['warehouse_id'] ?? ''),
             'photo_path' => null,
             'valid_id_path' => null,
+            'possible_duplicate_warning' => !empty($payload['possible_duplicate_warning_acknowledged']) ? 'Reviewed and continued despite possible duplicate warning' : '',
         ];
 
         if ($farmer['is_ip_group_member'] && !in_array('Indigenous People', $farmer['sector'], true)) {
@@ -2128,6 +2206,7 @@ final class DashboardController
             'organization' => $this->clean($payload['organization'] ?? ''),
             'province_id' => $this->clean($payload['province_id'] ?? ''),
             'warehouse_id' => $this->clean($payload['warehouse_id'] ?? ''),
+            'possible_duplicate_warning' => !empty($payload['possible_duplicate_warning_acknowledged']) ? 'Reviewed and continued despite possible duplicate warning' : '',
             'photo_path' => $photoPath,
             'valid_id_path' => $validIdPath,
         ];
@@ -2189,6 +2268,7 @@ final class DashboardController
             'warehouse_id' => $this->clean($payload['warehouse_id'] ?? ''),
             'delivered_farmer_ids' => array_map('intval', (array) ($payload['delivered_farmer_ids'] ?? [])),
             'client_control_number' => $this->clean($payload['client_control_number'] ?? ''),
+            'possible_duplicate_warning' => !empty($payload['possible_duplicate_warning_acknowledged']) ? 'Reviewed and continued despite possible duplicate warning' : '',
         ];
 
         try {
@@ -2278,6 +2358,7 @@ final class DashboardController
                 'warehouse_id' => $this->clean($payload['warehouse_id'] ?? ''),
                 'fo_name' => $this->clean($payload['fo_name'] ?? ''),
                 'delivered_farmer_ids' => array_map('intval', (array) ($payload['delivered_farmer_ids'] ?? [])),
+                'possible_duplicate_warning' => !empty($payload['possible_duplicate_warning_acknowledged']) ? 'Reviewed and continued despite possible duplicate warning' : '',
             ]);
             $this->flash('success', 'Transaction updated.');
         } catch (\DomainException $e) {
@@ -2292,7 +2373,30 @@ final class DashboardController
     public function deleteFarmer(array $payload): void
     {
         if (($_SESSION['role'] ?? '') !== 'System Admin') { $this->flash('danger', 'Only System Admin can delete farmer profiles.'); $this->redirect('?page=farmers'); return; }
-        $deleted = Farmer::softDelete((int) ($payload['farmer_id'] ?? 0));
+        $farmerId = (int) ($payload['farmer_id'] ?? 0);
+        $farmer = $farmerId > 0 ? Farmer::find($farmerId) : null;
+        if (!$farmer) { $this->flash('danger', 'Farmer profile was not found.'); $this->redirect('?page=farmers'); return; }
+        $affectedTransactions = Transaction::affectedByFarmer($farmerId);
+        if ($affectedTransactions !== [] && empty($payload['confirm_delete_after_review'])) {
+            View::render('deletion-impact', [
+                'title' => 'Review Affected Transactions',
+                'alert' => $this->pullFlash(),
+                'recordType' => 'Farmer Profile',
+                'recordName' => trim(($farmer['first_name'] ?? '') . ' ' . ($farmer['middle_name'] ?? '') . ' ' . ($farmer['last_name'] ?? '')),
+                'transactions' => $affectedTransactions,
+                'deleteAction' => 'farmer-delete',
+                'deleteFields' => ['farmer_id' => $farmerId],
+                'cancelUrl' => '?page=farmers',
+            ]);
+            return;
+        }
+        $deleted = Farmer::softDelete($farmerId);
+        if ($deleted) {
+            RecordVersion::record('farmer', $farmerId,
+                ['record_status' => 'Active', 'linked_transactions_reviewed' => 'No', 'duplicate_validation' => 'Included'],
+                ['record_status' => 'Deleted', 'linked_transactions_reviewed' => $affectedTransactions !== [] ? 'Yes' : 'Not applicable', 'duplicate_validation' => 'Excluded from new-record duplicate checks']
+            );
+        }
         $this->flash($deleted ? 'success' : 'danger', $deleted ? 'Farmer profile marked as deleted.' : 'Farmer profile was not found or is already deleted.');
         $this->redirect('?page=farmers');
     }
@@ -2300,7 +2404,14 @@ final class DashboardController
     public function deleteTransaction(array $payload): void
     {
         if (($_SESSION['role'] ?? '') !== 'System Admin') { $this->flash('danger', 'Only System Admin can delete transactions.'); $this->redirect('?page=transactions'); return; }
-        $deleted = Transaction::softDelete((int) ($payload['transaction_id'] ?? 0));
+        $transactionId = (int) ($payload['transaction_id'] ?? 0);
+        $deleted = Transaction::softDelete($transactionId);
+        if ($deleted) {
+            RecordVersion::record('transaction', $transactionId,
+                ['record_status' => 'Active', 'duplicate_validation' => 'Included'],
+                ['record_status' => 'Deleted', 'duplicate_validation' => 'Excluded from new-record duplicate checks']
+            );
+        }
         $this->flash($deleted ? 'success' : 'danger', $deleted ? 'Transaction marked as deleted.' : 'Transaction was not found or is already deleted.');
         $this->redirect('?page=transactions');
     }

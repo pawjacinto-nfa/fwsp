@@ -38,6 +38,12 @@
                     <div class="maintenance-control-title"><div><strong id="noControlNumberTransactionsLabel">Allow Transactions from Farmers without control numbers</strong><small class="d-block text-muted">When ON, orange-tagged farmers may transact even after their first delivery.</small></div><span class="badge <?= !empty($allowNoControlNumberTransactions) ? 'text-bg-success' : 'text-bg-warning' ?>"><?= !empty($allowNoControlNumberTransactions) ? 'ON' : 'OFF' ?></span></div>
                     <div class="maintenance-switch"><span>OFF</span><div class="form-check form-switch m-0"><input class="form-check-input" type="checkbox" role="switch" name="allow_no_control_number_transactions" value="1" aria-labelledby="noControlNumberTransactionsLabel" data-module-maintenance-toggle <?= !empty($allowNoControlNumberTransactions) ? 'checked' : '' ?>></div><span>ON</span></div>
                 </form>
+                <form method="post" class="maintenance-control mt-3 mb-0" data-module-maintenance-form>
+                    <input type="hidden" name="action" value="possible-duplicate-warning-setting">
+                    <input type="hidden" name="possible_duplicate_warnings" value="0">
+                    <div class="maintenance-control-title"><div><strong id="possibleDuplicateWarningsLabel">Enable Possible Duplicates Warning</strong><small class="d-block text-muted">Warn encoders before saving a farmer profile or individual delivery that matches an active farmer name or RSBSA Number.</small></div><span class="badge <?= !empty($possibleDuplicateWarningsEnabled) ? 'text-bg-warning' : 'text-bg-success' ?>"><?= !empty($possibleDuplicateWarningsEnabled) ? 'ON' : 'OFF' ?></span></div>
+                    <div class="maintenance-switch"><span>OFF</span><div class="form-check form-switch m-0"><input class="form-check-input" type="checkbox" role="switch" name="possible_duplicate_warnings" value="1" aria-labelledby="possibleDuplicateWarningsLabel" data-module-maintenance-toggle <?= !empty($possibleDuplicateWarningsEnabled) ? 'checked' : '' ?>></div><span>ON</span></div>
+                </form>
                 <div class="accordion mt-3" id="annualBagLimitAccordion">
                     <div class="accordion-item">
                         <h2 class="accordion-header" id="annualBagLimitHeading">

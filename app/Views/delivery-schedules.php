@@ -16,6 +16,7 @@ foreach ($farmers as $farmer) {
     $farmerSearchMap[$label] = [
         'id' => (int) $farmer['id'],
         'rsbsa' => (string) ($farmer['rsbsa'] ?? ''),
+        'address' => (string) ($farmer['address'] ?? ''),
         'contact' => (string) ($farmer['contact'] ?? ''),
     ];
 }
@@ -132,24 +133,45 @@ foreach ($farmerOrganizations as $organization) {
                             </fieldset>
 
                             <div class="schedule-party-panel is-visible" data-schedule-party-panel="Individual">
-                                <label class="form-label" for="scheduledFarmer">Enrolled farmer</label>
-                                <div class="autocomplete-field" data-autocomplete-field>
-                                    <input type="hidden" name="farmer_id" value="" data-schedule-farmer-id>
-                                    <input class="form-control" id="scheduledFarmer" autocomplete="off" placeholder="Search by control number or farmer name" data-autocomplete-input data-schedule-farmer-search data-farmer-search-map='<?= e(json_encode($farmerSearchMap, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT)) ?>' data-autocomplete-source='<?= e(json_encode($farmerSearchOptions, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT)) ?>'>
-                                    <div class="autocomplete-menu" data-autocomplete-menu></div>
+                                <fieldset class="schedule-type-fieldset">
+                                    <legend class="form-label">Farmer record</legend>
+                                    <div class="schedule-type-toggle farmer-record-toggle" role="radiogroup" aria-label="Farmer record type">
+                                        <input type="radio" class="btn-check" name="farmer_record_type" id="farmerRecordEnrolled" value="Enrolled" checked data-farmer-record-type>
+                                        <label for="farmerRecordEnrolled">Enrolled Farmer</label>
+                                        <input type="radio" class="btn-check" name="farmer_record_type" id="farmerRecordTemporary" value="Temporary" data-farmer-record-type>
+                                        <label for="farmerRecordTemporary">Non-enrolled Farmer</label>
+                                    </div>
+                                </fieldset>
+
+                                <div class="farmer-record-panel is-visible" data-farmer-record-panel="Enrolled">
+                                    <label class="form-label" for="scheduledFarmer">Enrolled farmer</label>
+                                    <div class="autocomplete-field" data-autocomplete-field>
+                                        <input type="hidden" name="farmer_id" value="" data-schedule-farmer-id>
+                                        <input class="form-control" id="scheduledFarmer" autocomplete="off" placeholder="Search by control number or farmer name" data-autocomplete-input data-schedule-farmer-search data-farmer-search-map='<?= e(json_encode($farmerSearchMap, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT)) ?>' data-autocomplete-source='<?= e(json_encode($farmerSearchOptions, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT)) ?>'>
+                                        <div class="autocomplete-menu" data-autocomplete-menu></div>
+                                    </div>
+                                    <div class="form-text">Search using the farmer control number or full name.</div>
+                                    <label class="form-label mt-3" for="scheduledFarmerAddress">Farmer Address</label>
+                                    <input class="form-control" id="scheduledFarmerAddress" disabled placeholder="From enrolled farmer profile" data-schedule-farmer-address data-schedule-profile-field>
+                                    <div class="row g-3 mt-1">
+                                        <div class="col-md-6">
+                                            <label class="form-label" for="scheduledFarmerRsbsa">RSBSA number</label>
+                                            <input class="form-control" id="scheduledFarmerRsbsa" disabled placeholder="From enrolled farmer profile" data-schedule-farmer-rsbsa data-schedule-profile-field>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label" for="scheduledFarmerContact">Contact number</label>
+                                            <input class="form-control" id="scheduledFarmerContact" disabled placeholder="From enrolled farmer profile" data-schedule-farmer-contact data-schedule-profile-field>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="form-text">Choose an enrolled farmer, or use the temporary-name field below.</div>
-                                <label class="form-label mt-3" for="temporaryName">Non-enrolled farmer — full name</label>
-                                <input class="form-control" id="temporaryName" name="temporary_name" maxlength="180" placeholder="Temporary full name">
-                                <div class="row g-3 mt-1">
-                                    <div class="col-md-6">
-                                        <label class="form-label" for="scheduledFarmerRsbsa">RSBSA number</label>
-                                        <input class="form-control" id="scheduledFarmerRsbsa" readonly placeholder="From enrolled farmer profile" data-schedule-farmer-rsbsa>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label" for="scheduledFarmerContact">Contact number</label>
-                                        <input class="form-control" id="scheduledFarmerContact" name="temporary_contact_number" type="tel" maxlength="40" autocomplete="tel" placeholder="Enter contact number for a temporary farmer" data-schedule-farmer-contact>
-                                    </div>
+
+                                <div class="farmer-record-panel" data-farmer-record-panel="Temporary" hidden>
+                                    <label class="form-label" for="temporaryName">Non-enrolled farmer — full name</label>
+                                    <input class="form-control" id="temporaryName" name="temporary_name" maxlength="180" placeholder="Temporary full name" required disabled>
+                                    <label class="form-label mt-3" for="temporaryFarmerAddress">Farmer Address</label>
+                                    <input class="form-control" id="temporaryFarmerAddress" name="temporary_address" maxlength="500" autocomplete="street-address" placeholder="Enter the farmer's complete address" required disabled>
+                                    <label class="form-label mt-3" for="temporaryFarmerContact">Contact number</label>
+                                    <input class="form-control" id="temporaryFarmerContact" name="temporary_contact_number" type="tel" maxlength="40" autocomplete="tel" placeholder="Enter the farmer's contact number" disabled>
                                 </div>
                             </div>
 
@@ -268,29 +290,48 @@ document.addEventListener('DOMContentLoaded', () => {
     const farmerSearch = modalElement.querySelector('[data-schedule-farmer-search]');
     const farmerId = modalElement.querySelector('[data-schedule-farmer-id]');
     const farmerRsbsa = modalElement.querySelector('[data-schedule-farmer-rsbsa]');
+    const farmerAddress = modalElement.querySelector('[data-schedule-farmer-address]');
     const farmerContact = modalElement.querySelector('[data-schedule-farmer-contact]');
     const temporaryName = modalElement.querySelector('#temporaryName');
+    const temporaryAddress = modalElement.querySelector('#temporaryFarmerAddress');
+    const temporaryContact = modalElement.querySelector('#temporaryFarmerContact');
     const farmerSearchMap = JSON.parse(farmerSearch?.dataset.farmerSearchMap || '{}');
     const syncFarmerDetails = () => {
-        const previousFarmerId = farmerId.value;
         const farmer = farmerSearchMap[farmerSearch.value.trim()] || null;
         farmerId.value = farmer?.id || '';
         farmerRsbsa.value = farmer?.rsbsa || '';
-        farmerContact.readOnly = Boolean(farmer);
-        if (farmer) {
-            farmerContact.value = farmer.contact || '';
-            temporaryName.value = '';
-        } else if (previousFarmerId) {
-            farmerContact.value = '';
-        }
+        farmerAddress.value = farmer?.address || '';
+        farmerContact.value = farmer?.contact || '';
     };
     farmerSearch?.addEventListener('input', syncFarmerDetails);
     farmerSearch?.addEventListener('change', syncFarmerDetails);
-    temporaryName?.addEventListener('input', () => {
-        if (!temporaryName.value.trim()) return;
-        farmerSearch.value = '';
-        syncFarmerDetails();
-    });
+
+    const farmerRecordInputs = [...modalElement.querySelectorAll('[data-farmer-record-type]')];
+    const farmerRecordPanels = [...modalElement.querySelectorAll('[data-farmer-record-panel]')];
+    const syncFarmerRecordType = (clearOpposite = true) => {
+        const recordType = farmerRecordInputs.find((input) => input.checked)?.value || 'Enrolled';
+        farmerRecordPanels.forEach((panel) => {
+            const active = panel.dataset.farmerRecordPanel === recordType;
+            panel.hidden = !active;
+            panel.classList.toggle('is-visible', active);
+            panel.querySelectorAll('input, select, textarea').forEach((control) => {
+                control.disabled = !active || control.hasAttribute('data-schedule-profile-field');
+            });
+        });
+        if (!clearOpposite) return;
+        if (recordType === 'Enrolled') {
+            temporaryName.value = '';
+            temporaryAddress.value = '';
+            temporaryContact.value = '';
+        } else {
+            farmerSearch.value = '';
+            farmerId.value = '';
+            farmerRsbsa.value = '';
+            farmerAddress.value = '';
+            farmerContact.value = '';
+        }
+    };
+    farmerRecordInputs.forEach((input) => input.addEventListener('change', () => syncFarmerRecordType(true)));
 
     const organizationSearch = modalElement.querySelector('[data-schedule-organization-search]');
     const organizationId = modalElement.querySelector('[data-schedule-organization-id]');
@@ -312,6 +353,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             next.hidden = false;
             next.querySelectorAll('input, select, textarea').forEach((control) => { control.disabled = false; });
+            if (sellerType === 'Individual') syncFarmerRecordType(false);
             window.requestAnimationFrame(() => next.classList.add('is-visible'));
         };
         if (!animate || !current) { reveal(); return; }

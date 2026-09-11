@@ -16,7 +16,7 @@ $facility = implode(', ', array_filter([
     $schedule['branch_name'] ?? '',
 ]));
 $farmerRsbsa = trim((string) ($schedule['farmer_rsbsa'] ?? ''));
-$farmerAddress = trim((string) ($schedule['farmer_address'] ?? ''));
+$farmerAddress = trim((string) (($schedule['farmer_address'] ?? '') ?: ($schedule['temporary_address'] ?? '')));
 $farmerContact = trim((string) (($schedule['farmer_contact'] ?? '') ?: ($schedule['temporary_contact_number'] ?? '')));
 $maoCertification = trim((string) ($schedule['farmer_mao_certification'] ?? ''));
 $organizationAddress = trim((string) ($schedule['organization_address'] ?? ''));

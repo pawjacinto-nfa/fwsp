@@ -107,10 +107,11 @@ if ($mode === 'transactions') {
                     <div class="modal-body">
                         <?php
                         $canEditTransactions = in_array($_SESSION['role'] ?? '', ['Warehouse Personnel', 'System Admin'], true);
-                        $editable = $canEditTransactions && strtotime((string) ($selectedTransaction['created_at'] ?? '')) >= strtotime('-14 days');
+                        $isSystemAdmin = ($_SESSION['role'] ?? '') === 'System Admin';
+                        $editable = $canEditTransactions && ($isSystemAdmin || strtotime((string) ($selectedTransaction['created_at'] ?? '')) >= strtotime('-14 days'));
                         ?>
                         <?php if ($canEditTransactions): ?>
-                            <div class="alert <?= $editable ? 'alert-info' : 'alert-secondary' ?>">Transactions are editable only within two weeks of encoding. <?= $editable ? 'This transaction can still be edited.' : 'This transaction is no longer editable.' ?></div>
+                            <div class="alert <?= $editable ? 'alert-info' : 'alert-secondary' ?>"><?= $isSystemAdmin ? 'System Admin accounts may edit transactions at any time.' : ('Transactions are editable only within two weeks of encoding. ' . ($editable ? 'This transaction can still be edited.' : 'This transaction is no longer editable.')) ?></div>
                         <?php else: ?>
                             <div class="alert alert-secondary">Your account has read-only access to transaction records.</div>
                         <?php endif; ?>

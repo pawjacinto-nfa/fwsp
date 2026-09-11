@@ -1,4 +1,4 @@
-<form method="post" enctype="multipart/form-data" class="panel form-panel tracked-form">
+<form method="post" enctype="multipart/form-data" class="panel form-panel tracked-form" data-possible-duplicate-warning="<?= !empty($possibleDuplicateWarningsEnabled) ? 'true' : 'false' ?>" data-possible-duplicate-type="farmer">
     <input type="hidden" name="action" value="farmer">
     <div class="progress form-progress" role="progressbar" aria-label="Farmer form progress">
         <div class="progress-bar" style="width: 0%">0%</div>

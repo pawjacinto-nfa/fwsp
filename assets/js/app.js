@@ -887,6 +887,34 @@ if (flashMessageModal && window.bootstrap) {
     showRequestedAuthModal();
 }
 
+const notificationCleanupPromptModal = document.querySelector("[data-notification-cleanup-prompt]");
+const showNotificationCleanupPrompt = () => {
+    if (!window.FSR_NOTIFICATION_CLEANUP_PROMPT || !notificationCleanupPromptModal || !window.bootstrap) return;
+    bootstrap.Modal.getOrCreateInstance(notificationCleanupPromptModal).show();
+};
+
+if (flashMessageModal && window.bootstrap) {
+    flashMessageModal.addEventListener("hidden.bs.modal", showNotificationCleanupPrompt, { once: true });
+} else {
+    showNotificationCleanupPrompt();
+}
+
+const notificationCleanupDeleteButton = document.querySelector("[data-notification-cleanup-delete]");
+if (notificationCleanupPromptModal && notificationCleanupDeleteButton && window.bootstrap) {
+    notificationCleanupDeleteButton.addEventListener("click", (event) => {
+        if (notificationCleanupDeleteButton.dataset.confirmMessage) return;
+        event.preventDefault();
+        const cleanupModal = bootstrap.Modal.getOrCreateInstance(notificationCleanupPromptModal);
+        notificationCleanupPromptModal.addEventListener("hidden.bs.modal", () => {
+            notificationCleanupDeleteButton.dataset.confirmTitle = "Delete All Notifications";
+            notificationCleanupDeleteButton.dataset.confirmMessage = "Are you sure you want to permanently delete all of your notifications? This cannot be undone.";
+            notificationCleanupDeleteButton.dataset.confirmAccept = "Delete All";
+            notificationCleanupDeleteButton.click();
+        }, { once: true });
+        cleanupModal.hide();
+    });
+}
+
 const confirmActionModal = document.querySelector("[data-confirm-action-modal]");
 if (confirmActionModal && window.bootstrap) {
     const confirmModal = bootstrap.Modal.getOrCreateInstance(confirmActionModal);
@@ -1308,6 +1336,99 @@ document.querySelectorAll("[data-duplicate-check]").forEach((input) => {
     input.addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(check, 300); });
     input.addEventListener("blur", check);
 });
+
+// A final, server-backed warning catches possible duplicates created by another
+// encoder while this form was still being completed.
+const possibleDuplicatesModal = document.querySelector("[data-possible-duplicates-modal]");
+let pendingPossibleDuplicateForm = null;
+if (possibleDuplicatesModal && window.bootstrap) {
+    const possibleDuplicatesDialog = bootstrap.Modal.getOrCreateInstance(possibleDuplicatesModal);
+    const possibleDuplicatesMessage = possibleDuplicatesModal.querySelector("[data-possible-duplicates-message]");
+    const possibleDuplicatesList = possibleDuplicatesModal.querySelector("[data-possible-duplicates-list]");
+    const continueButton = possibleDuplicatesModal.querySelector("[data-possible-duplicates-continue]");
+
+    continueButton?.addEventListener("click", () => {
+        if (!pendingPossibleDuplicateForm) return;
+        const form = pendingPossibleDuplicateForm;
+        pendingPossibleDuplicateForm = null;
+        possibleDuplicatesDialog.hide();
+        let acknowledgement = form.querySelector("input[name='possible_duplicate_warning_acknowledged']");
+        if (!acknowledgement) {
+            acknowledgement = document.createElement("input");
+            acknowledgement.type = "hidden";
+            acknowledgement.name = "possible_duplicate_warning_acknowledged";
+            form.append(acknowledgement);
+        }
+        acknowledgement.value = "1";
+        form.dataset.possibleDuplicateApproved = "true";
+        form.requestSubmit();
+    });
+
+    document.querySelectorAll("form[data-possible-duplicate-warning='true']").forEach((form) => {
+        form.addEventListener("submit", async (event) => {
+            if (form.dataset.possibleDuplicateApproved === "true") {
+                delete form.dataset.possibleDuplicateApproved;
+                return;
+            }
+
+            const isTransaction = form.dataset.possibleDuplicateType === "transaction";
+            if (isTransaction && form.querySelector("[name='type']")?.value !== "Individual") return;
+            const rsbsa = form.querySelector("[name='rsbsa']")?.value.trim() || "";
+            const firstName = form.querySelector("[name='first_name']")?.value.trim() || "";
+            const middleName = form.querySelector("[name='middle_name']")?.value.trim() || "";
+            const lastName = form.querySelector("[name='last_name']")?.value.trim() || "";
+            const deliveryDate = form.querySelector("[name='delivery_date']")?.value || "";
+            if ((!isTransaction && !rsbsa && !firstName && !lastName) || (isTransaction && (!rsbsa || !deliveryDate))) return;
+
+            event.preventDefault();
+            const query = new URLSearchParams({
+                duplicate_check: "1",
+                field: isTransaction ? "transaction_possible_duplicate" : "farmer_possible_duplicate",
+                rsbsa,
+                first_name: firstName,
+                middle_name: middleName,
+                last_name: lastName,
+                delivery_date: deliveryDate,
+            });
+            const existingId = form.querySelector("[name='farmer_id'], [name='transaction_id']")?.value;
+            if (existingId) query.set("exclude_id", existingId);
+
+            try {
+                const response = await fetch(`index.php?${query.toString()}`, { credentials: "same-origin" });
+                const result = await response.json();
+                if (!result.exists) {
+                    form.dataset.possibleDuplicateApproved = "true";
+                    form.requestSubmit();
+                    return;
+                }
+
+                pendingPossibleDuplicateForm = form;
+                if (possibleDuplicatesList) {
+                    possibleDuplicatesList.replaceChildren(...(result.matches || []).map((match) => {
+                        const item = document.createElement("li");
+                        item.className = "list-group-item";
+                        const name = match.farmer_name || [match.first_name, match.middle_name, match.last_name].filter(Boolean).join(" ");
+                        item.textContent = `${name || "Farmer"} · RSBSA: ${match.rsbsa || "Not set"} · ${match.delivery_date ? `Date: ${match.delivery_date} · WSR: ${match.wsr || "Not set"}` : (match.address || "Address not set")}`;
+                        return item;
+                    }));
+                }
+                const exactRsbsa = Boolean(result.has_exact_rsbsa);
+                if (possibleDuplicatesMessage) possibleDuplicatesMessage.textContent = exactRsbsa
+                    ? "An active farmer already has this exact RSBSA Number. Saving remains blocked to prevent a duplicate profile."
+                    : "Review these possible matching records before continuing. Another encoder may have saved one while you were encoding.";
+                if (continueButton) {
+                    continueButton.disabled = exactRsbsa;
+                    continueButton.textContent = exactRsbsa ? "Duplicate RSBSA blocked" : "Continue saving";
+                }
+                possibleDuplicatesDialog.show();
+            } catch (_) {
+                // A warning service failure must not prevent a normal server-side save.
+                form.dataset.possibleDuplicateApproved = "true";
+                form.requestSubmit();
+            }
+        });
+    });
+}
 
 document.querySelectorAll("[data-farmer-group-duplicate-form]").forEach((form) => {
     const nameInput = form.querySelector("[data-farmer-group-name]");

@@ -220,6 +220,7 @@ CREATE TABLE IF NOT EXISTS delivery_schedules (
     seller_type ENUM('Individual', 'Farmer Organization') NOT NULL DEFAULT 'Individual',
     farmer_id BIGINT UNSIGNED NULL,
     temporary_name VARCHAR(180) NULL,
+    temporary_address VARCHAR(500) NULL,
     temporary_contact_number VARCHAR(40) NULL,
     farmer_organization_id BIGINT UNSIGNED NULL,
     temporary_organization_name VARCHAR(180) NULL,
