@@ -92,6 +92,7 @@ $archiveKey = $isSuperAdmin ? 'admin_archived' : 'reporter_archived';
                         $ticketId = (int) $ticket['id'];
                         $collapseId = 'ticketDetails' . $ticketId;
                         $isArchived = !empty($ticket[$archiveKey]);
+                        $reporterLocation = str_replace("\n", ' / ', \App\Models\User::locationLabel($ticket));
                         ?>
                         <tr class="ticket-summary-row <?= $isArchived ? 'support-ticket-archived' : '' ?>">
                             <?php if ($isSuperAdmin): ?><td><input class="form-check-input" type="checkbox" name="ticket_ids[]" value="<?= e($ticketId) ?>" form="bulkSupportTicketForm" aria-label="Select ticket <?= e($ticketId) ?>"></td><?php endif; ?>
@@ -101,7 +102,10 @@ $archiveKey = $isSuperAdmin ? 'admin_archived' : 'reporter_archived';
                                 </button>
                                 <small><?= e($ticket['submitted_at'] ?? '') ?></small>
                             </td>
-                            <td><?= e($ticket['reporter_name'] ?: 'Anonymous') ?></td>
+                            <td>
+                                <?= e($ticket['reporter_name'] ?: 'Anonymous') ?>
+                                <small class="d-block text-muted"><?= e($reporterLocation) ?></small>
+                            </td>
                             <td><?= e($ticket['category']) ?></td>
                             <td><span class="support-status <?= $ticket['status'] === 'Completed' ? 'is-completed' : 'is-open' ?>"><?= e($ticket['status']) ?></span></td>
                             <td><?= e($ticket['updated_label'] ?? '') ?></td>

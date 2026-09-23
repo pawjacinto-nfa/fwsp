@@ -174,6 +174,7 @@ final class DashboardController
         }
 
         $transaction = !empty($_GET['transaction_id']) ? Transaction::find((int) $_GET['transaction_id']) : null;
+        $retryTransaction = $this->pullTransactionRetry('Individual', (int) ($transaction['id'] ?? 0));
         $scheduledDelivery = !$transaction && !empty($_GET['schedule_id']) ? DeliverySchedule::find((int) $_GET['schedule_id']) : null;
         if ($scheduledDelivery && !$this->canAccessDeliverySchedule($scheduledDelivery)) {
             $this->flash('danger', 'That delivery schedule belongs to another facility.');
@@ -181,6 +182,11 @@ final class DashboardController
             return;
         }
         $locationDefaults = $this->transactionLocationValues($transaction);
+        if ($retryTransaction) {
+            foreach (['region_id', 'branch_id', 'province_id', 'warehouse_id'] as $key) {
+                if (isset($retryTransaction[$key])) $locationDefaults[$key] = $retryTransaction[$key];
+            }
+        }
         if ($scheduledDelivery) {
             foreach (['region_id', 'branch_id', 'province_id', 'warehouse_id'] as $key) {
                 if (!empty($scheduledDelivery[$key])) $locationDefaults[$key] = $scheduledDelivery[$key];
@@ -192,6 +198,7 @@ final class DashboardController
             'farmers' => Farmer::all(),
             'locationDefaults' => $locationDefaults,
             'transaction' => $transaction,
+            'retryTransaction' => $retryTransaction,
             'scheduledDelivery' => $scheduledDelivery,
             'versions' => $transaction ? RecordVersion::forRecord('transaction', (int) $transaction['id']) : [],
             'possibleDuplicateWarningsEnabled' => SystemSetting::possibleDuplicateWarningsEnabled(),
@@ -205,6 +212,7 @@ final class DashboardController
         }
 
         $transaction = !empty($_GET['transaction_id']) ? Transaction::find((int) $_GET['transaction_id']) : null;
+        $retryTransaction = $this->pullTransactionRetry('Farmer Organization', (int) ($transaction['id'] ?? 0));
         $scheduledDelivery = !$transaction && !empty($_GET['schedule_id']) ? DeliverySchedule::find((int) $_GET['schedule_id']) : null;
         if ($scheduledDelivery && !$this->canAccessDeliverySchedule($scheduledDelivery)) {
             $this->flash('danger', 'That delivery schedule belongs to another facility.');
@@ -212,6 +220,11 @@ final class DashboardController
             return;
         }
         $locationDefaults = $this->transactionLocationValues($transaction);
+        if ($retryTransaction) {
+            foreach (['region_id', 'branch_id', 'province_id', 'warehouse_id'] as $key) {
+                if (isset($retryTransaction[$key])) $locationDefaults[$key] = $retryTransaction[$key];
+            }
+        }
         if ($scheduledDelivery) {
             foreach (['region_id', 'branch_id', 'province_id', 'warehouse_id'] as $key) {
                 if (!empty($scheduledDelivery[$key])) $locationDefaults[$key] = $scheduledDelivery[$key];
@@ -224,6 +237,7 @@ final class DashboardController
             'farmerOrganizations' => FarmerOrganization::all(),
             'locationDefaults' => $locationDefaults,
             'transaction' => $transaction,
+            'retryTransaction' => $retryTransaction,
             'scheduledDelivery' => $scheduledDelivery,
             'versions' => $transaction ? RecordVersion::forRecord('transaction', (int) $transaction['id']) : [],
             'possibleDuplicateWarningsEnabled' => SystemSetting::possibleDuplicateWarningsEnabled(),
@@ -423,6 +437,7 @@ final class DashboardController
         $reportFormat = in_array($requestedReportFormat, $allowedReportFormats, true)
             ? $requestedReportFormat
             : 'default';
+        $locationHierarchy = Location::reportingHierarchy();
 
         View::render('reports', [
             'title' => $view === 'sectoral' ? 'Sex Disaggregated Data Analytics' : 'Reports',
@@ -443,6 +458,11 @@ final class DashboardController
                 default => Report::summary($scope, $filters),
             },
             'filters' => $filters,
+            'locationHierarchy' => $locationHierarchy,
+            'locationRegions' => $locationHierarchy['regions'],
+            'locationBranches' => $locationHierarchy['branches'],
+            'locationProvinces' => $locationHierarchy['provinces'],
+            'locationWarehouses' => $locationHierarchy['warehouses'],
             'sectoralScore' => $view === 'sectoral' ? Report::sectoralScore($filters) : null,
             'signatories' => $this->isReadOnlyUser() ? [] : Signatory::forUser((int) $_SESSION['user_id']),
         ]);
@@ -525,11 +545,17 @@ final class DashboardController
         }
 
         $filters = $this->withUserLocationDefaults($filters);
+        $locationHierarchy = Location::reportingHierarchy();
 
         View::render('sectoral-report', [
             'title' => 'Sex Disaggregated Data Analytics',
             'alert' => $this->pullFlash(),
             'filters' => $filters,
+            'locationHierarchy' => $locationHierarchy,
+            'locationRegions' => $locationHierarchy['regions'],
+            'locationBranches' => $locationHierarchy['branches'],
+            'locationProvinces' => $locationHierarchy['provinces'],
+            'locationWarehouses' => $locationHierarchy['warehouses'],
             'sectoralScore' => Report::sectoralScore($filters),
         ]);
     }
@@ -2274,6 +2300,7 @@ final class DashboardController
         try {
             $transactionResult = Transaction::create($transaction);
         } catch (\DomainException $exception) {
+            $_SESSION['transaction_retry'] = ['type' => $transaction['type'], 'transaction_id' => 0, 'values' => $transaction + array_intersect_key($payload, array_flip(['region_id', 'branch_id', 'province_id']))];
             $this->flash('danger', $exception->getMessage());
             $this->redirect(($transaction['type'] === 'Farmer Organization') ? '?page=organization-delivery' : '?page=individual-delivery');
             return;
@@ -2362,6 +2389,7 @@ final class DashboardController
             ]);
             $this->flash('success', 'Transaction updated.');
         } catch (\DomainException $e) {
+            $_SESSION['transaction_retry'] = ['type' => $existing['seller_type'], 'transaction_id' => $id, 'values' => $payload];
             $this->flash('danger', $e->getMessage());
         } catch (\Throwable $e) {
             $report = $this->captureUnexpectedError($e, 'Updating a transaction');
@@ -2742,6 +2770,14 @@ final class DashboardController
     private function flash(string $type, string $message): void
     {
         $_SESSION['flash'] = compact('type', 'message');
+    }
+
+    private function pullTransactionRetry(string $type, int $transactionId): ?array
+    {
+        $retry = $_SESSION['transaction_retry'] ?? null;
+        if (!is_array($retry) || ($retry['type'] ?? '') !== $type || (int) ($retry['transaction_id'] ?? -1) !== $transactionId) return null;
+        unset($_SESSION['transaction_retry']);
+        return is_array($retry['values'] ?? null) ? $retry['values'] : null;
     }
 
     /** Preserve complete diagnostics for the error modal and automatic support report. */

@@ -46,10 +46,25 @@ final class SupportTicket
 
         $stmt = Database::connection()->prepare("
             SELECT t.*, u.full_name AS reporter_name,
+                u.office_scope,
+                r.name AS region_name,
+                b.name AS branch_name,
+                p.name AS province_name,
+                w.name AS warehouse_name,
+                cd.name AS central_department_name,
+                cv.name AS central_division_name,
+                cu.name AS central_unit_name,
                 DATE_FORMAT(t.created_at, '%b %d, %Y %h:%i %p') AS submitted_at,
                 DATE_FORMAT(t.updated_at, '%b %d, %Y %h:%i %p') AS updated_label
             FROM support_tickets t
             LEFT JOIN users u ON u.id = t.reporter_id
+            LEFT JOIN regions r ON r.id = u.region_id
+            LEFT JOIN branch_offices b ON b.id = u.branch_id
+            LEFT JOIN province_offices p ON p.id = u.province_id
+            LEFT JOIN warehouse_offices w ON w.id = u.warehouse_id
+            LEFT JOIN central_departments cd ON cd.id = u.central_department_id
+            LEFT JOIN central_divisions cv ON cv.id = u.central_division_id
+            LEFT JOIN central_units cu ON cu.id = u.central_unit_id
             WHERE t.reporter_id = :reporter_id
             ORDER BY t.created_at DESC, t.id DESC
         ");
@@ -64,10 +79,25 @@ final class SupportTicket
 
         $sql = "
             SELECT t.*, u.full_name AS reporter_name,
+                u.office_scope,
+                r.name AS region_name,
+                b.name AS branch_name,
+                p.name AS province_name,
+                w.name AS warehouse_name,
+                cd.name AS central_department_name,
+                cv.name AS central_division_name,
+                cu.name AS central_unit_name,
                 DATE_FORMAT(t.created_at, '%b %d, %Y %h:%i %p') AS submitted_at,
                 DATE_FORMAT(t.updated_at, '%b %d, %Y %h:%i %p') AS updated_label
             FROM support_tickets t
             LEFT JOIN users u ON u.id = t.reporter_id
+            LEFT JOIN regions r ON r.id = u.region_id
+            LEFT JOIN branch_offices b ON b.id = u.branch_id
+            LEFT JOIN province_offices p ON p.id = u.province_id
+            LEFT JOIN warehouse_offices w ON w.id = u.warehouse_id
+            LEFT JOIN central_departments cd ON cd.id = u.central_department_id
+            LEFT JOIN central_divisions cv ON cv.id = u.central_division_id
+            LEFT JOIN central_units cu ON cu.id = u.central_unit_id
             WHERE t.admin_archived = 0
             ORDER BY t.created_at DESC, t.id DESC
         ";
@@ -78,7 +108,30 @@ final class SupportTicket
     public static function archivedForAdmin(): array
     {
         self::ensureSchema();
-        $rows = Database::connection()->query("SELECT t.*, u.full_name AS reporter_name, DATE_FORMAT(t.created_at, '%b %d, %Y %h:%i %p') AS submitted_at, DATE_FORMAT(t.updated_at, '%b %d, %Y %h:%i %p') AS updated_label FROM support_tickets t LEFT JOIN users u ON u.id = t.reporter_id WHERE t.admin_archived = 1 ORDER BY t.updated_at DESC, t.id DESC")->fetchAll();
+        $rows = Database::connection()->query("
+            SELECT t.*, u.full_name AS reporter_name,
+                u.office_scope,
+                r.name AS region_name,
+                b.name AS branch_name,
+                p.name AS province_name,
+                w.name AS warehouse_name,
+                cd.name AS central_department_name,
+                cv.name AS central_division_name,
+                cu.name AS central_unit_name,
+                DATE_FORMAT(t.created_at, '%b %d, %Y %h:%i %p') AS submitted_at,
+                DATE_FORMAT(t.updated_at, '%b %d, %Y %h:%i %p') AS updated_label
+            FROM support_tickets t
+            LEFT JOIN users u ON u.id = t.reporter_id
+            LEFT JOIN regions r ON r.id = u.region_id
+            LEFT JOIN branch_offices b ON b.id = u.branch_id
+            LEFT JOIN province_offices p ON p.id = u.province_id
+            LEFT JOIN warehouse_offices w ON w.id = u.warehouse_id
+            LEFT JOIN central_departments cd ON cd.id = u.central_department_id
+            LEFT JOIN central_divisions cv ON cv.id = u.central_division_id
+            LEFT JOIN central_units cu ON cu.id = u.central_unit_id
+            WHERE t.admin_archived = 1
+            ORDER BY t.updated_at DESC, t.id DESC
+        ")->fetchAll();
         return self::withMessages($rows);
     }
 

@@ -56,6 +56,50 @@ final class Location
         ];
     }
 
+    public static function reportingHierarchy(): array
+    {
+        self::ensureSchema();
+        $db = Database::connection();
+        $excludedRegions = "('Region 13', 'Region XIII')";
+
+        return [
+            'regions' => $db->query("
+                SELECT DISTINCT r.id, r.name
+                FROM regions r
+                JOIN branch_offices b ON b.region_id = r.id
+                JOIN province_offices p ON p.branch_id = b.id
+                WHERE r.name NOT IN {$excludedRegions}
+                ORDER BY r.name
+            ")->fetchAll(),
+            'branches' => $db->query("
+                SELECT DISTINCT b.id, b.region_id, b.name
+                FROM branch_offices b
+                JOIN regions r ON r.id = b.region_id
+                JOIN province_offices p ON p.branch_id = b.id
+                WHERE r.name NOT IN {$excludedRegions}
+                ORDER BY b.name
+            ")->fetchAll(),
+            'provinces' => $db->query("
+                SELECT p.id, p.branch_id, p.name
+                FROM province_offices p
+                JOIN branch_offices b ON b.id = p.branch_id
+                JOIN regions r ON r.id = b.region_id
+                WHERE r.name NOT IN {$excludedRegions}
+                ORDER BY p.name
+            ")->fetchAll(),
+            'warehouses' => $db->query("
+                SELECT w.id, w.branch_id, w.province_id, w.name
+                FROM warehouse_offices w
+                JOIN province_offices p ON p.id = w.province_id
+                JOIN branch_offices b ON b.id = p.branch_id
+                JOIN regions r ON r.id = b.region_id
+                WHERE w.province_id IS NOT NULL
+                    AND r.name NOT IN {$excludedRegions}
+                ORDER BY w.name
+            ")->fetchAll(),
+        ];
+    }
+
     public static function allRegions(): array
     {
         self::ensureSchema();

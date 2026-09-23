@@ -391,27 +391,56 @@ document.querySelectorAll("form").forEach((form) => {
     const slides = [...slideshow.querySelectorAll(".landing-slide")];
     if (slides.length < 2) return;
     let current = slides.findIndex((slide) => slide.classList.contains("is-active"));
+    const pendingLoads = new WeakMap();
+    let advancing = false;
 
-    const load = (slide) => new Promise((resolve) => {
+    const load = (slide) => {
         const image = slide.querySelector("img");
-        if (image.complete && image.currentSrc) return resolve();
-        image.addEventListener("load", resolve, { once: true });
-        image.addEventListener("error", resolve, { once: true });
-        image.src = image.dataset.src;
-        image.removeAttribute("data-src");
-    });
+        if (!image) return Promise.resolve(false);
+        if (image.complete && image.naturalWidth > 0) return Promise.resolve(true);
+        if (pendingLoads.has(image)) return pendingLoads.get(image);
 
-    const advance = async () => {
-        const next = (current + 1) % slides.length;
-        await load(slides[next]);
-        slides[current].classList.remove("is-active");
-        slides[next].classList.add("is-active");
-        current = next;
-        const afterNext = (current + 1) % slides.length;
-        window.setTimeout(() => { load(slides[afterNext]); }, 900);
+        const source = image.dataset.src?.trim();
+        // An already-attempted or failed image has no data-src to load again.
+        if (!source || source === "undefined") return Promise.resolve(false);
+
+        const pending = new Promise((resolve) => {
+            const finish = (loaded) => {
+                image.removeEventListener("load", onLoad);
+                image.removeEventListener("error", onError);
+                pendingLoads.delete(image);
+                resolve(loaded);
+            };
+            const onLoad = () => finish(image.naturalWidth > 0);
+            const onError = () => finish(false);
+            image.addEventListener("load", onLoad);
+            image.addEventListener("error", onError);
+            image.src = source;
+            image.removeAttribute("data-src");
+        });
+        pendingLoads.set(image, pending);
+        return pending;
     };
 
-    window.setTimeout(() => { load(slides[1]); }, 1200);
+    const advance = async () => {
+        if (advancing) return;
+        advancing = true;
+        try {
+            for (let offset = 1; offset < slides.length; offset++) {
+                const next = (current + offset) % slides.length;
+                if (!await load(slides[next])) continue;
+                slides[current].classList.remove("is-active");
+                slides[next].classList.add("is-active");
+                current = next;
+                window.setTimeout(() => { void load(slides[(current + 1) % slides.length]); }, 900);
+                break;
+            }
+        } finally {
+            advancing = false;
+        }
+    };
+
+    window.setTimeout(() => { void load(slides[1]); }, 1200);
     const duration = Math.max(3, Math.min(30, Number(slideshow.dataset.loopDuration || 7))) * 1000;
     window.setInterval(advance, duration);
 })();
@@ -1335,6 +1364,43 @@ document.querySelectorAll("[data-duplicate-check]").forEach((input) => {
     };
     input.addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(check, 300); });
     input.addEventListener("blur", check);
+});
+
+// The inline WSR warning is advisory; verify again at submit time and let the
+// database constraint handle the final race between concurrent encoders.
+document.querySelectorAll("form[data-possible-duplicate-type='transaction']").forEach((form) => {
+    const wsrInput = form.querySelector("[name='wsr']");
+    if (!wsrInput) return;
+    let checking = false;
+    let verifiedSubmit = false;
+    wsrInput.addEventListener("input", () => wsrInput.setCustomValidity(""));
+    form.addEventListener("submit", async (event) => {
+        if (verifiedSubmit) { verifiedSubmit = false; return; }
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        if (checking) return;
+        checking = true;
+        try {
+            const checkedWsr = wsrInput.value.trim();
+            const query = new URLSearchParams({ duplicate_check: "1", field: "wsr", value: checkedWsr });
+            const transactionId = form.querySelector("[name='transaction_id']")?.value;
+            if (transactionId) query.set("exclude_id", transactionId);
+            const response = await fetch(`index.php?${query.toString()}`, { credentials: "same-origin" });
+            if (wsrInput.value.trim() !== checkedWsr) return;
+            if (response.ok && (await response.json()).exists) {
+                wsrInput.setCustomValidity(`WSR number ${checkedWsr} is already used by another transaction. Check the existing record or enter the correct WSR number.`);
+                wsrInput.reportValidity();
+                wsrInput.focus();
+                return;
+            }
+        } catch (_) {
+            // Server-side validation remains authoritative if this check fails.
+        } finally {
+            checking = false;
+        }
+        verifiedSubmit = true;
+        form.requestSubmit();
+    }, true);
 });
 
 // A final, server-backed warning catches possible duplicates created by another

@@ -21,6 +21,19 @@ final class Transaction
         return (bool) $stmt->fetchColumn();
     }
 
+    private static function duplicateWsrMessage(string $wsr): string
+    {
+        return 'WSR number ' . trim($wsr) . ' is already used by another transaction. Check the existing record or enter the correct WSR number.';
+    }
+
+    private static function isDuplicateWsrError(\Throwable $error): bool
+    {
+        return $error instanceof \PDOException
+            && (string) $error->getCode() === '23000'
+            && (int) ($error->errorInfo[1] ?? 0) === 1062
+            && str_contains($error->getMessage(), 'warehouse_stock_receipt_number');
+    }
+
     /** Existing individual deliveries for the same farmer/date, used as a pre-save concurrency warning. */
     public static function possibleIndividualDuplicates(string $identifier, string $deliveryDate, int $excludeId = 0): array
     {
@@ -324,6 +337,9 @@ final class Transaction
             $existingId = $existing->fetchColumn();
             if ($existingId) return ['transaction_id' => (int) $existingId, 'duplicate' => true, 'delivery_year' => $deliveryYear, 'annual_bags' => 0, 'reached_annual_limit' => false];
         }
+        if (self::duplicateWsrExists((string) $transaction['wsr'])) {
+            throw new \DomainException(self::duplicateWsrMessage((string) $transaction['wsr']));
+        }
         $db->beginTransaction();
 
         try {
@@ -379,6 +395,9 @@ final class Transaction
             $db->commit();
         } catch (\Throwable $exception) {
             $db->rollBack();
+            if (self::isDuplicateWsrError($exception)) {
+                throw new \DomainException(self::duplicateWsrMessage((string) $transaction['wsr']), 0, $exception);
+            }
             throw $exception;
         }
 
@@ -442,6 +461,9 @@ final class Transaction
 
         $sellerType = (string) ($existing['seller_type'] ?? '');
         self::assertValidInput(['type' => $sellerType] + $transaction);
+        if (self::duplicateWsrExists((string) $transaction['wsr'], $id)) {
+            throw new \DomainException(self::duplicateWsrMessage((string) $transaction['wsr']));
+        }
         $deliveryDate = self::nullable($transaction['delivery_date'] ?? '') ?? date('Y-m-d');
         $bags = (float) ($transaction['bags'] ?? 0);
         $organizationId = (int) ($existing['farmer_organization_id'] ?? 0);
@@ -535,6 +557,9 @@ final class Transaction
             $db->commit();
         } catch (\Throwable $exception) {
             if ($db->inTransaction()) $db->rollBack();
+            if (self::isDuplicateWsrError($exception)) {
+                throw new \DomainException(self::duplicateWsrMessage((string) $transaction['wsr']), 0, $exception);
+            }
             throw $exception;
         }
     }

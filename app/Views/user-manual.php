@@ -603,13 +603,32 @@ $roleDescriptions = [
                             <li>Updated the Windows installer to version 2.4.0 and added an offline rollout checklist for deployment testing.</li>
                         </ul></div>
                     </article>
-                    <article class="manual-version-entry is-current">
-                        <div class="manual-version-date"><time datetime="2026-09-11">September 11, 2026</time><span>Current release</span></div>
+                    <article class="manual-version-entry">
+                        <div class="manual-version-date"><time datetime="2026-09-11">September 11, 2026</time></div>
                         <div><h3>Delivery-schedule farmer details and selection improved</h3><ul class="manual-list">
                             <li>Changed individual scheduling to use mutually exclusive <strong>Enrolled Farmer</strong> and <strong>Non-enrolled Farmer</strong> selections, preventing both record types from being submitted together.</li>
                             <li>Added <strong>Farmer Address</strong> to the delivery-scheduling form and saved it with temporary farmer schedules for use in the confirmation form.</li>
                             <li>When an enrolled farmer is selected, the farmer's address, RSBSA number, and contact number are filled from the existing profile and locked against editing.</li>
                             <li>When a non-enrolled farmer is selected, the temporary full name, address, and contact number fields are shown for manual entry.</li>
+                        </ul></div>
+                    </article>
+                    <article class="manual-version-entry">
+                        <div class="manual-version-date"><time datetime="2026-09-17">September 17, 2026</time><span>Feature update</span></div>
+                        <div><h3>Homepage slideshow and delivery validation corrected</h3><ul class="manual-list">
+                            <li>Prevented missing or failed slideshow images from being retried as an <strong>undefined</strong> URL, and skipped unavailable images while keeping the slideshow running.</li>
+                            <li>Added a final WSR duplicate check before recording or updating a delivery, with a clear correction prompt and protection against simultaneous submissions.</li>
+                        </ul></div>
+                    </article>
+                    <article class="manual-version-entry is-current">
+                        <div class="manual-version-date"><time datetime="2026-09-23">September 23, 2026</time><span>Current release</span></div>
+                        <div><h3>Reporting scope and transaction recovery patch</h3><ul class="manual-list">
+                            <li>Updated report data and location selectors to use the reporting hierarchy, keeping Region, Branch, Province, and Facility choices aligned across reports and delivery forms.</li>
+                            <li>Excluded deleted transactions from report totals and outputs, preventing archived records from affecting active procurement figures.</li>
+                            <li>Excluded duplicate legacy Region 13 / Region XIII entries from report filters and calculations to avoid double-counted regional results.</li>
+                            <li>Added transaction-input recovery when validation fails: the entered delivery details, selected farmer or group, delivered members, and location values are retained when the encoder returns to the form.</li>
+                            <li>Strengthened WSR duplicate protection with inline form warnings, a final server-side check before save or update, and database-error handling for simultaneous submissions.</li>
+                            <li>Added the reporting user's full office context—field office or Central Office assignment—to active and archived Tech Support ticket lists for faster routing and follow-up.</li>
+                            <li>Made the production database port configurable through the <strong>FSR_DB_PORT</strong> environment setting, while retaining the configured default port when no override is supplied.</li>
                         </ul></div>
                     </article>
                 </div>

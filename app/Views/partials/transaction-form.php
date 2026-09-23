@@ -1,5 +1,25 @@
 <?php
+$isEditingTransaction = !empty($transaction);
 $editingTransaction = $transaction ?? null;
+if (!empty($retryTransaction)) {
+    $retryValues = [
+        'procurement_type' => $retryTransaction['procurement'] ?? '',
+        'rsbsa' => $retryTransaction['rsbsa'] ?? '',
+        'fo_name' => $retryTransaction['fo_name'] ?? '',
+        'representative_name' => $retryTransaction['representative'] ?? '',
+        'total_members' => $retryTransaction['members'] ?? '',
+        'verified_farm_area' => $retryTransaction['farm_area'] ?? '',
+        'delivery_date' => $retryTransaction['delivery_date'] ?? '',
+        'wsr' => $retryTransaction['wsr'] ?? '',
+        'palay_variety' => $retryTransaction['palay_variety'] ?? 'PD1',
+        'price_per_kilogram' => $retryTransaction['price'] ?? '',
+        'net_kilogram' => $retryTransaction['net_kg'] ?? '',
+        'total_amount' => $retryTransaction['total_amount'] ?? '',
+        'bags_50kg' => $retryTransaction['bags'] ?? '',
+        'delivered_members' => array_map(static fn ($id): array => ['id' => (int) $id], (array) ($retryTransaction['delivered_farmer_ids'] ?? [])),
+    ];
+    $editingTransaction = array_replace($editingTransaction ?? [], $retryValues);
+}
 $schedulePrefill = $scheduledDelivery ?? null;
 $scheduledFarmerIdentifier = $schedulePrefill && !empty($schedulePrefill['farmer_id']) ? ($schedulePrefill['farmer_key'] ?? '') : '';
 $scheduledOrganizationName = $schedulePrefill && ($schedulePrefill['seller_type'] ?? '') === 'Farmer Organization'
@@ -7,8 +27,8 @@ $scheduledOrganizationName = $schedulePrefill && ($schedulePrefill['seller_type'
     : '';
 ?>
 <form method="post" class="panel form-panel tracked-form" data-possible-duplicate-warning="<?= !empty($possibleDuplicateWarningsEnabled) ? 'true' : 'false' ?>" data-possible-duplicate-type="transaction">
-    <input type="hidden" name="action" value="<?= $editingTransaction ? 'transaction-update' : 'transaction' ?>">
-    <?php if ($editingTransaction): ?><input type="hidden" name="transaction_id" value="<?= e($editingTransaction['id']) ?>"><?php endif; ?>
+    <input type="hidden" name="action" value="<?= $isEditingTransaction ? 'transaction-update' : 'transaction' ?>">
+    <?php if ($isEditingTransaction): ?><input type="hidden" name="transaction_id" value="<?= e($editingTransaction['id']) ?>"><?php endif; ?>
     <input type="hidden" name="client_control_number" value="">
     <input type="hidden" name="type" value="<?= e($sellerType) ?>">
     <div class="progress form-progress" role="progressbar" aria-label="Transaction form progress">
@@ -89,7 +109,7 @@ $scheduledOrganizationName = $schedulePrefill && ($schedulePrefill['seller_type'
         <?php endif; ?>
         <div class="col-md-3"><label class="form-label">Verified Farm Area (ha)</label><input type="number" min="0" step="0.001" name="farm_area" value="<?= e($editingTransaction['verified_farm_area'] ?? '') ?>" class="form-control"></div>
         <div class="col-md-3"><label class="form-label">Delivery Date</label><input required type="date" name="delivery_date" value="<?= e($editingTransaction['delivery_date'] ?? $schedulePrefill['schedule_date'] ?? date('Y-m-d')) ?>" class="form-control"></div>
-        <div class="col-md-3"><label class="form-label">WSR Number</label><input required name="wsr" value="<?= e($editingTransaction['wsr'] ?? '') ?>" class="form-control" data-duplicate-check="wsr"<?= !empty($editingTransaction['id']) ? ' data-duplicate-exclude-id="' . e((string) $editingTransaction['id']) . '"' : '' ?>><small class="text-danger d-none" data-duplicate-warning>Record already exists.</small></div>
+        <div class="col-md-3"><label class="form-label">WSR Number</label><input required name="wsr" value="<?= e($editingTransaction['wsr'] ?? '') ?>" class="form-control" data-duplicate-check="wsr"<?= !empty($editingTransaction['id']) ? ' data-duplicate-exclude-id="' . e((string) $editingTransaction['id']) . '"' : '' ?>><small class="text-danger d-none" data-duplicate-warning>This WSR number is already used by another transaction.</small></div>
         <div class="col-md-3"><label class="form-label">Palay Variety</label><select name="palay_variety" class="form-select"><?php foreach (\App\Models\Transaction::PALAY_VARIETIES as $variety): ?><option value="<?= e($variety) ?>" <?= ($editingTransaction['palay_variety'] ?? 'PD1') === $variety ? 'selected' : '' ?>><?= e($variety) ?></option><?php endforeach; ?></select></div>
         <div class="col-md-3"><label class="form-label">Price/Kg</label><input required type="number" min="0.001" step="0.001" name="price" value="<?= e($editingTransaction['price_per_kilogram'] ?? '') ?>" class="form-control" data-delivery-price></div>
         <div class="col-md-3"><label class="form-label">Net Kilogram</label><input required type="number" min="0.001" step="0.001" name="net_kg" value="<?= e($editingTransaction['net_kilogram'] ?? '') ?>" class="form-control" data-delivery-net-kg></div>
@@ -152,7 +172,7 @@ $scheduledOrganizationName = $schedulePrefill && ($schedulePrefill['seller_type'
         <?php endif; ?>
     </div>
     <div class="form-actions">
-        <button class="btn btn-success" type="submit"><?= $editingTransaction ? 'Save Transaction' : 'Record Delivery' ?></button>
+        <button class="btn btn-success" type="submit"><?= $isEditingTransaction ? 'Save Transaction' : 'Record Delivery' ?></button>
     </div>
 </form>
-<?php if ($editingTransaction): require BASE_PATH . '/app/Views/partials/version-history.php'; endif; ?>
+<?php if ($isEditingTransaction): require BASE_PATH . '/app/Views/partials/version-history.php'; endif; ?>

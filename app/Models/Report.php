@@ -7,6 +7,8 @@ use App\Core\Database;
 
 final class Report
 {
+    private const EXCLUDED_REPORT_REGION_NAMES = ['Region 13', 'Region XIII'];
+
     public static function summary(string $scope = 'region', array $filters = []): array
     {
         FarmerOrganization::ensureSchema();
@@ -35,6 +37,8 @@ final class Report
             $where[] = 't.delivery_date <= :date_to';
             $params['date_to'] = $filters['date_to'];
         }
+        self::excludeDeletedTransactions($where);
+        self::excludeReportRegions($where);
 
         $whereSql = $where ? 'WHERE ' . implode(' AND ', $where) : '';
 
@@ -66,7 +70,10 @@ final class Report
 
     private static function nationalSummaryAllRegions(array $filters = []): array
     {
-        $transactionConditions = ['t.warehouse_id = w.id'];
+        $transactionConditions = [
+            't.warehouse_id = w.id',
+            self::activeTransactionSql(),
+        ];
         $params = [];
 
         if (!empty($filters['date_from'])) {
@@ -82,6 +89,7 @@ final class Report
         $metricSql = self::summaryMetricSql();
         $transactionJoin = implode(' AND ', $transactionConditions);
         $regionNameSql = self::romanRegionNameSql('r.name');
+        $regionExclusionSql = self::reportRegionExclusionSql('r.name', false);
         $sql = "
             SELECT
                 {$regionNameSql} AS region,
@@ -95,6 +103,7 @@ final class Report
             LEFT JOIN transactions t ON {$transactionJoin}
             LEFT JOIN farmers f ON f.id = t.farmer_id
             LEFT JOIN farmer_organizations fo ON fo.id = t.farmer_organization_id
+            WHERE {$regionExclusionSql}
             GROUP BY region
             ORDER BY " . self::regionOrderSql('region') . ', region';
 
@@ -126,6 +135,8 @@ final class Report
             $where[] = 't.delivery_date <= :date_to';
             $params['date_to'] = $filters['date_to'];
         }
+        self::excludeDeletedTransactions($where);
+        self::excludeReportRegions($where);
 
         $whereSql = $where ? 'WHERE ' . implode(' AND ', $where) : '';
         $metricSql = self::summaryMetricSql();
@@ -175,6 +186,8 @@ final class Report
             $where[] = 't.delivery_date <= :date_to';
             $params['date_to'] = $filters['date_to'];
         }
+        self::excludeDeletedTransactions($where);
+        self::excludeReportRegions($where);
 
         $whereSql = $where ? 'WHERE ' . implode(' AND ', $where) : '';
         $metricSql = self::summaryMetricSql();
@@ -228,6 +241,8 @@ final class Report
             $where[] = 't.delivery_date <= :date_to';
             $params['date_to'] = $filters['date_to'];
         }
+        self::excludeDeletedTransactions($where);
+        self::excludeReportRegions($where);
 
         $whereSql = $where ? 'WHERE ' . implode(' AND ', $where) : '';
         $metricSql = self::sddSummaryMetricSql();
@@ -531,6 +546,35 @@ final class Report
             $where[] = 't.delivery_date <= :date_to';
             $params['date_to'] = $filters['date_to'];
         }
+
+        self::excludeDeletedTransactions($where);
+        self::excludeReportRegions($where);
+    }
+
+    private static function excludeDeletedTransactions(array &$where, string $alias = 't'): void
+    {
+        $where[] = self::activeTransactionSql($alias);
+    }
+
+    private static function activeTransactionSql(string $alias = 't'): string
+    {
+        return "COALESCE({$alias}.warehouse_stock_receipt_number, '') NOT LIKE 'DELETED-%'";
+    }
+
+    private static function excludeReportRegions(array &$where, string $column = 'r.name'): void
+    {
+        $where[] = self::reportRegionExclusionSql($column);
+    }
+
+    private static function reportRegionExclusionSql(string $column = 'r.name', bool $allowUnassigned = true): string
+    {
+        $quoted = array_map(
+            static fn (string $name): string => Database::connection()->quote($name),
+            self::EXCLUDED_REPORT_REGION_NAMES
+        );
+        $condition = "{$column} NOT IN (" . implode(', ', $quoted) . ')';
+
+        return $allowUnassigned ? "({$column} IS NULL OR {$condition})" : $condition;
     }
 
     private static function deliveredMembersForReport(int $transactionId): array
@@ -597,7 +641,10 @@ final class Report
 
     private static function nationalSddSummaryAllRegions(array $filters = []): array
     {
-        $transactionConditions = ['t.warehouse_id = w.id'];
+        $transactionConditions = [
+            't.warehouse_id = w.id',
+            self::activeTransactionSql(),
+        ];
         $params = [];
 
         if (!empty($filters['date_from'])) {
@@ -613,6 +660,7 @@ final class Report
         $metricSql = self::sddSummaryMetricSql();
         $transactionJoin = implode(' AND ', $transactionConditions);
         $regionNameSql = self::romanRegionNameSql('r.name');
+        $regionExclusionSql = self::reportRegionExclusionSql('r.name', false);
         $sql = "
             SELECT
                 {$regionNameSql} AS region,
@@ -626,6 +674,7 @@ final class Report
             LEFT JOIN transactions t ON {$transactionJoin}
             LEFT JOIN farmers f ON f.id = t.farmer_id
             LEFT JOIN farmer_organizations fo ON fo.id = t.farmer_organization_id
+            WHERE {$regionExclusionSql}
             GROUP BY region
             ORDER BY " . self::regionOrderSql('region') . ', region';
 
@@ -958,6 +1007,11 @@ final class Report
                 $where[] = "{$column} = :{$key}";
                 $params[$key] = $filters[$key];
             }
+        }
+        self::excludeReportRegions($where);
+
+        if ($source === 'sold_palay') {
+            self::excludeDeletedTransactions($where);
         }
 
         if ($source === 'sold_palay' && !empty($filters['date_from'])) {

@@ -46,9 +46,28 @@ $dashboardScheduleAvailable = $dashboardAdmin || \App\Models\SystemSetting::modu
             <span class="activity-image-stack"><img class="activity-image base" src="assets/images/activity-buttons/button3-a3-h.png" alt=""><img class="activity-image hover" src="assets/images/activity-buttons/button3-a3-v.png" alt=""></span>
             <strong>Farmers Organization Delivery</strong>
         </a><?php endif; ?>
-        <?php if ($dashboardScheduleAvailable): ?><a class="action-square activity-transition" href="index.php?page=delivery-schedules">
+        <a class="action-square<?= $dashboardScheduleAvailable ? ' activity-transition' : '' ?>" href="<?= $dashboardScheduleAvailable ? 'index.php?page=delivery-schedules' : '#deliveryScheduleUnavailableModal' ?>"<?= !$dashboardScheduleAvailable ? ' role="button" data-bs-toggle="modal" aria-controls="deliveryScheduleUnavailableModal"' : '' ?>>
             <span class="activity-image-stack"><img class="activity-image base" src="assets/images/activity-buttons/button4-a4-v.png" alt=""><img class="activity-image hover" src="assets/images/activity-buttons/button4-a4-h.png" alt=""></span>
-            <strong>Schedule Delivery</strong>
-        </a><?php endif; ?>
+            <strong>Schedule Delivery<?= !$dashboardScheduleAvailable ? '<small class="d-block mt-2 text-warning">Not yet open</small>' : '' ?></strong>
+        </a>
     </div>
 </section>
+
+<?php if (!$dashboardScheduleAvailable): ?>
+    <div class="modal fade auth-modal" id="deliveryScheduleUnavailableModal" tabindex="-1" aria-labelledby="deliveryScheduleUnavailableModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title fs-5" id="deliveryScheduleUnavailableModalTitle">Delivery Schedules</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-0">The Delivery Schedules feature is not yet open for usage. Please check back once it has been made available.</p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-success" type="button" data-bs-dismiss="modal">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+<?php endif; ?>
