@@ -71,6 +71,9 @@ document.querySelectorAll("[data-individual-farmer-input]").forEach((input) => {
     const form = input.closest("form");
     const modalElement = form?.querySelector("#individualFarmerOrganizationPrompt");
     const message = modalElement?.querySelector("[data-fo-delivery-prompt-message]");
+    const confirmButton = modalElement?.querySelector("[data-fo-delivery-confirm]");
+    const confirmationField = form?.querySelector("[name='confirm_individual_fo_delivery']");
+    let submitPending = false;
     const identifier = () => input.value.split(" - ")[0].trim();
     const setInputValue = (name, value) => {
         const field = form?.querySelector(`[name="${name}"]`);
@@ -110,11 +113,12 @@ document.querySelectorAll("[data-individual-farmer-input]").forEach((input) => {
         setInputValue("farm_area", profile.farm_area ?? "");
         setLocationValues(profile);
     };
-    const prompt = () => {
+    const prompt = (fromSubmit = false) => {
         const organization = organizationMap[identifier()];
         if (!organization) return false;
-        input.setCustomValidity("Farmers belonging to a Farmer Group must use Farmer Organization Delivery.");
-        if (message) message.textContent = `This farmer belongs to the Farmer Group "${organization}". Record the delivery through Farmer Organization Delivery instead.`;
+        if (confirmationField?.value === "1") return false;
+        if (fromSubmit) submitPending = true;
+        if (message) message.textContent = `Please confirm this transaction. This farmer belongs to the Farmer Group "${organization}". You may return and use Farmer Organization Delivery, or confirm to continue with the Individual Delivery.`;
         if (modalElement && window.bootstrap) window.bootstrap.Modal.getOrCreateInstance(modalElement).show();
         return true;
     };
@@ -126,8 +130,16 @@ document.querySelectorAll("[data-individual-farmer-input]").forEach((input) => {
         populateProfileValues();
         prompt();
     });
-    input.addEventListener("input", () => { input.setCustomValidity(""); });
-    form?.addEventListener("submit", (event) => { if (prompt()) event.preventDefault(); });
+    input.addEventListener("input", () => { if (confirmationField) confirmationField.value = ""; });
+    confirmButton?.addEventListener("click", () => {
+        if (confirmationField) confirmationField.value = "1";
+        if (modalElement && window.bootstrap) window.bootstrap.Modal.getOrCreateInstance(modalElement).hide();
+        if (submitPending) {
+            submitPending = false;
+            form?.requestSubmit();
+        }
+    });
+    form?.addEventListener("submit", (event) => { if (prompt(true)) event.preventDefault(); });
 });
 
 document.querySelectorAll("form").forEach((form) => {
@@ -1273,6 +1285,43 @@ document.querySelectorAll("[data-fo-member-picker]").forEach((picker) => {
     });
     renderOptions();
     renderSelected();
+});
+
+document.querySelectorAll("[data-fo-name-input][data-fo-profile-autofill='true']").forEach((foInput) => {
+    const form = foInput.closest("form");
+    if (!form) return;
+
+    let profiles = {};
+    try {
+        profiles = JSON.parse(foInput.dataset.foProfileMap || "{}");
+    } catch (_) {
+        return;
+    }
+
+    const normalize = (value) => String(value || "").trim().toLowerCase();
+    const fieldValues = {
+        "[data-fo-authorized-representative]": "representative",
+        "[data-fo-total-members]": "members",
+        "[data-fo-verified-farm-area]": "farm_area",
+    };
+
+    const populateProfile = () => {
+        const selectedName = normalize(foInput.value);
+        const profile = Object.entries(profiles).find(([name]) => normalize(name) === selectedName)?.[1];
+        if (!profile) return;
+
+        Object.entries(fieldValues).forEach(([selector, profileKey]) => {
+            const field = form.querySelector(selector);
+            if (!field) return;
+            field.value = profile[profileKey] ?? "";
+            field.dispatchEvent(new Event("input", { bubbles: true }));
+            field.dispatchEvent(new Event("change", { bubbles: true }));
+        });
+    };
+
+    foInput.addEventListener("input", populateProfile);
+    foInput.addEventListener("change", populateProfile);
+    populateProfile();
 });
 
 document.querySelectorAll("table").forEach((table) => {

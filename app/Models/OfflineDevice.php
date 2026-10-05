@@ -10,6 +10,13 @@ final class OfflineDevice
 {
     private const AUTHORIZATION_DAYS = 7;
 
+    public static function revokeForUser(int $userId): void
+    {
+        self::ensureSchema();
+        $stmt = Database::connection()->prepare("UPDATE offline_devices SET status='Revoked', revoked_at=NOW() WHERE user_id=:id AND status='Active'");
+        $stmt->execute(['id' => $userId]);
+    }
+
     public static function issue(int $userId, string $deviceId, string $deviceName): array
     {
         self::ensureSchema();

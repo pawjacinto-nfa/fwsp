@@ -165,6 +165,65 @@ final class Notification
         $stmt->execute(['user_id' => $userId]);
     }
 
+    /** Validate an inclusive calendar-date range and build its SQL boundaries. */
+    private static function cleanupPeriod(string $scope, string $from, string $to): array
+    {
+        if ($scope === 'all') {
+            return ['', []];
+        }
+        if ($scope !== 'range') {
+            throw new \InvalidArgumentException('Choose all dates or a date range.');
+        }
+        foreach ([$from, $to] as $date) {
+            $parsed = \DateTimeImmutable::createFromFormat('!Y-m-d', $date);
+            if (!$parsed || $parsed->format('Y-m-d') !== $date || $date < '1000-01-01' || $date >= '9999-12-31') {
+                throw new \InvalidArgumentException('Enter valid start and end dates.');
+            }
+        }
+        if ($from > $to) {
+            throw new \InvalidArgumentException('The start date must be on or before the end date.');
+        }
+        return [' WHERE created_at >= :start AND created_at < :end', [
+            'start' => $from . ' 00:00:00',
+            'end' => (new \DateTimeImmutable($to))->modify('+1 day')->format('Y-m-d') . ' 00:00:00',
+        ]];
+    }
+
+    public static function cleanupCount(string $scope = 'all', string $from = '', string $to = ''): int
+    {
+        [$where, $params] = self::cleanupPeriod($scope, $from, $to);
+        $statement = Database::connection()->prepare('SELECT COUNT(*) FROM notifications' . $where);
+        $statement->execute($params);
+        return (int) $statement->fetchColumn();
+    }
+
+    /** Delete matching notifications and read receipts, preserving preferences. */
+    public static function cleanupForAllUsers(string $scope, string $from, string $to, int $adminId): int
+    {
+        [$where, $params] = self::cleanupPeriod($scope, $from, $to);
+        self::ensureSchema();
+        $db = Database::connection();
+        $db->beginTransaction();
+        try {
+            $reads = $db->prepare('DELETE FROM notification_reads WHERE notification_id IN (SELECT id FROM notifications' . $where . ')');
+            $reads->execute($params);
+            $statement = $db->prepare('DELETE FROM notifications' . $where);
+            $statement->execute($params);
+            $deleted = $statement->rowCount();
+            $audit = $db->prepare('INSERT INTO audit_logs (user_id, action, details) VALUES (:user_id, :action, :details)');
+            $audit->execute([
+                'user_id' => $adminId,
+                'action' => 'Deleted ' . $deleted . ' notifications for all users (' . ($scope === 'all' ? 'all dates' : $from . ' to ' . $to) . ').',
+                'details' => json_encode(['scope' => $scope, 'from' => $scope === 'range' ? $from : null, 'to' => $scope === 'range' ? $to : null, 'deleted' => $deleted]),
+            ]);
+            $db->commit();
+            return $deleted;
+        } catch (\Throwable $error) {
+            if ($db->inTransaction()) $db->rollBack();
+            throw $error;
+        }
+    }
+
     private static function ensureSchema(): void
     {
         static $ready = false;

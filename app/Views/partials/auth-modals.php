@@ -106,9 +106,11 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p class="text-muted">The system will check for password approval. Please enter your employee number.</p>
+                <p class="text-muted">Enter your employee number and the one-time code provided by the administrator after identity verification.</p>
                 <label class="form-label">Employee Number</label>
                 <input required name="username" class="form-control" inputmode="numeric" pattern="[0-9]{6}" minlength="6" maxlength="6" data-reset-check-username>
+                <label class="form-label mt-3">One-time reset code</label>
+                <input required type="password" name="reset_code" class="form-control" pattern="[a-f0-9]{48}" minlength="48" maxlength="48" autocomplete="one-time-code">
             </div>
             <div class="modal-footer">
                 <button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal" data-bs-target="#forgotPasswordOptionsModal" data-bs-dismiss="modal">Back</button>
@@ -131,12 +133,12 @@
                 <p class="text-muted">Your request to change password has been approved. Please nominate your new password and remember it for future logins.</p>
                 <label class="form-label">New Password</label>
                 <div class="input-group mb-3">
-                    <input required type="password" name="password" class="form-control" pattern="(?=.*[A-Za-z])(?=.*[0-9]).{9,}" minlength="9" title="Password must be at least 9 characters and include letters and numbers. Special characters are allowed." data-password-field>
+                    <input required type="password" name="password" class="form-control" minlength="12" maxlength="72" title="Password must be 12 to 72 bytes. Long passphrases and special characters are allowed." data-password-field>
                     <button class="btn btn-outline-secondary" type="button" data-password-toggle aria-label="Show password" title="Show password">&#128065;</button>
                 </div>
                 <label class="form-label">Confirm New Password</label>
                 <div class="input-group">
-                    <input required type="password" name="password_confirmation" class="form-control" pattern="(?=.*[A-Za-z])(?=.*[0-9]).{9,}" minlength="9" title="Password confirmation must be at least 9 characters and include letters and numbers. Special characters are allowed." data-password-field>
+                    <input required type="password" name="password_confirmation" class="form-control" minlength="12" maxlength="72" title="Password confirmation must be 12 to 72 bytes. Long passphrases and special characters are allowed." data-password-field>
                     <button class="btn btn-outline-secondary" type="button" data-password-toggle aria-label="Show password" title="Show password">&#128065;</button>
                 </div>
             </div>
@@ -169,7 +171,7 @@ $duplicateRegistrationMessage = is_array($registrationUsernameError)
             <div class="modal-body">
                 <div class="alert alert-info small mb-3" role="alert">
                     Please take note that your username is your six digit employee number. Keep your password in mind for future logins.
-                    Passwords must be at least 9 characters and include letters and numbers. Special characters are allowed.
+                    Passwords must be 12 to 72 bytes. Long passphrases and special characters are allowed.
                 </div>
                 <label class="form-label">Full Name</label>
                 <input required name="full_name" class="form-control mb-3">
@@ -241,12 +243,12 @@ $duplicateRegistrationMessage = is_array($registrationUsernameError)
                 </div>
                 <label class="form-label">Password</label>
                 <div class="input-group mb-3">
-                    <input required type="password" name="password" class="form-control" pattern="(?=.*[A-Za-z])(?=.*[0-9]).{9,}" minlength="9" title="Password must be at least 9 characters and include letters and numbers. Special characters are allowed." data-password-field>
+                    <input required type="password" name="password" class="form-control" minlength="12" maxlength="72" title="Password must be 12 to 72 bytes. Long passphrases and special characters are allowed." data-password-field>
                     <button class="btn btn-outline-secondary" type="button" data-password-hold-toggle aria-label="Hold to show password" title="Hold to show password">&#128065;</button>
                 </div>
                 <label class="form-label">Password Confirmation</label>
                 <div class="input-group">
-                    <input required type="password" name="password_confirmation" class="form-control" pattern="(?=.*[A-Za-z])(?=.*[0-9]).{9,}" minlength="9" title="Password confirmation must be at least 9 characters and include letters and numbers. Special characters are allowed." data-password-field>
+                    <input required type="password" name="password_confirmation" class="form-control" minlength="12" maxlength="72" title="Password confirmation must be 12 to 72 bytes. Long passphrases and special characters are allowed." data-password-field>
                     <button class="btn btn-outline-secondary" type="button" data-password-hold-toggle aria-label="Hold to show password confirmation" title="Hold to show password">&#128065;</button>
                 </div>
             </div>

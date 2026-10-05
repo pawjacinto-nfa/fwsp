@@ -23,8 +23,8 @@
     $sddFilterOptions = [
         'male' => 'Male',
         'female' => 'Female',
-        'young' => 'Young',
-        'adult' => 'Adult',
+        'young' => 'Young (18-28)',
+        'adult' => 'Adult (29-59)',
         'senior' => 'Senior Citizen',
         'sogie' => 'SOGIE',
         'muslim' => 'Muslim',

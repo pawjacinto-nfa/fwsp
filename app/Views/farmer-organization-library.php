@@ -61,16 +61,24 @@ $classificationUrl = $activeClassification === 'indigenous' ? $indigenousTabUrl 
             <?php endif; ?>
 
             <div class="row g-3">
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label class="form-label"><?= e($classificationLabel) ?> Name</label>
                     <input required name="name" class="form-control" value="<?= e($editOrganization['name'] ?? '') ?>" placeholder="Enter <?= strtolower(e($classificationLabel)) ?> name" data-farmer-group-name>
                 </div>
+                <div class="col-md-3">
+                    <label class="form-label">Authorized Representative</label>
+                    <input name="authorized_representative" class="form-control" value="<?= e($editOrganization['authorized_representative'] ?? '') ?>" placeholder="Enter authorized representative">
+                </div>
                 <div class="col-md-2">
-                    <label class="form-label">Total Members</label>
+                    <label class="form-label">Total Number of Members</label>
                     <input type="number" min="0" name="total_members" class="form-control" value="<?= e($editOrganization['total_members'] ?? 0) ?>">
                 </div>
+                <div class="col-md-2">
+                    <label class="form-label">Verified Farm Area (ha)</label>
+                    <input type="number" min="0" step="0.001" name="verified_farm_area" class="form-control" value="<?= e($editOrganization['verified_farm_area'] ?? '') ?>">
+                </div>
                 <?php if ($editOrganization): ?>
-                    <div class="col-md-6">
+                    <div class="col-md-2">
                         <label class="form-label">Office Location</label>
                         <input name="office_location" class="form-control" value="<?= e($editOrganization['office_location'] ?? '') ?>" placeholder="Enter office location">
                     </div>

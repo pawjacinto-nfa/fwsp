@@ -123,6 +123,8 @@ CREATE TABLE IF NOT EXISTS farmer_organizations (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(180) NOT NULL UNIQUE,
     total_members INT UNSIGNED NOT NULL DEFAULT 0,
+    authorized_representative VARCHAR(255) NULL,
+    verified_farm_area DECIMAL(10,3) NULL,
     office_location VARCHAR(255) NULL,
     warehouse_id BIGINT UNSIGNED NULL,
     is_indigenous_sector_group BOOLEAN NOT NULL DEFAULT FALSE,
@@ -208,6 +210,7 @@ CREATE TABLE IF NOT EXISTS transactions (
     warehouse_id BIGINT UNSIGNED,
       created_by BIGINT UNSIGNED,
       client_control_number VARCHAR(96) NULL UNIQUE,
+    deleted_at TIMESTAMP NULL DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (farmer_id) REFERENCES farmers(id),
     FOREIGN KEY (farmer_organization_id) REFERENCES farmer_organizations(id),
@@ -346,6 +349,8 @@ ALTER TABLE farmers ADD COLUMN IF NOT EXISTS mao_certification VARCHAR(60) NULL;
 ALTER TABLE farmers ADD COLUMN IF NOT EXISTS no_available_control_number TINYINT(1) NOT NULL DEFAULT 0;
 ALTER TABLE farmers MODIFY rsbsa_number VARCHAR(60) NULL;
 ALTER TABLE farmer_organizations ADD COLUMN IF NOT EXISTS total_members INT UNSIGNED NOT NULL DEFAULT 0;
+ALTER TABLE farmer_organizations ADD COLUMN IF NOT EXISTS authorized_representative VARCHAR(255) NULL AFTER total_members;
+ALTER TABLE farmer_organizations ADD COLUMN IF NOT EXISTS verified_farm_area DECIMAL(10,3) NULL AFTER authorized_representative;
 ALTER TABLE farmer_organizations ADD COLUMN IF NOT EXISTS office_location VARCHAR(255) NULL;
 ALTER TABLE farmer_organizations ADD COLUMN IF NOT EXISTS warehouse_id BIGINT UNSIGNED NULL;
 ALTER TABLE farmer_organizations ADD COLUMN IF NOT EXISTS is_indigenous_sector_group TINYINT(1) NOT NULL DEFAULT 0;
@@ -359,6 +364,24 @@ ALTER TABLE transactions ADD COLUMN IF NOT EXISTS warehouse_id BIGINT UNSIGNED N
 ALTER TABLE transactions ADD COLUMN IF NOT EXISTS is_ip_group_delivery TINYINT(1) NOT NULL DEFAULT 0;
 ALTER TABLE transactions ADD COLUMN IF NOT EXISTS total_amount DECIMAL(20,3) NOT NULL DEFAULT 0;
 ALTER TABLE transactions ADD COLUMN IF NOT EXISTS palay_variety VARCHAR(10) NOT NULL DEFAULT 'PD1' AFTER warehouse_stock_receipt_number;
+ALTER TABLE transactions ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP NULL DEFAULT NULL;
+UPDATE transactions SET deleted_at = COALESCE(deleted_at, created_at, CURRENT_TIMESTAMP) WHERE warehouse_stock_receipt_number LIKE 'DELETED-%' AND deleted_at IS NULL;
+UPDATE transactions t
+SET t.deleted_at = COALESCE((
+    SELECT MAX(rv.created_at)
+    FROM record_versions rv
+    WHERE rv.entity_type = 'transaction'
+      AND rv.record_id = t.id
+      AND JSON_UNQUOTE(JSON_EXTRACT(rv.changes, '$.record_status.to')) = 'Deleted'
+), t.created_at, CURRENT_TIMESTAMP)
+WHERE t.deleted_at IS NULL
+  AND EXISTS (
+    SELECT 1
+    FROM record_versions rv
+    WHERE rv.entity_type = 'transaction'
+      AND rv.record_id = t.id
+      AND JSON_UNQUOTE(JSON_EXTRACT(rv.changes, '$.record_status.to')) = 'Deleted'
+  );
 ALTER TABLE warehouse_offices ADD COLUMN IF NOT EXISTS province_id BIGINT UNSIGNED NULL;
 
 CREATE TABLE IF NOT EXISTS province_offices (
@@ -473,88 +496,15 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
-INSERT IGNORE INTO users (full_name, username, email, password_hash, role, is_active, status, designation, contact_number) VALUES
-('System Admin', '940640', 'superadmin@fsr.local', '$2y$10$GN7cBbOJqlqWKG4WTlq9WeDddCeEISNlbqSS3enkM2UeyQxVXti9e', 'System Admin', 1, 'Active', 'System Administrator', 'n/a'),
-('Maria Warehouse', 'warehouse', 'warehouse@fsr.local', '$2y$10$eImiTXuWVxfM37uY4JANjQeD8ZtcVgHPwrFA4ocK9n53KRzLtPz4S', 'Warehouse Personnel', 1, 'Active', 'Warehouse Personnel', '09170000000');
-
 INSERT IGNORE INTO regions (name) VALUES
 ('Region I'), ('Region II'), ('Region III'), ('Region IV'), ('Region V'),
 ('Region VI'), ('Region VII'), ('Region VIII'), ('Region IX'), ('Region X'),
 ('Region XI'), ('Region XII'), ('Region XIII'), ('Region XIV'), ('Region XV');
 
-INSERT IGNORE INTO farmer_organizations (name) VALUES
-('Nueva Harvest FO'),
-('Munoz Rice Growers Association');
-
-INSERT IGNORE INTO farmers (
-    rsbsa_number, first_name, middle_name, last_name, address, birthdate, birthplace,
-    civil_status, spouse_name, dependents, contact_number, email, sex,
-    gender_orientation, sector, farmer_organization_id
-) VALUES
-(
-    '03-24-001-000001', 'Maria', 'Santos', 'Dela Cruz', 'San Jose, Nueva Ecija',
-    '1984-04-12', 'Nueva Ecija', 'Married', 'Ramon Dela Cruz', 4, '09171234567',
-    'maria@example.com', 'Female', JSON_ARRAY(), JSON_ARRAY('Adult'),
-    NULL
-),
-(
-    '03-24-001-000002', 'Jose', 'Reyes', 'Garcia', 'Munoz, Nueva Ecija',
-    '1976-09-03', 'Nueva Ecija', 'Single', NULL, 2, '09179876543',
-    'jose@example.com', 'Male', JSON_ARRAY(), JSON_ARRAY('Adult'),
-    NULL
-);
-
-UPDATE users SET role = 'Warehouse Personnel', is_active = 1, status = 'Active' WHERE username = 'warehouse';
-UPDATE users SET role = 'System Admin', is_active = 1, status = 'Active' WHERE username = '940640';
-
 UPDATE users SET role = 'System Admin' WHERE role = 'Super Admin';
 UPDATE users SET role = 'Warehouse Personnel' WHERE role = 'Warehouse Supervisor';
 UPDATE users SET role = 'Manager' WHERE role = 'Regional/Branch Manager';
 UPDATE users SET role = 'Read-Only User' WHERE role = 'Viewer';
-UPDATE farmers SET warehouse_id = (SELECT id FROM warehouse_offices WHERE name = 'San Jose Warehouse' LIMIT 1) WHERE warehouse_id IS NULL;
-UPDATE transactions SET warehouse_id = (SELECT id FROM warehouse_offices WHERE name = 'San Jose Warehouse' LIMIT 1) WHERE warehouse_id IS NULL;
-
-INSERT IGNORE INTO landholdings (
-    farmer_id, classification, irrigated, palay_location, harvested_area_hectares, average_yield_per_hectare
-)
-SELECT id, JSON_ARRAY('Riceland', 'Owner-Tiller'), 1, 'San Jose', 2.40, 4.80
-FROM farmers
-WHERE rsbsa_number = '03-24-001-000001';
-
-INSERT IGNORE INTO landholdings (
-    farmer_id, classification, irrigated, palay_location, harvested_area_hectares, average_yield_per_hectare
-)
-SELECT id, JSON_ARRAY('Riceland', 'CLT Holder/Recipient'), 0, 'Munoz', 1.70, 4.20
-FROM farmers
-WHERE rsbsa_number = '03-24-001-000002';
-
-INSERT IGNORE INTO transactions (
-    seller_type, procurement_type, farmer_id, farmer_organization_id, representative_name,
-    total_members, verified_farm_area, delivery_date, warehouse_stock_receipt_number,
-    price_per_kilogram, net_kilogram, bags_50kg, created_by
-) VALUES
-(
-    'Individual', 'In-Warehouse',
-    (SELECT id FROM farmers WHERE rsbsa_number = '03-24-001-000001'),
-    NULL,
-    NULL, NULL, 2.40, CURDATE(), 'WSR-2026-0001', 23.00, 2400.00, 48,
-    (SELECT id FROM users WHERE username = 'warehouse')
-),
-(
-    'Individual', 'Mobile Procurement',
-    (SELECT id FROM farmers WHERE rsbsa_number = '03-24-001-000002'),
-    NULL,
-    NULL, NULL, 1.70, CURDATE(), 'WSR-2026-0002', 23.00, 1700.00, 34,
-    (SELECT id FROM users WHERE username = 'warehouse')
-);
-
-INSERT IGNORE INTO notifications (user_id, message, is_read) VALUES
-((SELECT id FROM users WHERE username = 'warehouse'), 'Review new warehouse submissions for approval.', 0),
-((SELECT id FROM users WHERE username = 'warehouse'), 'Two seed farmer records are ready for reporting.', 0);
-
-INSERT IGNORE INTO audit_logs (user_id, action, details) VALUES
-((SELECT id FROM users WHERE username = '940640'), 'Database schema created and seeded.', JSON_OBJECT('source', 'database/schema.sql')),
-((SELECT id FROM users WHERE username = 'warehouse'), 'Seed warehouse transactions recorded.', JSON_OBJECT('count', 2));
 CREATE TABLE IF NOT EXISTS sync_queue (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     entity_type VARCHAR(64) NOT NULL,

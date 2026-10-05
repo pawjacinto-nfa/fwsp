@@ -558,7 +558,44 @@ final class Report
 
     private static function activeTransactionSql(string $alias = 't'): string
     {
-        return "COALESCE({$alias}.warehouse_stock_receipt_number, '') NOT LIKE 'DELETED-%'";
+        self::ensureTransactionDeletionSchema();
+
+        return "{$alias}.deleted_at IS NULL AND COALESCE({$alias}.warehouse_stock_receipt_number, '') NOT LIKE 'DELETED-%'";
+    }
+
+    private static function ensureTransactionDeletionSchema(): void
+    {
+        static $ready = false;
+        if ($ready) {
+            return;
+        }
+
+        $db = Database::connection();
+        $db->exec('ALTER TABLE transactions ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP NULL DEFAULT NULL');
+        $db->exec("UPDATE transactions SET deleted_at = COALESCE(deleted_at, created_at, CURRENT_TIMESTAMP) WHERE warehouse_stock_receipt_number LIKE 'DELETED-%' AND deleted_at IS NULL");
+        try {
+            $db->exec("
+                UPDATE transactions t
+                SET t.deleted_at = COALESCE((
+                    SELECT MAX(rv.created_at)
+                    FROM record_versions rv
+                    WHERE rv.entity_type = 'transaction'
+                      AND rv.record_id = t.id
+                      AND JSON_UNQUOTE(JSON_EXTRACT(rv.changes, '$.record_status.to')) = 'Deleted'
+                ), t.created_at, CURRENT_TIMESTAMP)
+                WHERE t.deleted_at IS NULL
+                  AND EXISTS (
+                    SELECT 1
+                    FROM record_versions rv
+                    WHERE rv.entity_type = 'transaction'
+                      AND rv.record_id = t.id
+                      AND JSON_UNQUOTE(JSON_EXTRACT(rv.changes, '$.record_status.to')) = 'Deleted'
+                  )
+            ");
+        } catch (\Throwable) {
+            // The WSR marker still protects installations without an audit table.
+        }
+        $ready = true;
     }
 
     private static function excludeReportRegions(array &$where, string $column = 'r.name'): void

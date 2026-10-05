@@ -13,10 +13,49 @@ foreach (($schema['relations'] ?? []) as $relation) {
         <div>
             <p class="eyebrow">System Admin</p>
             <h3>Database Management</h3>
-            <p class="mb-0 text-muted">Inspect and print a clear, read-only data dictionary for any database table.</p>
+            <p class="mb-0 text-muted">Inspect and print table metadata, and manage notification storage.</p>
         </div>
     </div>
     <?php endif; ?>
+
+    <div class="panel no-print mb-3">
+        <h4 class="h5">Notification cleanup</h4>
+        <p>Delete stored notifications for all users to reduce retained data. This includes read, unread, and shared notifications and their read receipts. User notification preferences are preserved.</p>
+        <p><strong><?= number_format($notificationTotal ?? 0) ?></strong> notifications currently stored.</p>
+        <form method="get" class="row g-3 align-items-end">
+            <input type="hidden" name="page" value="system-maintenance">
+            <input type="hidden" name="tab" value="database">
+            <input type="hidden" name="table" value="<?= e($selectedTable) ?>">
+            <div class="col-md-4">
+                <label class="form-label" for="notificationCleanupScope">Date period</label>
+                <select class="form-select" id="notificationCleanupScope" name="cleanup_scope">
+                    <option value="range" <?= ($cleanupScope ?? 'range') === 'range' ? 'selected' : '' ?>>Selected date range</option>
+                    <option value="all" <?= ($cleanupScope ?? '') === 'all' ? 'selected' : '' ?>>All dates</option>
+                </select>
+            </div>
+            <div class="col-md-3"><label class="form-label" for="notificationCleanupFrom">From</label><input class="form-control" type="date" id="notificationCleanupFrom" name="cleanup_from" value="<?= e($cleanupFrom ?? '') ?>"></div>
+            <div class="col-md-3"><label class="form-label" for="notificationCleanupTo">Through</label><input class="form-control" type="date" id="notificationCleanupTo" name="cleanup_to" value="<?= e($cleanupTo ?? '') ?>"></div>
+            <div class="col-md-2"><button class="btn btn-outline-success" type="submit" name="cleanup_preview" value="1">Preview cleanup</button></div>
+            <div class="col-12"><small class="text-muted">Date ranges use the database's notification creation dates and include both selected dates. From and Through are ignored for All dates.</small></div>
+        </form>
+        <?php if (!empty($cleanupError)): ?><div class="alert alert-warning mt-3 mb-0" role="alert"><?= e($cleanupError) ?></div><?php endif; ?>
+        <?php if (isset($cleanupCount)): ?>
+            <?php $cleanupLabel = $cleanupScope === 'all' ? 'all dates' : $cleanupFrom . ' through ' . $cleanupTo; ?>
+            <div class="alert alert-warning mt-3 mb-0">
+                <p><strong><?= number_format($cleanupCount) ?> notification(s)</strong> match <?= e($cleanupLabel) ?> across all users. Deletion is permanent. New matching notifications created after this preview will also be deleted.</p>
+                <?php if ($cleanupCount > 0): ?>
+                    <form method="post">
+                        <input type="hidden" name="action" value="notifications-cleanup">
+                        <input type="hidden" name="confirm_cleanup" value="1">
+                        <input type="hidden" name="cleanup_scope" value="<?= e($cleanupScope) ?>">
+                        <input type="hidden" name="cleanup_from" value="<?= e($cleanupFrom) ?>">
+                        <input type="hidden" name="cleanup_to" value="<?= e($cleanupTo) ?>">
+                        <button class="btn btn-danger" type="submit" data-confirm-title="Delete notifications for all users" data-confirm-message="Permanently delete notifications for <?= e($cleanupLabel) ?> across ALL users, including read and unread notifications? This cannot be undone." data-confirm-accept="Delete notifications">Delete matching notifications</button>
+                    </form>
+                <?php else: ?><p class="mb-0">There are no notifications to delete for this period.</p><?php endif; ?>
+            </div>
+        <?php endif; ?>
+    </div>
 
     <div class="database-toolbar panel no-print">
         <form method="get" class="database-table-picker">

@@ -4,7 +4,7 @@
         <div>
             <p class="eyebrow">System Admin</p>
             <h3>System Maintenance</h3>
-            <p class="mb-0 text-muted">Control planned system availability and inspect read-only database metadata.</p>
+            <p class="mb-0 text-muted">Control planned system availability, inspect database metadata, and manage notification storage.</p>
         </div>
     </div>
 

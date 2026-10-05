@@ -40,6 +40,16 @@ final class DashboardController
             $_SESSION['role'] = $legacyRoles[$_SESSION['role']];
         }
         if (!empty($_SESSION['user_id'])) {
+            $current = User::find((int) $_SESSION['user_id']);
+            if (!$current || (int) $current['is_active'] !== 1
+                || !hash_equals(hash('sha256', $current['password_hash']), (string) ($_SESSION['password_fingerprint'] ?? ''))) {
+                $this->clearAuthenticationSession();
+            } else {
+                $_SESSION['role'] = $current['role'];
+                $_SESSION['user'] = $current['full_name'];
+            }
+        }
+        if (!empty($_SESSION['user_id'])) {
             SupportTicket::processAutoClosures();
         }
     }
@@ -52,6 +62,43 @@ final class DashboardController
             'slides' => DisplayPhoto::slides(),
             'displaySettings' => DisplayPhoto::settings(),
         ]);
+    }
+
+    public function privateMedia(string $path): void
+    {
+        if (!$this->isAuthenticated()
+            || !preg_match('#^assets/uploads/(?:farmers/|support/|profile-)[A-Za-z0-9._-]+\.(?:jpg|jpeg|png|webp)$#D', $path)) {
+            http_response_code(403);
+            return;
+        }
+        if (str_starts_with($path, 'assets/uploads/farmers/')
+            && !in_array($_SESSION['role'], ['System Admin', 'Manager', 'Warehouse Personnel'], true)) {
+            http_response_code(403);
+            return;
+        }
+        if (str_starts_with($path, 'assets/uploads/support/')) {
+            $stmt = \App\Core\Database::connection()->prepare('SELECT id FROM support_tickets WHERE screenshot_path = :path LIMIT 1');
+            $stmt->execute(['path' => $path]);
+            $ticketId = (int) $stmt->fetchColumn();
+            if (!$ticketId || !SupportTicket::findVisibleTo($ticketId, (int) $_SESSION['user_id'], (string) $_SESSION['role'])) {
+                http_response_code(403);
+                return;
+            }
+        }
+        $file = realpath(BASE_PATH . '/' . $path);
+        $root = realpath(BASE_PATH . '/assets/uploads');
+        if (!$file || !$root || !str_starts_with($file, $root . DIRECTORY_SEPARATOR) || !is_file($file)) {
+            http_response_code(404);
+            return;
+        }
+        $mime = mime_content_type($file);
+        if (!in_array($mime, ['image/jpeg', 'image/png', 'image/webp'], true)) {
+            http_response_code(403);
+            return;
+        }
+        header('Content-Type: ' . $mime);
+        header('Content-Length: ' . filesize($file));
+        readfile($file);
     }
 
     public function records(array $filters): void
@@ -681,6 +728,18 @@ final class DashboardController
         $schema = $selectedTable !== '' ? DatabaseSchema::describe($selectedTable) : null;
 
         $activeTab = ($filters['tab'] ?? '') === 'database' ? 'database' : 'maintenance';
+        $cleanupScope = is_string($filters['cleanup_scope'] ?? null) ? $filters['cleanup_scope'] : 'range';
+        $cleanupFrom = is_string($filters['cleanup_from'] ?? null) ? $filters['cleanup_from'] : '';
+        $cleanupTo = is_string($filters['cleanup_to'] ?? null) ? $filters['cleanup_to'] : '';
+        $cleanupCount = null;
+        $cleanupError = '';
+        if (isset($filters['cleanup_preview'])) {
+            try {
+                $cleanupCount = Notification::cleanupCount($cleanupScope, $cleanupFrom, $cleanupTo);
+            } catch (\InvalidArgumentException $error) {
+                $cleanupError = $error->getMessage();
+            }
+        }
         View::render('system-maintenance', [
             'title' => 'System Maintenance',
             'alert' => $this->pullFlash(),
@@ -696,7 +755,39 @@ final class DashboardController
             'tables' => $tables,
             'selectedTable' => $selectedTable,
             'schema' => $schema,
+            'notificationTotal' => Notification::cleanupCount(),
+            'cleanupScope' => $cleanupScope,
+            'cleanupFrom' => $cleanupFrom,
+            'cleanupTo' => $cleanupTo,
+            'cleanupCount' => $cleanupCount,
+            'cleanupError' => $cleanupError,
         ]);
+    }
+
+    public function cleanupNotifications(array $payload): void
+    {
+        if (!$this->authorizeAuthenticated()) return;
+        if (($_SESSION['role'] ?? '') !== 'System Admin') {
+            $this->flash('danger', 'Only System Admin can delete notifications for all users.');
+            $this->redirect();
+            return;
+        }
+        try {
+            if (($payload['confirm_cleanup'] ?? '') !== '1') {
+                throw new \InvalidArgumentException('Preview the notification cleanup before confirming deletion.');
+            }
+            $scope = is_string($payload['cleanup_scope'] ?? null) ? $payload['cleanup_scope'] : '';
+            $from = is_string($payload['cleanup_from'] ?? null) ? $payload['cleanup_from'] : '';
+            $to = is_string($payload['cleanup_to'] ?? null) ? $payload['cleanup_to'] : '';
+            $deleted = Notification::cleanupForAllUsers($scope, $from, $to, (int) $_SESSION['user_id']);
+            $this->flash('success', number_format($deleted) . ' notification(s) permanently deleted for all users.');
+        } catch (\InvalidArgumentException $error) {
+            $this->flash('danger', $error->getMessage());
+        } catch (\Throwable $error) {
+            error_log('Notification cleanup failed: ' . $error->getMessage());
+            $this->flash('danger', 'Notification cleanup failed. No notifications were deleted. Please try again.');
+        }
+        $this->redirect('?page=system-maintenance&tab=database');
     }
 
     public function displaySettings(): void
@@ -793,7 +884,7 @@ final class DashboardController
         }
 
         $exists = match ($field) {
-            'rsbsa', 'mao_certification' => Farmer::duplicateIdentifierExists($field, $value, $excludeId),
+            'rsbsa' => Farmer::duplicateIdentifierExists($field, $value, $excludeId),
             'wsr' => Transaction::duplicateWsrExists($value, $excludeId),
             default => false,
         };
@@ -1137,7 +1228,9 @@ final class DashboardController
             (int) ($payload['total_members'] ?? 0),
             $this->clean($payload['office_location'] ?? ''),
             $classification === 'indigenous',
-            !empty($payload['organization_warehouse_id']) ? (int) $payload['organization_warehouse_id'] : null
+            !empty($payload['organization_warehouse_id']) ? (int) $payload['organization_warehouse_id'] : null,
+            $this->clean($payload['authorized_representative'] ?? ''),
+            ($payload['verified_farm_area'] ?? '') !== '' ? (float) $payload['verified_farm_area'] : null
         );
         $organizationId = FarmerOrganization::idByName($name);
         if ($organizationId) SyncQueue::enqueue('farmer_organization', (string) $organizationId, 'upsert', FarmerOrganization::find($organizationId) ?? []);
@@ -1173,7 +1266,9 @@ final class DashboardController
             (int) ($payload['total_members'] ?? 0),
             $this->clean($payload['office_location'] ?? ''),
             $classification === 'indigenous',
-            !empty($payload['organization_warehouse_id']) ? (int) $payload['organization_warehouse_id'] : null
+            !empty($payload['organization_warehouse_id']) ? (int) $payload['organization_warehouse_id'] : null,
+            $this->clean($payload['authorized_representative'] ?? ''),
+            ($payload['verified_farm_area'] ?? '') !== '' ? (float) $payload['verified_farm_area'] : null
         );
         $organizationId = (int) ($payload['id'] ?? 0);
         if ($organizationId) SyncQueue::enqueue('farmer_organization', (string) $organizationId, 'upsert', FarmerOrganization::find($organizationId) ?? []);
@@ -1253,7 +1348,9 @@ final class DashboardController
             (int) ($organization['total_members'] ?? 0),
             $this->clean($payload['office_location'] ?? ''),
             ($organization['classification_type'] ?? '') === FarmerOrganization::CLASSIFICATION_INDIGENOUS,
-            !empty($organization['warehouse_id']) ? (int) $organization['warehouse_id'] : null
+            !empty($organization['warehouse_id']) ? (int) $organization['warehouse_id'] : null,
+            (string) ($organization['authorized_representative'] ?? ''),
+            ($organization['verified_farm_area'] ?? '') !== '' ? (float) $organization['verified_farm_area'] : null
         );
         Activity::add('Farmer organization office location edited: ' . $organization['name'] . '.');
         $this->flash('success', 'Office location updated.');
@@ -1302,28 +1399,6 @@ final class DashboardController
             return;
         }
 
-        if (
-            $resetUser
-            && (int) $resetUser['is_active'] === 1
-            && ($resetUser['password_reset_status'] ?? '') === 'Requested'
-        ) {
-            $this->flash('warning', 'You still have a pending password change request.');
-            $this->redirect('?show_login=1');
-            return;
-        }
-
-        if (
-            $resetUser
-            && (int) $resetUser['is_active'] === 1
-            && ($resetUser['password_reset_status'] ?? '') === 'Approved'
-        ) {
-            $_SESSION['password_reset_user_id'] = (int) $resetUser['id'];
-            $_SESSION['password_reset_username'] = $resetUser['username'];
-            $this->flash('info', 'Your request to change password has been approved. Please change your password here.');
-            $this->redirect('?password_reset=approved');
-            return;
-        }
-
         $user = User::authenticate($username, $password);
 
         if (!$user) {
@@ -1332,6 +1407,9 @@ final class DashboardController
         }
 
         session_regenerate_id(true);
+        $_SESSION['authenticated_at'] = $_SESSION['last_activity'] = time();
+        $_SESSION['password_fingerprint'] = hash('sha256', $user['password_hash']);
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
         $_SESSION['user_id'] = (int) $user['id'];
         $_SESSION['user'] = $user['full_name'];
         $_SESSION['role'] = $user['role'];
@@ -1397,12 +1475,16 @@ final class DashboardController
         $user = $username !== '' ? User::findByUsername($username) : null;
 
         if (!$user || (int) $user['is_active'] !== 1) {
-            $this->flash('danger', 'Enter an active username so System Admin can review the password reset request.');
-            $this->redirect('?forgot_password=1');
+            $this->flash('success', 'If the account is eligible, the administrator will receive your request. Contact them to verify your identity.');
+            $this->redirect();
             return;
         }
 
-        User::requestPasswordReset((int) $user['id']);
+        if (!User::requestPasswordReset((int) $user['id'])) {
+            $this->flash('success', 'If the account is eligible, the administrator will receive your request. Contact them to verify your identity.');
+            $this->redirect();
+            return;
+        }
 
         foreach ($this->superAdminIds() as $adminId) {
             Notification::add(
@@ -1413,7 +1495,7 @@ final class DashboardController
         }
 
         Activity::add('Password reset requested for ' . $user['username'] . '.');
-        $this->flash('success', 'Your password reset request was sent to System Admin. You will be able to change your password after approval.');
+        $this->flash('success', 'If the account is eligible, the administrator will receive your request. Contact them to verify your identity.');
         $this->redirect();
     }
 
@@ -1433,10 +1515,15 @@ final class DashboardController
             return;
         }
 
-        User::approvePasswordReset($userId);
-        Notification::add('Your password reset request was approved. Log in with your username to change your password.', $userId);
+        $resetCode = User::approvePasswordReset($userId);
+        if ($resetCode === '') {
+            $this->flash('warning', 'No active pending reset request was found.');
+            $this->redirect('?page=users');
+            return;
+        }
+        Notification::add('Your password reset request was approved. Contact the administrator for your one-time reset code.', $userId);
         Activity::add('Password reset approved for ' . $user['username'] . '.');
-        $this->flash('success', 'Password reset approved for ' . $user['username'] . '.');
+        $this->flash('success', 'Reset approved for ' . $user['username'] . '. Verify the employee identity before sharing this one-time code through a trusted channel. Valid for 30 minutes: ' . $resetCode);
         $this->redirect('?page=users');
     }
 
@@ -1448,7 +1535,7 @@ final class DashboardController
         if (
             !$user
             || (int) ($user['is_active'] ?? 0) !== 1
-            || ($user['password_reset_status'] ?? '') !== 'Approved'
+            || !User::resetTokenValid($user, (string) ($payload['reset_code'] ?? ''))
         ) {
             unset($_SESSION['password_reset_user_id'], $_SESSION['password_reset_username']);
             $this->flash(
@@ -1459,6 +1546,8 @@ final class DashboardController
             return;
         }
 
+        session_regenerate_id(true);
+        $_SESSION['password_reset_token'] = (string) $payload['reset_code'];
         $_SESSION['password_reset_user_id'] = (int) $user['id'];
         $_SESSION['password_reset_username'] = $user['username'];
         $this->redirect('?password_reset=approved');
@@ -1474,7 +1563,7 @@ final class DashboardController
             !$user
             || $username === ''
             || $username !== ($user['username'] ?? '')
-            || ($user['password_reset_status'] ?? '') !== 'Approved'
+            || !User::resetTokenValid($user, (string) ($_SESSION['password_reset_token'] ?? ''))
         ) {
             unset($_SESSION['password_reset_user_id'], $_SESSION['password_reset_username']);
             $this->flash('danger', 'Password reset approval was not found. Please submit a new request.');
@@ -1483,8 +1572,8 @@ final class DashboardController
         }
 
         $password = (string) ($payload['password'] ?? '');
-        if (!preg_match('/^(?=.*[A-Za-z])(?=.*\d).{9,}$/', $password)) {
-            $this->flash('danger', 'Password must be at least 9 characters and include letters and numbers. Special characters are allowed.');
+        if (!security_password_valid($password)) {
+            $this->flash('danger', 'Use a password of 12 to 72 bytes. Long passphrases and special characters are allowed.');
             $this->redirect('?password_reset=approved');
             return;
         }
@@ -1495,7 +1584,14 @@ final class DashboardController
             return;
         }
 
-        User::completePasswordReset($userId, $password);
+        if (!User::completePasswordReset($userId, $password, (string) ($_SESSION['password_reset_token'] ?? ''))) {
+            $this->clearAuthenticationSession();
+            $this->flash('danger', 'The reset code expired or was already used. Request a new code.');
+            $this->redirect('?password_reset_check=1');
+            return;
+        }
+        OfflineDevice::revokeForUser($userId);
+        $this->clearAuthenticationSession();
         unset($_SESSION['password_reset_user_id'], $_SESSION['password_reset_username']);
         Activity::add('Password reset completed for ' . $user['username'] . '.');
         $this->flash('success', 'You have successfully changed your password.');
@@ -1542,8 +1638,8 @@ final class DashboardController
             return;
         }
 
-        if (!preg_match('/^(?=.*[A-Za-z])(?=.*\d).{9,}$/', $password)) {
-            $this->flash('danger', 'Password must be at least 9 characters and include letters and numbers. Special characters are allowed.');
+        if (!security_password_valid($password)) {
+            $this->flash('danger', 'Use a password of 12 to 72 bytes. Long passphrases and special characters are allowed.');
             $this->redirect('?show_register=1');
             return;
         }
@@ -1599,6 +1695,15 @@ final class DashboardController
             return;
         }
 
+        if (!empty($payload['password'])) {
+            $current = User::find((int) $_SESSION['user_id']);
+            if (!$current || !password_verify((string) ($payload['current_password'] ?? ''), $current['password_hash'])
+                || !security_password_valid((string) $payload['password'])) {
+                $this->flash('danger', 'Enter your current password and a new password of 12 to 72 bytes.');
+                $this->redirect('?page=account');
+                return;
+            }
+        }
         $profileImage = $this->saveProfileImage($files['profile_image'] ?? null);
         User::updateAccount((int) $_SESSION['user_id'], [
             'full_name' => $this->clean($payload['full_name'] ?? ''),
@@ -1619,6 +1724,12 @@ final class DashboardController
             $_SESSION['profile_image'] = $profileImage;
         }
         $updatedUser = User::find((int) $_SESSION['user_id']);
+        if (!empty($payload['password'])) {
+            OfflineDevice::revokeForUser((int) $_SESSION['user_id']);
+            $_SESSION['password_fingerprint'] = hash('sha256', $updatedUser['password_hash']);
+            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+            session_regenerate_id(true);
+        }
         $_SESSION['default_location'] = $updatedUser ? User::locationLabel($updatedUser) : 'Not set';
 
         Activity::add($_SESSION['user'] . ' updated account details.');
@@ -2294,6 +2405,7 @@ final class DashboardController
             'warehouse_id' => $this->clean($payload['warehouse_id'] ?? ''),
             'delivered_farmer_ids' => array_map('intval', (array) ($payload['delivered_farmer_ids'] ?? [])),
             'client_control_number' => $this->clean($payload['client_control_number'] ?? ''),
+            'confirm_individual_fo_delivery' => !empty($payload['confirm_individual_fo_delivery']),
             'possible_duplicate_warning' => !empty($payload['possible_duplicate_warning_acknowledged']) ? 'Reviewed and continued despite possible duplicate warning' : '',
         ];
 
@@ -2793,6 +2905,8 @@ final class DashboardController
         ];
 
         error_log(str_replace("\n", ' | ', $report['description']));
+        $report['summary'] = $operation . ' could not be completed. Reference: ' . $reference;
+        $report['description'] = 'Contact the administrator with error reference: ' . $reference;
         if ($queueForNextPage) {
             $_SESSION['pending_system_error'] = $report;
         }
@@ -2802,15 +2916,7 @@ final class DashboardController
 
     private function clearAuthenticationSession(): void
     {
-        unset(
-            $_SESSION['user_id'],
-            $_SESSION['user'],
-            $_SESSION['role'],
-            $_SESSION['profile_image'],
-            $_SESSION['default_location'],
-            $_SESSION['password_reset_user_id'],
-            $_SESSION['password_reset_username']
-        );
+        $_SESSION = [];
         session_regenerate_id(true);
     }
 
@@ -2826,7 +2932,7 @@ final class DashboardController
     /** Block duplicate RSBSA/MAO records before any new farmer data is saved. */
     private function rejectDuplicateFarmerIdentifiers(array $farmer, int $excludeId, string $redirect): bool
     {
-        foreach (['rsbsa' => 'RSBSA Number', 'mao_certification' => 'MAO Certification'] as $field => $label) {
+        foreach (['rsbsa' => 'RSBSA Number'] as $field => $label) {
             $value = trim((string) ($farmer[$field] ?? ''));
             $existing = Farmer::duplicateIdentifierRecord($field, $value, $excludeId);
             if ($existing === null) {

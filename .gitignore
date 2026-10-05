@@ -1,2 +1,4 @@
 data/sessions/sess_*
 data/backups/*.sql
+data/rate-limits/
+tests/__pycache__/

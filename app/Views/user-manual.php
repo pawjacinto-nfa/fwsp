@@ -77,6 +77,7 @@ $roleDescriptions = [
         <div class="manual-version" aria-label="Manual information">
             <span>System guide</span>
             <strong><?= e($currentRole) ?></strong>
+            <span>Updated October 2, 2026</span>
         </div>
     </header>
 
@@ -142,10 +143,21 @@ $roleDescriptions = [
                 <h3>Sign in and sign out</h3>
                 <ol class="manual-steps">
                     <li><span>1</span><div>Select <strong>Login</strong> in the upper-right corner.</div></li>
-                    <li><span>2</span><div>Enter your registered email address and password, then submit the form.</div></li>
+                    <li><span>2</span><div>Enter your registered username (employee number) and password, then submit the form.</div></li>
                     <li><span>3</span><div>When finished, select <strong>Logout</strong>. Always log out on shared computers.</div></li>
                 </ol>
                 <p>New users may select <strong>Register</strong>. Registration does not grant immediate access; a System Admin must activate the account and assign its role and organizational location.</p>
+                <h3>Session expiry and sign-in limits</h3>
+                <p>Sign in again after the October 2 security update. A session expires after 30 minutes without applicable activity or after eight hours from sign-in. Save completed work regularly; leaving a page open does not keep your session active. If a submission reports that your session expired, sign in, refresh the form, and check whether the record was already saved before submitting it again.</p>
+                <p>If you see <strong>Too many authentication attempts</strong>, stop retrying and wait 15 minutes before trying again. Limits apply to the account and connection, so switching browsers may not help. Contact your administrator if the restriction continues.</p>
+                <h3>Forgotten password</h3>
+                <ol class="manual-steps">
+                    <li><span>1</span><div>Select <strong>Login → Forgot password?</strong>, choose the option to request reset approval, and enter your employee number.</div></li>
+                    <li><span>2</span><div>Contact your System Admin to verify your identity. After approval, obtain the one-time reset code through the administrator's trusted contact channel. Your employee number alone cannot authorize a password reset.</div></li>
+                    <li><span>3</span><div>Return to <strong>Forgot password?</strong>, choose <strong>My request for a password reset has been approved</strong>, and enter your employee number and code. The code expires 30 minutes after approval and works only once.</div></li>
+                    <li><span>4</span><div>Enter and confirm your new password, complete the reset, and sign in with it. If the code expires, is lost, or has already been used, contact your administrator; an expired approval requires a new reset request.</div></li>
+                </ol>
+                <p>Use a long passphrase. New passwords must contain 12–72 bytes; ordinary English letters, numbers, spaces, and common punctuation each count as one byte, while some other characters use more. Existing passwords continue to work until changed. Never put a password or reset code in a support ticket.</p>
                 <?php if ($isSystemAdmin): ?>
                 <div class="manual-callout">
                     <strong>Administrator starting point</strong>
@@ -258,8 +270,8 @@ $roleDescriptions = [
                 <h3>Editing transactions</h3>
                 <p>Authorized users may edit a transaction within the permitted 14-day editing period. The delivery form is prefilled with the existing data, and saved changes are recorded in the transaction version history for review.</p>
                 <h3>Offline delivery work</h3>
-                <p>Warehouse Personnel and System Admin accounts may enable offline mode from Account Settings. Initial preparation requires an internet connection and the FSR desktop application. Choose a six-digit Offline PIN when prompted; the registered device authorization is valid for seven days and can be renewed by preparing offline mode again while connected.</p>
-                <p>After preparation, restart the desktop application without internet and enter the Offline PIN to open the cached encoding workspace. Individual and farmer-group delivery forms remain available without a connection. Saved inputs stay on the device until the connection returns, then the user can upload pending inputs for server validation. Device-bound authorization and unique submission identifiers prevent an unauthorized device or repeated upload from creating duplicate records.</p>
+                <p>Offline page access and new offline workspace installation are temporarily disabled by the October 2 security update, including in the Windows desktop client. Stay connected when entering deliveries; do not rely on previously cached forms for new work.</p>
+                <p>Existing queued inputs are preserved. Reconnect, sign in, and check upload status and saved records before entering a pending delivery again. If an upload is blocked or interrupted, contact your System Admin to reconcile the record. Do not clear device storage or reinstall while inputs remain pending. See <a href="#account">Account and Notifications</a> for details.</p>
             </section>
 
             <?php endif; ?>
@@ -337,10 +349,14 @@ $roleDescriptions = [
                 <h2>Account and Notifications</h2>
                 <p>Select your name in the upper-right corner to see recent notifications, hear or view new-notice alerts, and open <strong>See all notifications</strong> for the complete per-user notification list. Notifications identify important record, delivery, schedule, account, and support activity; select one to open its related page or filtered results. Use <strong>Clear all</strong> only when you no longer need the current list.</p>
                 <p>On the Notifications page, adjust notification preferences such as location level, individual or farmer-group delivery notices, farmer profile updates, annual 400-bag alerts, cross-location deliveries, tech support updates, and account/access updates.</p>
-                <p>On the Account page, update your profile image, name, email, contact number, designation, or password. Enter and confirm the same new password before saving. Organizational location may be controlled by your administrator.</p>
+                <p>On the Account page, update your profile image, name, email, contact number, designation, or password. To change your password, enter your <strong>Current Password</strong>, enter a new password of 12–72 bytes, and repeat it in <strong>Password Confirmation</strong> before saving. Leave the new-password fields empty when only updating your profile. Confirm organizational location changes with your administrator.</p>
+                <p>A password change signs out other sessions when they next contact the system and revokes registered offline authorizations. Deactivated accounts also lose access on their next request, and role changes take effect without waiting for a new sign-in.</p>
                 <p>Users may also submit a 4K landing-page photo from Account settings. Submitted photos require System Admin review before appearing in the landing slideshow.</p>
                 <?php if ($canEncode): ?>
-                <p>Warehouse Personnel and System Admin accounts may enable offline mode from Account Settings. Prepare the offline workspace while connected, choose a six-digit Offline PIN, and confirm the device under <strong>Registered devices</strong>. When returning online, use the pending-input badge and upload prompt. System Admins can review or revoke authorizations from <strong>User Control → Offline Devices</strong> and inspect uploaded or interrupted submissions under <strong>Offline Sync Review</strong>.</p>
+                <div class="manual-callout is-warning"><strong>Offline pages temporarily unavailable</strong><p>From the October 2 security update, an online connection is required to open and use application pages. New offline workspace installation is disabled in both the browser and the Windows desktop client to protect personal records. Earlier offline setup instructions in the version history describe previous releases.</p><p>Existing queued submissions are preserved. Reconnect, sign in, and check pending uploads before re-entering any records. Do not clear application storage or reinstall while submissions are pending. If a password change revoked the device authorization, contact your administrator for help recovering and reconciling pending work.</p></div>
+                <?php if ($isSystemAdmin): ?>
+                <p>Review registered devices under <strong>User Control → Offline Devices</strong> and uploaded or interrupted submissions under <strong>Offline Sync Review</strong>. Do not advise users to install a new offline workspace until a supported secure workflow is released.</p>
+                <?php endif; ?>
                 <?php endif; ?>
             </section>
 
@@ -355,6 +371,8 @@ $roleDescriptions = [
                     <li><span>4</span><div>Return to the ticket list to read replies and status updates. Archive it when no longer needed.</div></li>
                 </ol>
                 <p>Do not include passwords or other unnecessary sensitive information in a ticket or screenshot.</p>
+                <p>For an unexpected system error, record the displayed <strong>error reference</strong>, the page, and what you were doing. Use the error-report button if available, or include that reference in your support request. Detailed server diagnostics are kept by the administrator rather than displayed in the browser.</p>
+                <p>Sign in to view private profile or farmer images. Farmer images require record-viewing access; support screenshots are available only to users who can access their ticket. A copied image link does not grant access to someone else.</p>
                 <div class="manual-callout">
                     <strong>Reply window</strong>
                     <p>When the developer team or System Admin replies to a ticket and the user does not respond within three working days, the system adds a warning that the ticket may be closed. If there is still no user reply within another three working days, the ticket can be automatically marked completed and the user is notified.</p>
@@ -389,7 +407,17 @@ $roleDescriptions = [
                 </ol>
 
                 <h3>Password-reset approvals</h3>
-                <p>When a user requests a password reset, validate that the request is legitimate before approval. Do not ask users to send passwords through Tech Support. After approval, the user should complete the reset through the system-provided reset flow.</p>
+                <ol class="manual-steps">
+                    <li><span>1</span><div>Open the pending request in <strong>Help → User Control</strong>. Verify the employee's identity through an established agency contact method before approving. Do not rely on knowing the employee number alone.</div></li>
+                    <li><span>2</span><div>Approve the request and copy the one-time code from the confirmation message before leaving the page. It is shown once and expires 30 minutes after approval.</div></li>
+                    <li><span>3</span><div>Share the code only with the verified employee through a trusted channel. Do not place it in Tech Support, group messages, or the manual, and never ask for the employee's current or new password.</div></li>
+                    <li><span>4</span><div>Direct the employee to <strong>Login → Forgot password? → My request for a password reset has been approved</strong>. They enter their employee number and code, choose a new password, and sign in again.</div></li>
+                </ol>
+                <p>Approvals made before this update have no usable code and require a new request. A code cannot be retrieved or reused after consumption. If it is lost before use, let the approval expire and ask the employee to submit a new request; do not bypass identity verification. Repeated reset requests do not replace a still-valid approval.</p>
+                <h3>Access changes and pending offline work</h3>
+                <p>Role updates apply on the user's next request. Deactivation ends authenticated access on the next request. Password changes and completed resets invalidate other sessions and revoke registered offline authorizations. When assisting someone with pending offline submissions, preserve their device data and reconcile uploaded records before asking them to re-enter work. Server revocation does not erase copies already stored on a disconnected device.</p>
+                <h3>Security administration</h3>
+                <p>Use the displayed error reference to locate server-side diagnostics through the authorized hosting administrator. Internal database exports, session files, and maintenance files are no longer downloadable through ordinary web links; obtain backups through the approved administrator process. Take and verify backups before disruptive maintenance, restrict assessment accounts to the agreed scope, and revoke temporary access when testing ends.</p>
 
                 <h3>Display Settings</h3>
                 <p>Open <strong>Help → Display Settings</strong> to manage landing-page photo submissions, slideshow ordering, and display behavior. Approve only appropriate, official, clear 4K images; approved photos are optimized for display and submitters are notified of the review result.</p>
@@ -398,6 +426,7 @@ $roleDescriptions = [
                 <p>Open <strong>Help → System Maintenance</strong> to control maintenance mode, schedule maintenance windows, manage module availability, and inspect the database tab. Maintenance mode prevents new non-admin sign-ins and signs out active non-admin users while the system is unavailable. Module maintenance can temporarily disable encoding or Delivery Schedules for non-admin users while keeping System Admin access available for checking and recovery.</p>
 
                 <h3>Database review</h3>
+                <p>In <strong>System Maintenance → Database Management</strong>, use <strong>Notification cleanup</strong> to delete notifications for all users. Choose <strong>Selected date range</strong> and enter inclusive From and Through dates, or choose <strong>All dates</strong>. Preview the matching count, then confirm deletion. Read receipts are removed with the notifications, preferences are preserved, and the cleanup is recorded in the audit log. Deleted notifications cannot be recovered.</p>
                 <p>Use the database tab in <strong>System Maintenance</strong> when you need to inspect the database structure. Treat this area as a sensitive administrative tool. Use it for verification and maintenance awareness, and avoid changing database-backed workflows without a tested update plan.</p>
 
                 <h3>Reference-data stewardship</h3>
@@ -439,7 +468,11 @@ $roleDescriptions = [
                     <details><summary>A farmer or transaction is missing from the results.</summary><p>Remove restrictive filters, broaden the date range, verify the spelling or identifier, and confirm that you are searching the correct assigned location.</p></details>
                     <details><summary>A report total looks incomplete.</summary><p>Check the format, date range, result basis, and every location filter. Reports only include records matching the displayed scope.</p></details>
                     <details><summary>My form will not submit.</summary><p>Complete all required fields, check number and date formats, and look for an on-screen validation message. Avoid refreshing immediately after a successful submission to prevent confusion.</p></details>
-                    <details><summary>I forgot my password.</summary><p>Use the password-reset option from the login window and follow the approval and reset process. If you still cannot sign in, contact the system administrator.</p></details>
+                    <details><summary>I forgot my password or my reset code does not work.</summary><p>Follow <a href="#getting-started">Forgotten password</a> above. Enter the one-time code supplied after administrator verification. Codes expire after 30 minutes and cannot be reused. Ask the administrator for help if the code is missing; submit a new request after an approval expires.</p></details>
+                    <details><summary>I was signed out while working.</summary><p>Sessions expire after 30 minutes without applicable activity or eight hours from sign-in. A password change, account deactivation, or maintenance can also end access. Sign in again and check whether the last record was saved before resubmitting it.</p></details>
+                    <details><summary>The system says there were too many attempts.</summary><p>Wait 15 minutes without retrying. The limit covers authentication and password-recovery attempts and can also affect users sharing a connection. If it persists, contact your administrator.</p></details>
+                    <details><summary>Offline pages no longer open.</summary><p>The October 2 update temporarily disables cached offline pages in browsers and the desktop client. Reconnect and sign in. Preserve existing pending submissions and ask for help if they cannot upload; do not clear storage or reinstall as a first step.</p></details>
+                    <details><summary>A photo or support screenshot will not open.</summary><p>Sign in with an account allowed to view the record or ticket. Copied private-image links do not bypass access controls. If you should have access, send the page and error reference, if shown, to support.</p></details>
                 </div>
                 <div class="manual-closing">
                     <h3>Still need assistance?</h3>
@@ -452,6 +485,7 @@ $roleDescriptions = [
                 <p class="manual-kicker"><?= e($manualSectionNumbers['versions']) ?></p>
                 <h2>Versions</h2>
                 <p>This history records the major system releases and feature updates completed for the Farmer-Seller Registry.</p>
+                <p>Earlier entries describe features as they worked at that time. The <a href="#release-2026-10-02">October 2, 2026 security update</a> supersedes earlier password-reset, password-length, diagnostic-display, and offline-page instructions.</p>
                 <div class="manual-version-timeline" aria-label="System version history">
                     <article class="manual-version-entry">
                         <div class="manual-version-date"><time datetime="2026-06-25">June 25, 2026</time><span>Initial release</span></div>
@@ -619,8 +653,8 @@ $roleDescriptions = [
                             <li>Added a final WSR duplicate check before recording or updating a delivery, with a clear correction prompt and protection against simultaneous submissions.</li>
                         </ul></div>
                     </article>
-                    <article class="manual-version-entry is-current">
-                        <div class="manual-version-date"><time datetime="2026-09-23">September 23, 2026</time><span>Current release</span></div>
+                    <article class="manual-version-entry">
+                        <div class="manual-version-date"><time datetime="2026-09-23">September 23, 2026</time><span>Feature update</span></div>
                         <div><h3>Reporting scope and transaction recovery patch</h3><ul class="manual-list">
                             <li>Updated report data and location selectors to use the reporting hierarchy, keeping Region, Branch, Province, and Facility choices aligned across reports and delivery forms.</li>
                             <li>Excluded deleted transactions from report totals and outputs, preventing archived records from affecting active procurement figures.</li>
@@ -629,6 +663,28 @@ $roleDescriptions = [
                             <li>Strengthened WSR duplicate protection with inline form warnings, a final server-side check before save or update, and database-error handling for simultaneous submissions.</li>
                             <li>Added the reporting user's full office context—field office or Central Office assignment—to active and archived Tech Support ticket lists for faster routing and follow-up.</li>
                             <li>Made the production database port configurable through the <strong>FSR_DB_PORT</strong> environment setting, while retaining the configured default port when no override is supplied.</li>
+                        </ul></div>
+                    </article>
+                    <article class="manual-version-entry" id="release-2026-10-02">
+                        <div class="manual-version-date"><time datetime="2026-10-02">October 2, 2026</time><span>Security update</span></div>
+                        <div><h3>Account security and user-management safeguards</h3><ul class="manual-list">
+                            <li>Replaced username-only password-reset approval checks with administrator-issued one-time codes. Identity verification is required before sharing a code; it expires after 30 minutes and cannot be reused.</li>
+                            <li>Updated new-password requirements to 12–72 bytes and required the current password for an account password change. Existing passwords remain usable until changed.</li>
+                            <li>Added temporary limits on repeated sign-in and recovery attempts, with a 15-minute retry message.</li>
+                            <li>Added 30-minute inactivity and eight-hour maximum sessions. Existing users must sign in again after this update.</li>
+                            <li>Applied role changes and account deactivation to existing sessions on their next request. Password changes invalidate other sessions and revoke registered offline authorizations.</li>
+                            <li>Required sign-in for private images and ticket access for support screenshots. Unexpected errors now show a reference for support rather than detailed server diagnostics.</li>
+                            <li>Temporarily disabled offline page installation and cached page access in browsers and the Windows desktop client. Existing queued submissions are preserved for reconciliation and upload after reconnecting.</li>
+                            <li>Updated the User's Manual and System Administrator Manual with recovery steps, access-management guidance, session limits, offline restrictions, and troubleshooting. This application update does not change the Windows installer version or certify DICT assessment completion.</li>
+                        </ul></div>
+                    </article>
+                    <article class="manual-version-entry is-current" id="release-2026-10-04">
+                        <div class="manual-version-date"><time datetime="2026-10-04">October 4, 2026</time><span>Current release · Reporting and database maintenance</span></div>
+                        <div><h3>Reporting safeguards and notification storage cleanup</h3><ul class="manual-list">
+                            <li>Added a dedicated deletion timestamp to transaction records so deleted status remains intact even if a transaction is reviewed or edited later.</li>
+                            <li>Excluded deleted transactions from every report view, calculated total, print output, and spreadsheet export for all account roles, including System Administrators.</li>
+                            <li>Added automatic migration for previously deleted transactions using their deleted WSR marker and transaction version history, preventing older deleted entries from returning to active reports.</li>
+                            <li>Added System Admin notification cleanup in Database Management with all-date and inclusive date-range options, a matching-count preview, permanent-deletion confirmation, and an audit record. Cleanup removes notifications and read receipts across all users while preserving notification preferences.</li>
                         </ul></div>
                     </article>
                 </div>

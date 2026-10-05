@@ -276,32 +276,36 @@ final class User
         return $stmt->rowCount();
     }
 
-    public static function requestPasswordReset(int $id): void
+    public static function requestPasswordReset(int $id): bool
     {
         self::ensurePasswordResetSchema();
         $stmt = Database::connection()->prepare("
             UPDATE users
             SET password_reset_status = 'Requested',
                 password_reset_requested_at = CURRENT_TIMESTAMP,
-                password_reset_approved_at = NULL
-            WHERE id = :id
+                password_reset_approved_at = NULL,
+                password_reset_token_hash = NULL,
+                password_reset_expires_at = NULL
+            WHERE id = :id AND (password_reset_status IS NULL OR password_reset_status = ''
+                OR (password_reset_status = 'Approved' AND (password_reset_expires_at IS NULL OR password_reset_expires_at <= NOW())))
         ");
         $stmt->execute(['id' => $id]);
+        return $stmt->rowCount() === 1;
     }
 
-    public static function approvePasswordReset(int $id): void
+    public static function approvePasswordReset(int $id): string
     {
         self::ensurePasswordResetSchema();
-        $stmt = Database::connection()->prepare("
-            UPDATE users
-            SET password_reset_status = 'Approved',
-                password_reset_approved_at = CURRENT_TIMESTAMP
-            WHERE id = :id
-        ");
-        $stmt->execute(['id' => $id]);
+        $token = bin2hex(random_bytes(24));
+        $stmt = Database::connection()->prepare("UPDATE users SET password_reset_status = 'Approved',
+            password_reset_approved_at = CURRENT_TIMESTAMP, password_reset_token_hash = :token_hash,
+            password_reset_expires_at = DATE_ADD(NOW(), INTERVAL 30 MINUTE)
+            WHERE id = :id AND is_active = 1 AND password_reset_status = 'Requested'");
+        $stmt->execute(['id' => $id, 'token_hash' => hash('sha256', $token)]);
+        return $stmt->rowCount() === 1 ? $token : '';
     }
 
-    public static function completePasswordReset(int $id, string $password): void
+    public static function completePasswordReset(int $id, string $password, string $token): bool
     {
         self::ensurePasswordResetSchema();
         $stmt = Database::connection()->prepare("
@@ -309,13 +313,33 @@ final class User
             SET password_hash = :password_hash,
                 password_reset_status = NULL,
                 password_reset_requested_at = NULL,
-                password_reset_approved_at = NULL
-            WHERE id = :id
+                password_reset_approved_at = NULL,
+                password_reset_token_hash = NULL,
+                password_reset_expires_at = NULL
+            WHERE id = :id AND is_active = 1 AND password_reset_status = 'Approved'
+                AND password_reset_token_hash = :token_hash AND password_reset_expires_at > NOW()
         ");
         $stmt->execute([
             'id' => $id,
             'password_hash' => password_hash($password, PASSWORD_DEFAULT),
+            'token_hash' => hash('sha256', $token),
         ]);
+        return $stmt->rowCount() === 1;
+    }
+
+    public static function resetTokenValid(array $user, string $token): bool
+    {
+        $valid = (int) ($user['is_active'] ?? 0) === 1
+            && ($user['password_reset_status'] ?? '') === 'Approved'
+            && preg_match('/^[a-f0-9]{48}$/', $token) === 1
+            && !empty($user['password_reset_token_hash'])
+            && hash_equals($user['password_reset_token_hash'], hash('sha256', $token));
+        if (!$valid) return false;
+        // Use the database clock, avoiding PHP / database timezone differences.
+        $stmt = Database::connection()->prepare("SELECT 1 FROM users WHERE id=:id AND is_active=1
+            AND password_reset_status='Approved' AND password_reset_token_hash=:token_hash AND password_reset_expires_at > NOW()");
+        $stmt->execute(['id' => $user['id'], 'token_hash' => hash('sha256', $token)]);
+        return (bool) $stmt->fetchColumn();
     }
 
     public static function activeIdsForWarehouse(int $warehouseId): array
@@ -341,6 +365,8 @@ final class User
         Database::connection()->exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS password_reset_status VARCHAR(30) NULL");
         Database::connection()->exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS password_reset_requested_at TIMESTAMP NULL");
         Database::connection()->exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS password_reset_approved_at TIMESTAMP NULL");
+        Database::connection()->exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS password_reset_token_hash CHAR(64) NULL");
+        Database::connection()->exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS password_reset_expires_at DATETIME NULL");
         Database::connection()->exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS deactivation_reason TEXT NULL");
         Database::connection()->exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS deactivated_at TIMESTAMP NULL");
         $ready = true;

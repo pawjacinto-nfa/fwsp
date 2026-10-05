@@ -1,11 +1,13 @@
 <?php
 declare(strict_types=1);
 
+$privateFile = getenv('FSR_DB_CONFIG_FILE') ?: dirname(BASE_PATH, 2) . '/fsr-private/database.php';
+$private = is_file($privateFile) ? require $privateFile : [];
 return [
-    'host' => getenv('FSR_DB_HOST') ?: '127.0.0.1',
-    'port' => getenv('FSR_DB_PORT') ?: '13306',
-    'database' => getenv('FSR_DB_NAME') ?: 'fsr',
-    'username' => getenv('FSR_DB_USER') ?: 'root',
-    'password' => getenv('FSR_DB_PASSWORD') ?: '',
-    'charset' => getenv('FSR_DB_CHARSET') ?: 'utf8mb4',
+    'host' => getenv('FSR_DB_HOST') ?: ($private['host'] ?? '127.0.0.1'),
+    'port' => getenv('FSR_DB_PORT') ?: ($private['port'] ?? '3306'),
+    'database' => getenv('FSR_DB_NAME') ?: ($private['database'] ?? 'fsr'),
+    'username' => getenv('FSR_DB_USER') ?: ($private['username'] ?? 'fsr_app'),
+    'password' => getenv('FSR_DB_PASSWORD') !== false ? getenv('FSR_DB_PASSWORD') : ($private['password'] ?? ''),
+    'charset' => getenv('FSR_DB_CHARSET') ?: ($private['charset'] ?? 'utf8mb4'),
 ];

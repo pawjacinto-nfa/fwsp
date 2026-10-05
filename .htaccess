@@ -1,5 +1,23 @@
-Options -MultiViews
+Options -MultiViews -Indexes
 RewriteEngine On
+RewriteCond %{HTTPS} !=on
+RewriteCond %{HTTP_HOST} ^sandbox\.nfa\.gov\.ph(?::80)?$ [NC]
+RewriteRule ^ https://sandbox.nfa.gov.ph%{REQUEST_URI} [R=308,END]
+
+# Internal code, session files, backups and development artifacts are never public.
+RewriteRule (^|/)\. - [F,END]
+RewriteRule ^(?:app|data|database|vendor|tmp|output|tests|docs)(?:/|$) - [F,END,NC]
+RewriteRule \.(?:sql(?:\.(?:gz|zip|tar\.gz))?|log|ini|env|bak|old|md|lock|json|txt|ya?ml)$ - [F,END,NC]
+RewriteRule ^assets/uploads/.*\.(?:php[0-9]?|phtml|phar|cgi|pl|shtml|html?|svg|js)(?:/|$) - [F,END,NC]
+RewriteRule ^(assets/uploads/(?:farmers/|support/|profile-)[A-Za-z0-9._-]+)$ index.php?private_media=$1 [END]
+RewriteRule ^assets/uploads/(?:farmers|support)(?:/|$) - [F,END,NC]
+
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always unset X-Powered-By
+</IfModule>
 
 # Short, stable client appointment link printed as text and encoded in the QR.
 RewriteRule ^s/([A-Za-z0-9_-]{16})/?$ index.php?page=schedule-status&token=$1 [END,QSA,NC]

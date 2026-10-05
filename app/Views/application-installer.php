@@ -33,10 +33,9 @@
         <h2 id="beforeTitle">Before you begin</h2>
         <ul>
             <li>This installer is for Windows computers.</li>
-            <li>For the first use, sign in while connected to the internet and keep the app open for a few minutes so it can prepare its offline workspace.</li>
-            <li>During setup, choose a six-digit Offline PIN. You will use this PIN to unlock offline work on this Windows account.</li>
-            <li>After setup, supported encoding forms can be saved while offline. A red bar and a <strong>Not uploaded online</strong> message identify records waiting to upload.</li>
-            <li>When the internet returns, keep the app open and signed in; saved records retry automatically.</li>
+            <li>Sign in while connected to the internet. The October 2, 2026 application security update temporarily disables offline workspace installation and cached page access, including in the desktop client.</li>
+            <li>If an older installation contains pending submissions, reconnect and sign in, then review upload status before entering the same records again. Do not clear application storage or reinstall while work is pending.</li>
+            <li>If pending submissions cannot upload after a password change or device revocation, contact your System Administrator to reconcile them. See the <a href="index.php?page=user-manual#account">Account and Notifications guide</a>.</li>
             <li>If Windows asks whether you want to allow the installer to make changes, select <strong>Yes</strong>.</li>
             <li>If a Windows protection message appears, contact your System Administrator or submit a Tech Support request before continuing.</li>
         </ul>

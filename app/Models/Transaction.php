@@ -230,7 +230,16 @@ final class Transaction
     public static function softDelete(int $id): bool
     {
         self::ensureSchema();
-        $stmt = Database::connection()->prepare("UPDATE transactions SET warehouse_stock_receipt_number = CONCAT('DELETED-', LEFT(warehouse_stock_receipt_number, 72)) WHERE id = :id AND warehouse_stock_receipt_number NOT LIKE 'DELETED-%'");
+        $stmt = Database::connection()->prepare("
+            UPDATE transactions
+            SET deleted_at = CURRENT_TIMESTAMP,
+                warehouse_stock_receipt_number = CASE
+                    WHEN warehouse_stock_receipt_number LIKE 'DELETED-%' THEN warehouse_stock_receipt_number
+                    ELSE CONCAT('DELETED-', LEFT(warehouse_stock_receipt_number, 72))
+                END
+            WHERE id = :id
+              AND deleted_at IS NULL
+        ");
         $stmt->execute(['id' => $id]);
         return $stmt->rowCount() > 0;
     }
@@ -283,8 +292,8 @@ final class Transaction
 
         if (($transaction['type'] ?? '') === 'Individual' && $farmerId !== null) {
             $organizationName = Farmer::organizationNameForFarmer($farmerId);
-            if ($organizationName !== null) {
-                throw new \DomainException('This farmer belongs to the farmer group "' . $organizationName . '" and must transact through Farmer Organization Delivery.');
+            if ($organizationName !== null && empty($transaction['confirm_individual_fo_delivery'])) {
+                throw new \DomainException('This farmer belongs to the Farmer Group "' . $organizationName . '". Confirm the Individual Delivery warning before saving this transaction.');
             }
         }
 
@@ -716,6 +725,30 @@ final class Transaction
         Database::connection()->exec('ALTER TABLE transactions ADD COLUMN IF NOT EXISTS is_ip_group_delivery TINYINT(1) NOT NULL DEFAULT 0');
         Database::connection()->exec('ALTER TABLE transactions ADD COLUMN IF NOT EXISTS client_control_number VARCHAR(96) NULL');
         Database::connection()->exec('ALTER TABLE transactions ADD COLUMN IF NOT EXISTS total_amount DECIMAL(20,3) NOT NULL DEFAULT 0');
+        Database::connection()->exec('ALTER TABLE transactions ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP NULL DEFAULT NULL');
+        Database::connection()->exec("UPDATE transactions SET deleted_at = COALESCE(deleted_at, created_at, CURRENT_TIMESTAMP) WHERE warehouse_stock_receipt_number LIKE 'DELETED-%' AND deleted_at IS NULL");
+        try {
+            Database::connection()->exec("
+                UPDATE transactions t
+                SET t.deleted_at = COALESCE((
+                    SELECT MAX(rv.created_at)
+                    FROM record_versions rv
+                    WHERE rv.entity_type = 'transaction'
+                      AND rv.record_id = t.id
+                      AND JSON_UNQUOTE(JSON_EXTRACT(rv.changes, '$.record_status.to')) = 'Deleted'
+                ), t.created_at, CURRENT_TIMESTAMP)
+                WHERE t.deleted_at IS NULL
+                  AND EXISTS (
+                    SELECT 1
+                    FROM record_versions rv
+                    WHERE rv.entity_type = 'transaction'
+                      AND rv.record_id = t.id
+                      AND JSON_UNQUOTE(JSON_EXTRACT(rv.changes, '$.record_status.to')) = 'Deleted'
+                  )
+            ");
+        } catch (\Throwable) {
+            // Older installations may not have the audit table until it is first used.
+        }
         Database::connection()->exec("ALTER TABLE transactions ADD COLUMN IF NOT EXISTS palay_variety VARCHAR(10) NOT NULL DEFAULT 'PD1' AFTER warehouse_stock_receipt_number");
         Database::connection()->exec('ALTER TABLE transactions MODIFY verified_farm_area DECIMAL(10,3) NULL, MODIFY price_per_kilogram DECIMAL(10,3) NOT NULL, MODIFY net_kilogram DECIMAL(12,3) NOT NULL, MODIFY bags_50kg DECIMAL(12,3) NOT NULL');
         Database::connection()->exec('UPDATE transactions SET total_amount = ROUND(price_per_kilogram * net_kilogram, 3) WHERE total_amount = 0');
@@ -757,6 +790,6 @@ final class Transaction
     {
         return (($_SESSION['role'] ?? '') === 'System Admin')
             ? '1 = 1'
-            : "COALESCE({$alias}.warehouse_stock_receipt_number, '') NOT LIKE 'DELETED-%'";
+            : "{$alias}.deleted_at IS NULL AND COALESCE({$alias}.warehouse_stock_receipt_number, '') NOT LIKE 'DELETED-%'";
     }
 }

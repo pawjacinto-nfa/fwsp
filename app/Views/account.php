@@ -23,7 +23,7 @@
                 <div class="col-md-3"><label class="form-label">Email</label><input required type="email" name="email" value="<?= e($user['email']) ?>" class="form-control"></div>
                 <div class="col-md-3"><label class="form-label">Contact Number</label><input name="contact_number" value="<?= e($user['contact_number']) ?>" class="form-control"></div>
                 <div class="col-md-4"><label class="form-label">Designation</label><input name="designation" value="<?= e($user['designation']) ?>" class="form-control"></div>
-                <div class="col-md-4"><label class="form-label">New Password</label><input type="password" name="password" class="form-control"></div>
+                <div class="col-md-4"><label class="form-label">Current Password (required to change password)</label><input type="password" name="current_password" autocomplete="current-password" class="form-control"><label class="form-label mt-2">New Password (12 to 72 bytes)</label><input type="password" name="password" class="form-control"></div>
                 <div class="col-md-4"><label class="form-label">Password Confirmation</label><input type="password" name="password_confirmation" class="form-control"></div>
             </div>
             <div class="form-section-title">Location Assignment</div>
@@ -45,8 +45,9 @@
             <?php if (in_array($user['role'] ?? '', ['Warehouse Personnel', 'System Admin'], true)): ?>
                 <div class="form-section-title">Offline work</div>
                 <div class="offline-setting">
-                    <div><strong>Enable offline mode</strong><p>Install the delivery forms on this device. Pending delivery inputs remain encrypted in this browser until you upload them.</p></div>
-                    <div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" name="offline_enabled" value="1" id="offlineEnabled" data-offline-enable <?= !empty($user['offline_enabled']) ? 'checked' : '' ?>><label class="form-check-label" for="offlineEnabled">Available on this device</label></div>
+                    <div><strong>Offline work temporarily unavailable</strong><p>New offline page installation is disabled while storage protection is being redesigned. Reconnect to work and upload any existing pending inputs.</p></div>
+                    <?php if (!empty($user['offline_enabled'])): ?><input type="hidden" name="offline_enabled" value="1"><?php endif; ?>
+                    <span class="badge text-bg-secondary">Online connection required</span>
                 </div>
             <?php endif; ?>
             <?php if (in_array($user['role'] ?? '', ['Warehouse Personnel', 'System Admin'], true)): ?>
@@ -66,7 +67,7 @@
         <div class="tab-pane fade" id="display-settings">
             <form method="post" enctype="multipart/form-data" class="panel form-panel">
                 <input type="hidden" name="action" value="display-photo-submit">
-                <div class="section-head compact"><div><p class="eyebrow">Landing Page</p><h4>Feature your photo</h4><p class="mb-0 text-muted">Submit one original 4K photo for System Admin review. Landscape or portrait images must have a minimum 3,840 × 2,160 pixel equivalent.</p></div></div>
+                <div class="section-head compact"><div><p class="eyebrow">Landing Page</p><h4>Feature your photo</h4><p class="mb-0 text-muted">Submit one original 4K photo for System Admin review. Landscape or portrait images must have a minimum 3,840 Ã— 2,160 pixel equivalent.</p></div></div>
                 <div class="row g-3">
                     <div class="col-md-6"><label class="form-label" for="displayPhoto">4K Photo</label><input class="form-control" id="displayPhoto" name="display_photo" type="file" accept="image/jpeg,image/png,image/webp" required><div class="form-text">JPG, PNG, or WebP; up to 30 MB.</div></div>
                     <div class="col-md-6"><label class="form-label" for="displayTitle">Title</label><input class="form-control" id="displayTitle" name="title" maxlength="160" required></div>

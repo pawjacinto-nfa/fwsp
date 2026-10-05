@@ -30,6 +30,7 @@ $scheduledOrganizationName = $schedulePrefill && ($schedulePrefill['seller_type'
     <input type="hidden" name="action" value="<?= $isEditingTransaction ? 'transaction-update' : 'transaction' ?>">
     <?php if ($isEditingTransaction): ?><input type="hidden" name="transaction_id" value="<?= e($editingTransaction['id']) ?>"><?php endif; ?>
     <input type="hidden" name="client_control_number" value="">
+    <input type="hidden" name="confirm_individual_fo_delivery" value="">
     <input type="hidden" name="type" value="<?= e($sellerType) ?>">
     <div class="progress form-progress" role="progressbar" aria-label="Transaction form progress">
         <div class="progress-bar" style="width: 0%">0%</div>
@@ -79,23 +80,31 @@ $scheduledOrganizationName = $schedulePrefill && ($schedulePrefill['seller_type'
                     <div class="autocomplete-menu" data-autocomplete-menu></div>
                 </div>
             </div>
-            <div class="modal fade" id="individualFarmerOrganizationPrompt" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h2 class="modal-title fs-5">Individual Delivery Not Allowed</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body" data-fo-delivery-prompt-message></div><div class="modal-footer"><button class="btn btn-success" type="button" data-bs-dismiss="modal">OK</button></div></div></div></div>
+            <div class="modal fade" id="individualFarmerOrganizationPrompt" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h2 class="modal-title fs-5">Confirm Individual Delivery</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body" data-fo-delivery-prompt-message></div><div class="modal-footer"><button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Return to form</button><button class="btn btn-success" type="button" data-fo-delivery-confirm>Continue with Individual Delivery</button></div></div></div></div>
         <?php else: ?>
             <?php
             $selectedDeliveredMemberIds = array_map(
                 'intval',
                 array_column($editingTransaction['delivered_members'] ?? [], 'id')
             );
+            $farmerOrganizationProfileMap = [];
+            foreach (($farmerOrganizations ?? []) as $organization) {
+                $farmerOrganizationProfileMap[(string) ($organization['name'] ?? '')] = [
+                    'representative' => $organization['authorized_representative'] ?? '',
+                    'members' => $organization['total_members'] ?? '',
+                    'farm_area' => $organization['verified_farm_area'] ?? '',
+                ];
+            }
             ?>
             <div class="col-md-4">
                 <label class="form-label" for="foDeliveryName">Farmer Group</label>
                 <div class="autocomplete-field" data-autocomplete-field>
-                    <input required id="foDeliveryName" name="fo_name" value="<?= e($editingTransaction['fo_name'] ?? $scheduledOrganizationName) ?>" class="form-control" autocomplete="off" placeholder="Search farmer organization or IP group" data-fo-name-input data-autocomplete-input data-autocomplete-source='<?= e(json_encode(array_column($farmerOrganizations ?? [], 'name'), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT)) ?>'>
+                    <input required id="foDeliveryName" name="fo_name" value="<?= e($editingTransaction['fo_name'] ?? $scheduledOrganizationName) ?>" class="form-control" autocomplete="off" placeholder="Search farmer organization or IP group" data-fo-name-input data-fo-profile-autofill="<?= $editingTransaction ? 'false' : 'true' ?>" data-fo-profile-map='<?= e(json_encode($farmerOrganizationProfileMap, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT)) ?>' data-autocomplete-input data-autocomplete-source='<?= e(json_encode(array_column($farmerOrganizations ?? [], 'name'), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT)) ?>'>
                     <div class="autocomplete-menu" data-autocomplete-menu></div>
                 </div>
             </div>
-            <div class="col-md-4"><label class="form-label">Authorized Representative</label><input required name="representative" value="<?= e($editingTransaction['representative_name'] ?? $schedulePrefill['representative_name'] ?? '') ?>" class="form-control"></div>
-            <div class="col-md-4"><label class="form-label">Total Farmer-Members</label><input type="number" min="0" name="members" value="<?= e($editingTransaction['total_members'] ?? '') ?>" class="form-control"></div>
+            <div class="col-md-4"><label class="form-label">Authorized Representative</label><input required name="representative" value="<?= e($editingTransaction['representative_name'] ?? $schedulePrefill['representative_name'] ?? '') ?>" class="form-control" data-fo-authorized-representative></div>
+            <div class="col-md-4"><label class="form-label">Total Farmer-Members</label><input type="number" min="0" name="members" value="<?= e($editingTransaction['total_members'] ?? '') ?>" class="form-control" data-fo-total-members></div>
         <?php endif; ?>
         <?php if ($sellerType !== 'Farmer Organization'): ?>
             <?php
@@ -107,13 +116,13 @@ $scheduledOrganizationName = $schedulePrefill && ($schedulePrefill['seller_type'
             require BASE_PATH . '/app/Views/partials/location-selects.php';
             ?>
         <?php endif; ?>
-        <div class="col-md-3"><label class="form-label">Verified Farm Area (ha)</label><input type="number" min="0" step="0.001" name="farm_area" value="<?= e($editingTransaction['verified_farm_area'] ?? '') ?>" class="form-control"></div>
+        <div class="col-md-3"><label class="form-label">Verified Farm Area (ha)</label><input type="number" min="0" step="0.001" name="farm_area" value="<?= e($editingTransaction['verified_farm_area'] ?? '') ?>" class="form-control"<?= $sellerType === 'Farmer Organization' ? ' data-fo-verified-farm-area' : '' ?>></div>
         <div class="col-md-3"><label class="form-label">Delivery Date</label><input required type="date" name="delivery_date" value="<?= e($editingTransaction['delivery_date'] ?? $schedulePrefill['schedule_date'] ?? date('Y-m-d')) ?>" class="form-control"></div>
         <div class="col-md-3"><label class="form-label">WSR Number</label><input required name="wsr" value="<?= e($editingTransaction['wsr'] ?? '') ?>" class="form-control" data-duplicate-check="wsr"<?= !empty($editingTransaction['id']) ? ' data-duplicate-exclude-id="' . e((string) $editingTransaction['id']) . '"' : '' ?>><small class="text-danger d-none" data-duplicate-warning>This WSR number is already used by another transaction.</small></div>
         <div class="col-md-3"><label class="form-label">Palay Variety</label><select name="palay_variety" class="form-select"><?php foreach (\App\Models\Transaction::PALAY_VARIETIES as $variety): ?><option value="<?= e($variety) ?>" <?= ($editingTransaction['palay_variety'] ?? 'PD1') === $variety ? 'selected' : '' ?>><?= e($variety) ?></option><?php endforeach; ?></select></div>
         <div class="col-md-3"><label class="form-label">Price/Kg</label><input required type="number" min="0.001" step="0.001" name="price" value="<?= e($editingTransaction['price_per_kilogram'] ?? '') ?>" class="form-control" data-delivery-price></div>
         <div class="col-md-3"><label class="form-label">Net Kilogram</label><input required type="number" min="0.001" step="0.001" name="net_kg" value="<?= e($editingTransaction['net_kilogram'] ?? '') ?>" class="form-control" data-delivery-net-kg></div>
-        <div class="col-md-3"><label class="form-label">Bags Delivered (50kg)</label><input required type="number" min="0.001" step="0.001" name="bags" value="<?= e($editingTransaction['bags_50kg'] ?? '') ?>" class="form-control"></div>
+        <div class="col-md-3"><label class="form-label">Actual Bags Delivered</label><input required type="number" min="0.001" step="0.001" name="bags" value="<?= e($editingTransaction['bags_50kg'] ?? '') ?>" class="form-control"></div>
         <div class="col-md-3 delivery-total-field">
             <label class="form-label">Total Amount</label>
             <input type="number" step="0.001" name="total_amount" class="form-control" data-delivery-total-cost value="<?= e($editingTransaction['total_amount'] ?? '0.000') ?>">

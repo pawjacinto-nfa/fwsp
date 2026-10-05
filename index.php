@@ -25,6 +25,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $controller = new DashboardController();
+if (isset($_GET['private_media'])) {
+    $controller->privateMedia((string) $_GET['private_media']);
+    exit;
+}
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($action, ['login', 'register', 'password-reset-request', 'password-reset-check', 'password-reset-complete'], true)) {
+    $ip = (string) ($_SERVER['REMOTE_ADDR'] ?? 'unknown');
+    $username = is_string($_POST['username'] ?? null) ? strtolower(trim($_POST['username'])) : '';
+    if (!security_rate_limit('auth-ip:' . $ip, 60)
+        || !security_rate_limit('auth-account:' . substr($username, 0, 128), 15)) {
+        http_response_code(429);
+        header('Retry-After: 900');
+        exit('Too many authentication attempts. Please try again in 15 minutes.');
+    }
+}
 $isPublicScheduleStatus = $_SERVER['REQUEST_METHOD'] === 'GET'
     && ($_GET['page'] ?? '') === 'schedule-status';
 
@@ -88,6 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'support-ticket-archive' => $controller->archiveSupportTicket($_POST),
         'support-ticket-bulk' => $controller->bulkSupportTickets($_POST),
         'notifications-clear' => $controller->clearNotifications($_POST),
+        'notifications-cleanup' => $controller->cleanupNotifications($_POST),
         'notifications-delete-all' => $controller->deleteAllNotifications(),
         'notification-preferences' => $controller->saveNotificationPreferences($_POST),
         'signatory-add' => $controller->storeSignatories($_POST),

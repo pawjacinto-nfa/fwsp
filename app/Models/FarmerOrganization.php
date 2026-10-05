@@ -30,6 +30,8 @@ final class FarmerOrganization
                 fo.id,
                 fo.name,
                 fo.total_members,
+                fo.authorized_representative,
+                fo.verified_farm_area,
                 fo.office_location,
                 fo.is_indigenous_sector_group,
                 fo.classification_type,
@@ -64,6 +66,8 @@ final class FarmerOrganization
                 fo.id,
                 fo.name,
                 fo.total_members,
+                fo.authorized_representative,
+                fo.verified_farm_area,
                 fo.office_location,
                 fo.is_indigenous_sector_group,
                 fo.classification_type,
@@ -200,7 +204,7 @@ final class FarmerOrganization
         return array_slice($matches, 0, 5);
     }
 
-    public static function create(string $name, int $totalMembers = 0, string $officeLocation = '', bool $isIndigenousSectorGroup = false, ?int $warehouseId = null): void
+    public static function create(string $name, int $totalMembers = 0, string $officeLocation = '', bool $isIndigenousSectorGroup = false, ?int $warehouseId = null, string $authorizedRepresentative = '', ?float $verifiedFarmArea = null): void
     {
         self::ensureSchema();
         $name = trim($name);
@@ -210,10 +214,12 @@ final class FarmerOrganization
         }
 
         $stmt = Database::connection()->prepare("
-            INSERT INTO farmer_organizations (name, total_members, office_location, is_indigenous_sector_group, classification_type, warehouse_id, deleted_at)
-            VALUES (:name, :total_members, :office_location, :is_indigenous_sector_group, :classification_type, :warehouse_id, NULL)
+            INSERT INTO farmer_organizations (name, total_members, authorized_representative, verified_farm_area, office_location, is_indigenous_sector_group, classification_type, warehouse_id, deleted_at)
+            VALUES (:name, :total_members, :authorized_representative, :verified_farm_area, :office_location, :is_indigenous_sector_group, :classification_type, :warehouse_id, NULL)
             ON DUPLICATE KEY UPDATE
                 total_members = VALUES(total_members),
+                authorized_representative = VALUES(authorized_representative),
+                verified_farm_area = VALUES(verified_farm_area),
                 office_location = VALUES(office_location),
                 is_indigenous_sector_group = VALUES(is_indigenous_sector_group),
                 classification_type = VALUES(classification_type),
@@ -223,6 +229,8 @@ final class FarmerOrganization
         $stmt->execute([
             'name' => $name,
             'total_members' => max(0, $totalMembers),
+            'authorized_representative' => trim($authorizedRepresentative),
+            'verified_farm_area' => $verifiedFarmArea !== null ? max(0, $verifiedFarmArea) : null,
             'office_location' => trim($officeLocation),
             'is_indigenous_sector_group' => $isIndigenousSectorGroup ? 1 : 0,
             'classification_type' => $isIndigenousSectorGroup ? self::CLASSIFICATION_INDIGENOUS : self::CLASSIFICATION_ORGANIZATION,
@@ -230,7 +238,7 @@ final class FarmerOrganization
         ]);
     }
 
-    public static function update(int $id, string $name, int $totalMembers = 0, string $officeLocation = '', bool $isIndigenousSectorGroup = false, ?int $warehouseId = null): void
+    public static function update(int $id, string $name, int $totalMembers = 0, string $officeLocation = '', bool $isIndigenousSectorGroup = false, ?int $warehouseId = null, string $authorizedRepresentative = '', ?float $verifiedFarmArea = null): void
     {
         self::ensureSchema();
         $name = trim($name);
@@ -243,6 +251,8 @@ final class FarmerOrganization
             UPDATE farmer_organizations
             SET name = :name,
                 total_members = :total_members,
+                authorized_representative = :authorized_representative,
+                verified_farm_area = :verified_farm_area,
                 office_location = :office_location,
                 is_indigenous_sector_group = :is_indigenous_sector_group,
                 classification_type = :classification_type,
@@ -254,6 +264,8 @@ final class FarmerOrganization
             'id' => $id,
             'name' => $name,
             'total_members' => max(0, $totalMembers),
+            'authorized_representative' => trim($authorizedRepresentative),
+            'verified_farm_area' => $verifiedFarmArea !== null ? max(0, $verifiedFarmArea) : null,
             'office_location' => trim($officeLocation),
             'is_indigenous_sector_group' => $isIndigenousSectorGroup ? 1 : 0,
             'classification_type' => $isIndigenousSectorGroup ? self::CLASSIFICATION_INDIGENOUS : self::CLASSIFICATION_ORGANIZATION,
@@ -289,6 +301,8 @@ final class FarmerOrganization
 
         $db = Database::connection();
         $db->exec('ALTER TABLE farmer_organizations ADD COLUMN IF NOT EXISTS total_members INT UNSIGNED NOT NULL DEFAULT 0');
+        $db->exec('ALTER TABLE farmer_organizations ADD COLUMN IF NOT EXISTS authorized_representative VARCHAR(255) NULL AFTER total_members');
+        $db->exec('ALTER TABLE farmer_organizations ADD COLUMN IF NOT EXISTS verified_farm_area DECIMAL(10,3) NULL AFTER authorized_representative');
         $db->exec('ALTER TABLE farmer_organizations ADD COLUMN IF NOT EXISTS office_location VARCHAR(255) NULL');
         $db->exec('ALTER TABLE farmer_organizations ADD COLUMN IF NOT EXISTS warehouse_id BIGINT UNSIGNED NULL');
         $db->exec('ALTER TABLE farmer_organizations ADD COLUMN IF NOT EXISTS is_indigenous_sector_group TINYINT(1) NOT NULL DEFAULT 0');

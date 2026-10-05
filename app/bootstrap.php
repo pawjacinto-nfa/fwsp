@@ -2,7 +2,14 @@
 declare(strict_types=1);
 
 define('BASE_PATH', dirname(__DIR__));
-define('DATA_PATH', BASE_PATH . '/data');
+define('DATA_PATH', getenv('FSR_DATA_PATH') ?: BASE_PATH . '/data');
+require_once __DIR__ . '/security.php';
+ini_set('display_errors', '0');
+ini_set('display_startup_errors', '0');
+ini_set('log_errors', '1');
+ini_set('session.use_strict_mode', '1');
+ini_set('session.use_only_cookies', '1');
+ini_set('session.use_trans_sid', '0');
 
 $composerAutoloader = BASE_PATH . '/vendor/autoload.php';
 if (is_file($composerAutoloader)) {
@@ -29,14 +36,26 @@ if ($isPublicScheduleRequest) {
     $_SESSION = [];
 } else {
     session_save_path($sessionPath);
+    session_name('FSRSESSID');
     session_set_cookie_params([
         'lifetime' => 0,
-        'path' => '/',
+        'path' => (app_base_path() ?: '') . '/',
         'secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
         'httponly' => true,
         'samesite' => 'Lax',
     ]);
     session_start();
+    if (!empty($_SESSION['user_id'])) {
+        $now = time();
+        if (!isset($_SESSION['authenticated_at'], $_SESSION['last_activity'])
+            || $now - (int) $_SESSION['last_activity'] > 1800
+            || $now - (int) $_SESSION['authenticated_at'] > 28800) {
+            $_SESSION = [];
+            session_regenerate_id(true);
+        } elseif (($_POST['action'] ?? '') !== 'maintenance-status') {
+            $_SESSION['last_activity'] = $now;
+        }
+    }
 }
 
 /** Keep unexpected PHP failures user-visible and reportable instead of rendering a blank page. */
@@ -127,6 +146,7 @@ function render_system_error(\Throwable $error): never
 
     $description = throwable_error_report($error, $reference);
     error_log(str_replace("\n", ' | ', $description));
+    $description = 'The request could not be completed. Contact the administrator with error reference: ' . $reference;
     $payload = json_encode([
         'reference' => $reference,
         'description' => $description,
@@ -134,7 +154,7 @@ function render_system_error(\Throwable $error): never
         'browser' => redact_error_details((string) ($_SERVER['HTTP_USER_AGENT'] ?? '')),
         'csrfToken' => csrf_token(),
     ], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_INVALID_UTF8_SUBSTITUTE);
-    $summary = redact_error_details($error->getMessage() !== '' ? $error->getMessage() : 'The application encountered an unexpected server error.');
+    $summary = 'The application encountered an unexpected server error.';
     $modal = '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>System error</title><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"><style>pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:45vh;overflow:auto;background:#f8f9fa;padding:1rem;border-radius:.5rem;font-size:.8rem}</style></head><body><div class="modal d-block" tabindex="-1" role="dialog" aria-modal="true"><div class="modal-dialog modal-dialog-centered modal-lg"><div class="modal-content"><div class="modal-header"><h1 class="modal-title fs-5">System Error</h1></div><div class="modal-body"><p><strong>The request could not be completed.</strong> ' . e($summary) . '</p><p class="mb-2">Error reference: <strong>' . e($reference) . '</strong>. You can send the complete diagnostic details below to the System Administrator.</p><details><summary>Technical details</summary><pre data-server-error-details>' . e($description) . '</pre></details></div><div class="modal-footer"><button class="btn btn-outline-secondary" type="button" onclick="history.back()">Don\'t Send Error Report</button><button class="btn btn-danger" type="button" id="sendError">Send Error to System Administrator</button></div></div></div></div><script>const errorReport=' . $payload . ';document.getElementById("sendError").addEventListener("click",async()=>{if(!confirm("Send this complete diagnostic report to the System Administrator?"))return;const button=document.getElementById("sendError");button.disabled=true;button.textContent="Sending error report...";try{const body=new URLSearchParams({action:"error-report",csrf_token:errorReport.csrfToken,report_id:errorReport.reference,description:errorReport.description,page_url:errorReport.pageUrl,browser:errorReport.browser});const response=await fetch("index.php",{method:"POST",headers:{"X-Requested-With":"fetch","Content-Type":"application/x-www-form-urlencoded"},body,credentials:"same-origin"});const result=await response.json().catch(()=>({}));if(!response.ok)throw new Error(result.message||"The server rejected the error report.");button.textContent="Error report sent (Ticket #"+result.ticket_id+")";}catch(error){button.disabled=false;button.textContent="Retry sending error report";alert(error.message||"The error report could not be sent.");}});</script></body></html>';
     echo $modal;
     exit;
@@ -163,6 +183,12 @@ if (!headers_sent()) {
     header('X-Frame-Options: SAMEORIGIN');
     header('Referrer-Policy: strict-origin-when-cross-origin');
     header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
+    header_remove('X-Powered-By');
+    header('Cache-Control: no-store, private');
+    header("Content-Security-Policy: base-uri 'self'; object-src 'none'; frame-ancestors 'self'; form-action 'self'");
+    if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+        header('Strict-Transport-Security: max-age=31536000');
+    }
 }
 
 spl_autoload_register(function (string $class): void {
