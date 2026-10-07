@@ -1540,7 +1540,7 @@ final class DashboardController
             unset($_SESSION['password_reset_user_id'], $_SESSION['password_reset_username']);
             $this->flash(
                 'danger',
-                'There is no request for password reset for this account. Contact the administrator if you have a pending password reset request.'
+                'The employee number or reset code is invalid, expired, or not yet approved. Contact the administrator for help.'
             );
             $this->redirect('?password_reset_check=1');
             return;

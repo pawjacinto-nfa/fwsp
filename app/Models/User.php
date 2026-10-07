@@ -296,7 +296,7 @@ final class User
     public static function approvePasswordReset(int $id): string
     {
         self::ensurePasswordResetSchema();
-        $token = bin2hex(random_bytes(24));
+        $token = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
         $stmt = Database::connection()->prepare("UPDATE users SET password_reset_status = 'Approved',
             password_reset_approved_at = CURRENT_TIMESTAMP, password_reset_token_hash = :token_hash,
             password_reset_expires_at = DATE_ADD(NOW(), INTERVAL 30 MINUTE)
@@ -331,7 +331,7 @@ final class User
     {
         $valid = (int) ($user['is_active'] ?? 0) === 1
             && ($user['password_reset_status'] ?? '') === 'Approved'
-            && preg_match('/^[a-f0-9]{48}$/', $token) === 1
+            && preg_match('/^[0-9]{6}$/', $token) === 1
             && !empty($user['password_reset_token_hash'])
             && hash_equals($user['password_reset_token_hash'], hash('sha256', $token));
         if (!$valid) return false;

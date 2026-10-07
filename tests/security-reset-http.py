@@ -13,7 +13,7 @@ assert requester.request(data={'action':'password-reset-request','username':user
 admin=h.Client(); admin.login('SECURITY_VERIFY_ADMIN')
 assert admin.request(data={'action':'password-reset-approve','user_id':str(user_id),'csrf_token':admin.token()})[0]==302
 _,_,html=admin.request('index.php?page=users')
-code=re.search(r'Valid for 30 minutes: ([a-f0-9]{48})',html).group(1)
+code=re.search(r'Valid for 30 minutes: ([0-9]{6})',html).group(1)
 attacker=h.Client()
 assert attacker.request(data={'action':'password-reset-check','username':username,'csrf_token':attacker.token()})[0]==302
 _,_,html=attacker.request()
@@ -35,3 +35,15 @@ assert attacker.request(data={'action':'password-reset-check','username':usernam
 _,_,html=attacker.request()
 assert 'id="changePasswordModal" tabindex="-1" aria-hidden="true" data-force-open="false"' in html
 h.passed('Consumed reset code rejected over HTTP')
+
+# A separate account bucket must survive fresh cookies/sessions.
+limited_username = 'limit-' + secrets.token_hex(8)
+for attempt in range(6):
+    client = h.Client()
+    status, headers, _ = client.request(data={
+        'action': 'password-reset-check', 'username': limited_username,
+        'reset_code': '000000', 'csrf_token': client.token(),
+    })
+    assert status == (302 if attempt < 5 else 429), (attempt, status)
+assert headers['Retry-After'] == '1800'
+h.passed('Sixth reset code check is blocked across fresh sessions')

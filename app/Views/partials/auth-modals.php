@@ -109,8 +109,8 @@
                 <p class="text-muted">Enter your employee number and the one-time code provided by the administrator after identity verification.</p>
                 <label class="form-label">Employee Number</label>
                 <input required name="username" class="form-control" inputmode="numeric" pattern="[0-9]{6}" minlength="6" maxlength="6" data-reset-check-username>
-                <label class="form-label mt-3">One-time reset code</label>
-                <input required type="password" name="reset_code" class="form-control" pattern="[a-f0-9]{48}" minlength="48" maxlength="48" autocomplete="one-time-code">
+                <label class="form-label mt-3">6-digit reset code</label>
+                <input required type="password" name="reset_code" class="form-control" inputmode="numeric" pattern="[0-9]{6}" minlength="6" maxlength="6" autocomplete="one-time-code">
             </div>
             <div class="modal-footer">
                 <button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal" data-bs-target="#forgotPasswordOptionsModal" data-bs-dismiss="modal">Back</button>

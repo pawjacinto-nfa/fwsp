@@ -32,6 +32,12 @@ if (isset($_GET['private_media'])) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($action, ['login', 'register', 'password-reset-request', 'password-reset-check', 'password-reset-complete'], true)) {
     $ip = (string) ($_SERVER['REMOTE_ADDR'] ?? 'unknown');
     $username = is_string($_POST['username'] ?? null) ? strtolower(trim($_POST['username'])) : '';
+    if ($action === 'password-reset-check'
+        && !security_rate_limit('reset-code-account:' . substr($username, 0, 128), 5, 1800)) {
+        http_response_code(429);
+        header('Retry-After: 1800');
+        exit('Too many reset code attempts. Please wait 30 minutes, then request a new code.');
+    }
     if (!security_rate_limit('auth-ip:' . $ip, 60)
         || !security_rate_limit('auth-account:' . substr($username, 0, 128), 15)) {
         http_response_code(429);
