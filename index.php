@@ -8,6 +8,11 @@ use App\Controllers\DashboardController;
 $action = $_POST['action'] ?? 'dashboard';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (empty($_POST) && (int) ($_SERVER['CONTENT_LENGTH'] ?? 0) > 0) {
+        http_response_code(413);
+        header('Content-Type: application/json');
+        exit(json_encode(['success'=>false,'message'=>'The request could not be read. Your file may exceed the server upload limit. Choose a smaller backup or ask the hosting administrator to increase the limit.']));
+    }
     if (!csrf_is_valid($_POST['csrf_token'] ?? null)) {
         http_response_code(419);
         if (strtolower((string) ($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '')) === 'fetch') {
@@ -24,6 +29,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+// Include reads: several existing read routes perform schema maintenance.
+if (!\App\Support\DatabaseMaintenanceGate::shared()) {
+    http_response_code(503);
+    header('Retry-After: 30');
+    header('Content-Type: application/json');
+    exit(json_encode(['success'=>false,'message'=>'A database backup or restore is in progress. Please wait 30 seconds and try again.']));
+}
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && is_string($action) && str_starts_with($action, 'database-backup-')) {
+    (new \App\Controllers\DatabaseBackupController())->handle($action, $_POST, $_FILES);
+}
 $controller = new DashboardController();
 if (isset($_GET['private_media'])) {
     $controller->privateMedia((string) $_GET['private_media']);

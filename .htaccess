@@ -1,4 +1,9 @@
 Options -MultiViews -Indexes
+<IfModule php_module>
+    php_flag display_errors Off
+    php_flag display_startup_errors Off
+    php_flag log_errors On
+</IfModule>
 RewriteEngine On
 RewriteCond %{HTTPS} !=on
 RewriteCond %{HTTP_HOST} ^sandbox\.nfa\.gov\.ph(?::80)?$ [NC]

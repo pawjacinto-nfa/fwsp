@@ -77,7 +77,7 @@ $roleDescriptions = [
         <div class="manual-version" aria-label="Manual information">
             <span>System guide</span>
             <strong><?= e($currentRole) ?></strong>
-            <span>Updated October 2, 2026</span>
+            <span>Updated October 9, 2026</span>
         </div>
     </header>
 
@@ -425,6 +425,18 @@ $roleDescriptions = [
                 <h3>System Maintenance</h3>
                 <p>Open <strong>Help → System Maintenance</strong> to control maintenance mode, schedule maintenance windows, manage module availability, and inspect the database tab. Maintenance mode prevents new non-admin sign-ins and signs out active non-admin users while the system is unavailable. Module maintenance can temporarily disable encoding or Delivery Schedules for non-admin users while keeping System Admin access available for checking and recovery.</p>
 
+                <h3>Database backup and restore wizard</h3>
+                <p>System Admins can open <strong>Help → System Maintenance → Database Management</strong> to export and restore a complete database without opening phpMyAdmin. Every operation and download requires the current administrator password.</p>
+                <ol class="manual-list">
+                    <li><strong>Export:</strong> enter your current password and select <strong>Create verified backup</strong>. Open Backup history, enter your password again, and download the ZIP (recommended for this wizard) or SQL copy. Keep a secure copy away from the server.</li>
+                    <li><strong>Prepare to import:</strong> separately back up photos, attachments, application files, and server settings. Turn maintenance ON now before uploading, and stop scheduled jobs or external database writes. Make sure your active administrator account exists in the backup and you know its saved password.</li>
+                    <li><strong>Upload and review:</strong> select an FSR ZIP or complete phpMyAdmin SQL export containing structure and data for every table. Use UTF-8 and UTC in SQL exports. Check the database label, table list, and record counts. ZIP structure must match; SQL column names, order, and types must match. Existing structure is preserved and calculated columns are recalculated. Partial imports and schema upgrades are not supported. Reviews expire after one hour.</li>
+                    <li><strong>Restore:</strong> acknowledge replacement, type <strong>RESTORE DATABASE</strong>, enter your current password, and select <strong>Create recovery backup and restore</strong>. Keep the page open and do not submit twice. The system verifies and saves a recovery copy before replacing data. A detected restore error rolls back database changes.</li>
+                    <li><strong>Verify afterward:</strong> sign in using the password in the restored backup. Check records, accounts, reports, and settings before turning maintenance off. Everyone must sign in again; old offline-device credentials and pending password resets are revoked. Maintenance stays ON.</li>
+                </ol>
+                <p><strong>Recovery:</strong> if the request is interrupted, refresh Backup history before retrying. A completed entry confirms success; a failed entry indicates rollback. If an entry remains “restoring,” ask the hosting administrator to check the audit log and server logs before another restore. To return to the previous data, download the corresponding recovery ZIP and import it through the same review process.</p>
+                <p><strong>Limits:</strong> all tables must use InnoDB. Views, triggers, routines, events, and SQL expressions require hosting-administrator handling. The page shows the actual server upload limits; the wizard also limits uploads to 256 MB, expanded backups to 2 GB, and individual SQL statements to 32 MB. Larger files need a hosting-admin workflow. Backups include sensitive records and password hashes, are not encrypted by the wizard, and remain in private server storage until the hosting administrator removes them.</p>
+
                 <h3>Database review</h3>
                 <p>In <strong>System Maintenance → Database Management</strong>, use <strong>Notification cleanup</strong> to delete notifications for all users. Choose <strong>Selected date range</strong> and enter inclusive From and Through dates, or choose <strong>All dates</strong>. Preview the matching count, then confirm deletion. Read receipts are removed with the notifications, preferences are preserved, and the cleanup is recorded in the audit log. Deleted notifications cannot be recovered.</p>
                 <p>Use the database tab in <strong>System Maintenance</strong> when you need to inspect the database structure. Treat this area as a sensitive administrative tool. Use it for verification and maintenance awareness, and avoid changing database-backed workflows without a tested update plan.</p>
@@ -678,8 +690,17 @@ $roleDescriptions = [
                             <li>Updated the User's Manual and System Administrator Manual with recovery steps, access-management guidance, session limits, offline restrictions, and troubleshooting. This application update does not change the Windows installer version or certify DICT assessment completion.</li>
                         </ul></div>
                     </article>
-                    <article class="manual-version-entry is-current" id="release-2026-10-04">
-                        <div class="manual-version-date"><time datetime="2026-10-04">October 4, 2026</time><span>Current release · Reporting and database maintenance</span></div>
+                    <article class="manual-version-entry is-current" id="release-2026-10-09">
+                        <div class="manual-version-date"><time datetime="2026-10-09">October 9, 2026</time><span>Current release · Database backup and restore</span></div>
+                        <div><h3>Administrator backup import/export wizard</h3><ul class="manual-list">
+                            <li>Added verified ZIP and SQL exports, compatible complete phpMyAdmin SQL imports, table-count review, and private backup history in System Maintenance → Database Management.</li>
+                            <li>Added password verification, mandatory maintenance and typed confirmation, automatic recovery backups, transactional replacement, relationship checks, and rollback on detected restore errors.</li>
+                            <li>Successful restores require all users to sign in again, revoke old offline-device credentials and password-reset approvals, and keep maintenance on for administrator verification.</li>
+                            <li>Documented backup exclusions, upload limits, secure storage, restore-password requirements, and recovery steps in this manual.</li>
+                        </ul></div>
+                    </article>
+                    <article class="manual-version-entry" id="release-2026-10-04">
+                        <div class="manual-version-date"><time datetime="2026-10-04">October 4, 2026</time><span>Reporting and database maintenance</span></div>
                         <div><h3>Reporting safeguards and notification storage cleanup</h3><ul class="manual-list">
                             <li>Added a dedicated deletion timestamp to transaction records so deleted status remains intact even if a transaction is reviewed or edited later.</li>
                             <li>Excluded deleted transactions from every report view, calculated total, print output, and spreadsheet export for all account roles, including System Administrators.</li>

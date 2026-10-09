@@ -18,6 +18,7 @@ foreach (($schema['relations'] ?? []) as $relation) {
     </div>
     <?php endif; ?>
 
+    <?php if (!empty($backupWizard)) require __DIR__ . '/partials/database-backup-wizard.php'; ?>
     <div class="panel no-print mb-3">
         <h4 class="h5">Notification cleanup</h4>
         <p>Delete stored notifications for all users to reduce retained data. This includes read, unread, and shared notifications and their read receipts. User notification preferences are preserved.</p>

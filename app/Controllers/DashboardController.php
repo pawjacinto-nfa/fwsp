@@ -42,6 +42,7 @@ final class DashboardController
         if (!empty($_SESSION['user_id'])) {
             $current = User::find((int) $_SESSION['user_id']);
             if (!$current || (int) $current['is_active'] !== 1
+                || !hash_equals(\App\Models\DatabaseBackup::epoch(), (string) ($_SESSION['database_restore_epoch'] ?? ''))
                 || !hash_equals(hash('sha256', $current['password_hash']), (string) ($_SESSION['password_fingerprint'] ?? ''))) {
                 $this->clearAuthenticationSession();
             } else {
@@ -744,6 +745,7 @@ final class DashboardController
             'title' => 'System Maintenance',
             'alert' => $this->pullFlash(),
             'activeTab' => $activeTab,
+            'backupWizard' => true,
             'maintenanceModeEnabled' => SystemSetting::maintenanceModeEnabled(),
             'maintenanceSchedule' => SystemSetting::maintenanceSchedule(),
             'encodingEnabled' => SystemSetting::moduleEnabled('encoding'),
@@ -1409,6 +1411,7 @@ final class DashboardController
         session_regenerate_id(true);
         $_SESSION['authenticated_at'] = $_SESSION['last_activity'] = time();
         $_SESSION['password_fingerprint'] = hash('sha256', $user['password_hash']);
+        $_SESSION['database_restore_epoch'] = \App\Models\DatabaseBackup::epoch();
         $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
         $_SESSION['user_id'] = (int) $user['id'];
         $_SESSION['user'] = $user['full_name'];
