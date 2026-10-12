@@ -1526,7 +1526,7 @@ final class DashboardController
         }
         Notification::add('Your password reset request was approved. Contact the administrator for your one-time reset code.', $userId);
         Activity::add('Password reset approved for ' . $user['username'] . '.');
-        $this->flash('success', 'Reset approved for ' . $user['username'] . '. Verify the employee identity before sharing this one-time code through a trusted channel. Valid for 30 minutes: ' . $resetCode);
+        $this->flash('success', 'Reset approved for ' . $user['username'] . '. Verify the employee identity before sharing this one-time code through a trusted channel. Valid for 24 hours: ' . $resetCode);
         $this->redirect('?page=users');
     }
 

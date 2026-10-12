@@ -13,7 +13,7 @@ assert requester.request(data={'action':'password-reset-request','username':user
 admin=h.Client(); admin.login('SECURITY_VERIFY_ADMIN')
 assert admin.request(data={'action':'password-reset-approve','user_id':str(user_id),'csrf_token':admin.token()})[0]==302
 _,_,html=admin.request('index.php?page=users')
-code=re.search(r'Valid for 30 minutes: ([0-9]{6})',html).group(1)
+code=re.search(r'Valid for 24 hours: ([0-9]{6})',html).group(1)
 attacker=h.Client()
 assert attacker.request(data={'action':'password-reset-check','username':username,'csrf_token':attacker.token()})[0]==302
 _,_,html=attacker.request()

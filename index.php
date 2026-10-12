@@ -51,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($action, ['login', 'regist
         && !security_rate_limit('reset-code-account:' . substr($username, 0, 128), 5, 1800)) {
         http_response_code(429);
         header('Retry-After: 1800');
-        exit('Too many reset code attempts. Please wait 30 minutes, then request a new code.');
+        exit('Too many reset code attempts. Please wait 30 minutes before trying again. If your code has expired, request a new one.');
     }
     if (!security_rate_limit('auth-ip:' . $ip, 60)
         || !security_rate_limit('auth-account:' . substr($username, 0, 128), 15)) {

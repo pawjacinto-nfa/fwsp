@@ -24,6 +24,11 @@ User::requestPasswordReset($id);
 $token = User::approvePasswordReset($id);
 $user = User::find($id);
 $wrongToken = $token === '000000' ? '000001' : '000000';
+$remaining = (int) $db->query('SELECT TIMESTAMPDIFF(SECOND, NOW(), password_reset_expires_at) FROM users WHERE id=' . $id)->fetchColumn();
+check($remaining >= 86390 && $remaining <= 86400, 'New reset code expires 24 hours after approval');
+$db->exec('UPDATE users SET password_reset_expires_at=DATE_ADD(NOW(), INTERVAL 23 HOUR) WHERE id=' . $id);
+check(User::resetTokenValid(User::find($id), $token), 'Reset code remains valid one hour into its 24-hour lifetime');
+
 check(preg_match('/^[0-9]{6}$/', $token) === 1 && $user['password_reset_token_hash'] !== $token, 'Reset token generated and stored only as a hash');
 check(!User::resetTokenValid($user, ''), 'Username alone cannot claim reset');
 check(!User::resetTokenValid($user, $wrongToken), 'Incorrect reset token rejected');

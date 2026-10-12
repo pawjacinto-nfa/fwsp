@@ -299,7 +299,7 @@ final class User
         $token = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
         $stmt = Database::connection()->prepare("UPDATE users SET password_reset_status = 'Approved',
             password_reset_approved_at = CURRENT_TIMESTAMP, password_reset_token_hash = :token_hash,
-            password_reset_expires_at = DATE_ADD(NOW(), INTERVAL 30 MINUTE)
+            password_reset_expires_at = DATE_ADD(NOW(), INTERVAL 24 HOUR)
             WHERE id = :id AND is_active = 1 AND password_reset_status = 'Requested'");
         $stmt->execute(['id' => $id, 'token_hash' => hash('sha256', $token)]);
         return $stmt->rowCount() === 1 ? $token : '';
