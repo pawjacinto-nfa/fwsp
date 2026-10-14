@@ -4,7 +4,8 @@
     "license": "proprietary",
     "type": "project",
     "require": {
-        "endroid/qr-code": "^5.1"
+        "endroid/qr-code": "^5.1",
+        "phpmailer/phpmailer": "^7.1"
     },
     "config": {
         "optimize-autoloader": true,

@@ -1476,58 +1476,20 @@ final class DashboardController
     {
         $username = $this->clean($payload['username'] ?? '');
         $user = $username !== '' ? User::findByUsername($username) : null;
-
-        if (!$user || (int) $user['is_active'] !== 1) {
-            $this->flash('success', 'If the account is eligible, the administrator will receive your request. Contact them to verify your identity.');
-            $this->redirect();
-            return;
+        $configured = \App\Support\ResetMailer::config();
+        foreach (['host', 'username', 'password', 'from', 'base_url'] as $key) {
+            if (empty($configured[$key])) {
+                $this->flash('danger', 'Password reset email is temporarily unavailable. Please contact system support.');
+                $this->redirect();
+                return;
+            }
         }
-
-        if (!User::requestPasswordReset((int) $user['id'])) {
-            $this->flash('success', 'If the account is eligible, the administrator will receive your request. Contact them to verify your identity.');
-            $this->redirect();
-            return;
+        if ($user && (int) $user['is_active'] === 1 && filter_var($user['email'], FILTER_VALIDATE_EMAIL)) {
+            try { User::requestPasswordReset((int) $user['id']); }
+            catch (\Throwable $error) { /* Generic response prevents account disclosure. */ }
         }
-
-        foreach ($this->superAdminIds() as $adminId) {
-            Notification::add(
-                'Password reset requested by ' . $user['username'] . ' (' . $user['full_name'] . ').',
-                $adminId,
-                'index.php?page=users'
-            );
-        }
-
-        Activity::add('Password reset requested for ' . $user['username'] . '.');
-        $this->flash('success', 'If the account is eligible, the administrator will receive your request. Contact them to verify your identity.');
-        $this->redirect();
-    }
-
-    public function approvePasswordReset(array $payload): void
-    {
-        if (($_SESSION['role'] ?? '') !== 'System Admin') {
-            $this->flash('danger', 'Only System Admin can approve password resets.');
-            $this->redirect('?page=users');
-            return;
-        }
-
-        $userId = (int) ($payload['user_id'] ?? 0);
-        $user = $userId > 0 ? User::find($userId) : null;
-        if (!$user) {
-            $this->flash('danger', 'User was not found.');
-            $this->redirect('?page=users');
-            return;
-        }
-
-        $resetCode = User::approvePasswordReset($userId);
-        if ($resetCode === '') {
-            $this->flash('warning', 'No active pending reset request was found.');
-            $this->redirect('?page=users');
-            return;
-        }
-        Notification::add('Your password reset request was approved. Contact the administrator for your one-time reset code.', $userId);
-        Activity::add('Password reset approved for ' . $user['username'] . '.');
-        $this->flash('success', 'Reset approved for ' . $user['username'] . '. Verify the employee identity before sharing this one-time code through a trusted channel. Valid for 24 hours: ' . $resetCode);
-        $this->redirect('?page=users');
+        $this->flash('success', 'If your account is eligible, a confirmation code and reset link will be sent to your registered email. Check your inbox and spam folder. Please wait at least 60 seconds before requesting another.');
+        $this->redirect('?password_reset_check=1');
     }
 
     public function checkPasswordResetApproval(array $payload): void
@@ -1535,22 +1497,19 @@ final class DashboardController
         $username = $this->clean($payload['username'] ?? '');
         $user = preg_match('/^\d{6}$/', $username) ? User::findByUsername($username) : null;
 
-        if (
-            !$user
-            || (int) ($user['is_active'] ?? 0) !== 1
-            || !User::resetTokenValid($user, (string) ($payload['reset_code'] ?? ''))
-        ) {
-            unset($_SESSION['password_reset_user_id'], $_SESSION['password_reset_username']);
+        $grant = $user ? User::verifyResetCode((int) $user['id'], (string) ($payload['reset_code'] ?? '')) : '';
+        if ($grant === '') {
+            unset($_SESSION['password_reset_user_id'], $_SESSION['password_reset_username'], $_SESSION['password_reset_token']);
             $this->flash(
                 'danger',
-                'The employee number or reset code is invalid, expired, or not yet approved. Contact the administrator for help.'
+                'The employee number or confirmation code is invalid or expired. Request a new code if needed.'
             );
             $this->redirect('?password_reset_check=1');
             return;
         }
 
         session_regenerate_id(true);
-        $_SESSION['password_reset_token'] = (string) $payload['reset_code'];
+        $_SESSION['password_reset_token'] = $grant;
         $_SESSION['password_reset_user_id'] = (int) $user['id'];
         $_SESSION['password_reset_username'] = $user['username'];
         $this->redirect('?password_reset=approved');
@@ -1568,8 +1527,8 @@ final class DashboardController
             || $username !== ($user['username'] ?? '')
             || !User::resetTokenValid($user, (string) ($_SESSION['password_reset_token'] ?? ''))
         ) {
-            unset($_SESSION['password_reset_user_id'], $_SESSION['password_reset_username']);
-            $this->flash('danger', 'Password reset approval was not found. Please submit a new request.');
+            unset($_SESSION['password_reset_user_id'], $_SESSION['password_reset_username'], $_SESSION['password_reset_token']);
+            $this->flash('danger', 'Your password reset session is invalid or expired. Please request a new code.');
             $this->redirect();
             return;
         }
@@ -1595,7 +1554,7 @@ final class DashboardController
         }
         OfflineDevice::revokeForUser($userId);
         $this->clearAuthenticationSession();
-        unset($_SESSION['password_reset_user_id'], $_SESSION['password_reset_username']);
+        unset($_SESSION['password_reset_user_id'], $_SESSION['password_reset_username'], $_SESSION['password_reset_token']);
         Activity::add('Password reset completed for ' . $user['username'] . '.');
         $this->flash('success', 'You have successfully changed your password.');
         $this->redirect('?show_login=1');

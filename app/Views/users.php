@@ -48,14 +48,8 @@
                         </td>
                         <td data-sort-value="<?= e($account['role']) ?>"><select name="role" form="<?= e($formId) ?>" class="form-select"><?php foreach ($roles as $role): ?><option <?= $account['role'] === $role ? 'selected' : '' ?>><?= e($role) ?></option><?php endforeach; ?></select></td>
                         <td data-sort-value="<?= e($account['password_reset_status'] ?? '') ?>">
-                            <?php if (($account['password_reset_status'] ?? '') === 'Requested'): ?>
-                                <form method="post" class="d-inline">
-                                    <input type="hidden" name="action" value="password-reset-approve">
-                                    <input type="hidden" name="user_id" value="<?= e($account['id']) ?>">
-                                    <button class="btn btn-sm btn-warning" type="submit">Reset Password</button>
-                                </form>
-                            <?php elseif (($account['password_reset_status'] ?? '') === 'Approved'): ?>
-                                <span class="badge text-bg-success">Approved</span>
+                            <?php if (in_array($account['password_reset_status'] ?? '', ['EmailPending', 'EmailVerified'], true)): ?>
+                                <span class="badge text-bg-info">Email reset requested</span>
                             <?php else: ?>
                                 <span class="text-muted">No request</span>
                             <?php endif; ?>

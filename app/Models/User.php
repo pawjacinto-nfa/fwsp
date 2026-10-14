@@ -279,66 +279,95 @@ final class User
     public static function requestPasswordReset(int $id): bool
     {
         self::ensurePasswordResetSchema();
-        $stmt = Database::connection()->prepare("
-            UPDATE users
-            SET password_reset_status = 'Requested',
-                password_reset_requested_at = CURRENT_TIMESTAMP,
-                password_reset_approved_at = NULL,
-                password_reset_token_hash = NULL,
-                password_reset_expires_at = NULL
-            WHERE id = :id AND (password_reset_status IS NULL OR password_reset_status = ''
-                OR (password_reset_status = 'Approved' AND (password_reset_expires_at IS NULL OR password_reset_expires_at <= NOW())))
-        ");
-        $stmt->execute(['id' => $id]);
-        return $stmt->rowCount() === 1;
+        $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        $link = bin2hex(random_bytes(32));
+        $db = Database::connection();
+        $stmt = $db->prepare("UPDATE users SET password_reset_status='EmailPending',
+            password_reset_requested_at=NOW(), password_reset_approved_at=NULL,
+            password_reset_token_hash=NULL, password_reset_code_hash=:code,
+            password_reset_link_hash=:link, password_reset_attempts=0,
+            password_reset_expires_at=DATE_ADD(NOW(), INTERVAL 15 MINUTE)
+            WHERE id=:id AND is_active=1 AND email IS NOT NULL AND email<>''
+            AND (password_reset_requested_at IS NULL OR password_reset_requested_at <= DATE_SUB(NOW(), INTERVAL 60 SECOND))");
+        $stmt->execute(['id'=>$id, 'code'=>password_hash($code, PASSWORD_DEFAULT), 'link'=>hash('sha256', $link)]);
+        if ($stmt->rowCount() !== 1) return false;
+        $user = self::find($id);
+        try {
+            \App\Support\ResetMailer::send($user['email'], $code, $link, false, (string) $user['full_name']);
+        } catch (\Throwable $error) {
+            $stmt = $db->prepare("UPDATE users SET password_reset_status=NULL, password_reset_code_hash=NULL,
+                password_reset_link_hash=NULL, password_reset_expires_at=NULL
+                WHERE id=:id AND password_reset_link_hash=:link");
+            $stmt->execute(['id'=>$id, 'link'=>hash('sha256', $link)]);
+            // Never log email bodies, codes, SMTP credentials or exception details.
+            error_log('FSR password reset email delivery failed; check the private SMTP configuration.');
+            throw new \RuntimeException('Email delivery failed.');
+        }
+        return true;
     }
 
-    public static function approvePasswordReset(int $id): string
+    public static function resetLinkUsername(string $link): string
     {
         self::ensurePasswordResetSchema();
-        $token = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-        $stmt = Database::connection()->prepare("UPDATE users SET password_reset_status = 'Approved',
-            password_reset_approved_at = CURRENT_TIMESTAMP, password_reset_token_hash = :token_hash,
-            password_reset_expires_at = DATE_ADD(NOW(), INTERVAL 24 HOUR)
-            WHERE id = :id AND is_active = 1 AND password_reset_status = 'Requested'");
-        $stmt->execute(['id' => $id, 'token_hash' => hash('sha256', $token)]);
-        return $stmt->rowCount() === 1 ? $token : '';
+        if (!preg_match('/^[a-f0-9]{64}$/D', $link)) return '';
+        $stmt = Database::connection()->prepare("SELECT username FROM users WHERE is_active=1
+            AND password_reset_status='EmailPending' AND password_reset_link_hash=:link
+            AND password_reset_expires_at>NOW() AND password_reset_attempts<5");
+        $stmt->execute(['link'=>hash('sha256', $link)]);
+        return (string) ($stmt->fetchColumn() ?: '');
+    }
+
+    public static function verifyResetCode(int $id, string $code): string
+    {
+        self::ensurePasswordResetSchema();
+        $db = Database::connection();
+        $db->beginTransaction();
+        try {
+            $stmt = $db->prepare("SELECT * FROM users WHERE id=:id AND is_active=1
+                AND password_reset_status='EmailPending' AND password_reset_expires_at>NOW()
+                AND password_reset_attempts<5 FOR UPDATE");
+            $stmt->execute(['id'=>$id]);
+            $user = $stmt->fetch();
+            if (!$user) { $db->commit(); return ''; }
+            if (!preg_match('/^[0-9]{6}$/D', $code) || !password_verify($code, (string) $user['password_reset_code_hash'])) {
+                $db->prepare('UPDATE users SET password_reset_attempts=password_reset_attempts+1 WHERE id=?')->execute([$id]);
+                $db->commit();
+                return '';
+            }
+            $grant = bin2hex(random_bytes(32));
+            $stmt = $db->prepare("UPDATE users SET password_reset_status='EmailVerified',
+                password_reset_token_hash=:grant, password_reset_code_hash=NULL, password_reset_link_hash=NULL
+                WHERE id=:id");
+            $stmt->execute(['id'=>$id, 'grant'=>hash('sha256', $grant)]);
+            $db->commit();
+            return $grant;
+        } catch (\Throwable $error) {
+            if ($db->inTransaction()) $db->rollBack();
+            throw $error;
+        }
     }
 
     public static function completePasswordReset(int $id, string $password, string $token): bool
     {
         self::ensurePasswordResetSchema();
-        $stmt = Database::connection()->prepare("
-            UPDATE users
-            SET password_hash = :password_hash,
-                password_reset_status = NULL,
-                password_reset_requested_at = NULL,
-                password_reset_approved_at = NULL,
-                password_reset_token_hash = NULL,
-                password_reset_expires_at = NULL
-            WHERE id = :id AND is_active = 1 AND password_reset_status = 'Approved'
-                AND password_reset_token_hash = :token_hash AND password_reset_expires_at > NOW()
-        ");
-        $stmt->execute([
-            'id' => $id,
-            'password_hash' => password_hash($password, PASSWORD_DEFAULT),
-            'token_hash' => hash('sha256', $token),
-        ]);
+        if (!security_password_valid($password) || !preg_match('/^[a-f0-9]{64}$/D', $token)) return false;
+        $stmt = Database::connection()->prepare("UPDATE users SET password_hash=:password,
+            password_reset_status=NULL, password_reset_requested_at=NULL, password_reset_approved_at=NULL,
+            password_reset_token_hash=NULL, password_reset_code_hash=NULL, password_reset_link_hash=NULL,
+            password_reset_expires_at=NULL, password_reset_attempts=0
+            WHERE id=:id AND is_active=1 AND password_reset_status='EmailVerified'
+            AND password_reset_token_hash=:token AND password_reset_expires_at>NOW()");
+        $stmt->execute(['id'=>$id, 'password'=>password_hash($password, PASSWORD_DEFAULT), 'token'=>hash('sha256', $token)]);
         return $stmt->rowCount() === 1;
     }
 
     public static function resetTokenValid(array $user, string $token): bool
     {
-        $valid = (int) ($user['is_active'] ?? 0) === 1
-            && ($user['password_reset_status'] ?? '') === 'Approved'
-            && preg_match('/^[0-9]{6}$/', $token) === 1
-            && !empty($user['password_reset_token_hash'])
-            && hash_equals($user['password_reset_token_hash'], hash('sha256', $token));
-        if (!$valid) return false;
-        // Use the database clock, avoiding PHP / database timezone differences.
+        if (!preg_match('/^[a-f0-9]{64}$/D', $token)) return false;
         $stmt = Database::connection()->prepare("SELECT 1 FROM users WHERE id=:id AND is_active=1
-            AND password_reset_status='Approved' AND password_reset_token_hash=:token_hash AND password_reset_expires_at > NOW()");
-        $stmt->execute(['id' => $user['id'], 'token_hash' => hash('sha256', $token)]);
+            AND password_reset_status='EmailVerified' AND password_reset_token_hash=:token
+            AND password_reset_expires_at>NOW()");
+        $stmt->execute(['id'=>$user['id'], 'token'=>hash('sha256', $token)]);
         return (bool) $stmt->fetchColumn();
     }
 
@@ -369,6 +398,9 @@ final class User
         Database::connection()->exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS password_reset_expires_at DATETIME NULL");
         Database::connection()->exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS deactivation_reason TEXT NULL");
         Database::connection()->exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS deactivated_at TIMESTAMP NULL");
+        Database::connection()->exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS password_reset_code_hash VARCHAR(255) NULL");
+        Database::connection()->exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS password_reset_link_hash CHAR(64) NULL");
+        Database::connection()->exec("ALTER TABLE users ADD COLUMN IF NOT EXISTS password_reset_attempts INT NOT NULL DEFAULT 0");
         $ready = true;
     }
 }

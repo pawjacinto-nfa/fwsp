@@ -3,11 +3,11 @@
         'name' => 'nfa/fsr',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '1d335fa74099eb2cf84dec1c92e2d0c50d5622e9',
+        'reference' => '8f0732808f26b99bc9b55a0c82da931a72345703',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
-        'dev' => false,
+        'dev' => true,
     ),
     'versions' => array(
         'bacon/bacon-qr-code' => array(
@@ -40,9 +40,18 @@
         'nfa/fsr' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '1d335fa74099eb2cf84dec1c92e2d0c50d5622e9',
+            'reference' => '8f0732808f26b99bc9b55a0c82da931a72345703',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'phpmailer/phpmailer' => array(
+            'pretty_version' => 'v7.1.1',
+            'version' => '7.1.1.0',
+            'reference' => '1bc1716a507a65e039d4ac9d9adebbbd0d346e15',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../phpmailer/phpmailer',
             'aliases' => array(),
             'dev_requirement' => false,
         ),

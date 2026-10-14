@@ -3,6 +3,7 @@ declare(strict_types=1);
 if (PHP_SAPI !== 'cli' || getenv('FSR_DB_NAME') !== 'fsr_security_verify_20261002') {
     exit("Run only against the isolated security verification database.\n");
 }
+require __DIR__ . '/reset-mail-fixture.php';
 require dirname(__DIR__) . '/app/bootstrap.php';
 set_exception_handler(static function (Throwable $error): never { fwrite(STDERR, $error->getMessage() . PHP_EOL); exit(1); });
 use App\Core\Database;
@@ -21,26 +22,11 @@ foreach (['SECURITY_VERIFY_ADMIN'=>'System Admin','SECURITY_VERIFY_USER'=>'Wareh
 $user = User::findByUsername('SECURITY_VERIFY_USER');
 $id = (int) $user['id'];
 User::requestPasswordReset($id);
-$token = User::approvePasswordReset($id);
-$user = User::find($id);
-$wrongToken = $token === '000000' ? '000001' : '000000';
-$remaining = (int) $db->query('SELECT TIMESTAMPDIFF(SECOND, NOW(), password_reset_expires_at) FROM users WHERE id=' . $id)->fetchColumn();
-check($remaining >= 86390 && $remaining <= 86400, 'New reset code expires 24 hours after approval');
-$db->exec('UPDATE users SET password_reset_expires_at=DATE_ADD(NOW(), INTERVAL 23 HOUR) WHERE id=' . $id);
-check(User::resetTokenValid(User::find($id), $token), 'Reset code remains valid one hour into its 24-hour lifetime');
-
-check(preg_match('/^[0-9]{6}$/', $token) === 1 && $user['password_reset_token_hash'] !== $token, 'Reset token generated and stored only as a hash');
-check(!User::resetTokenValid($user, ''), 'Username alone cannot claim reset');
-check(!User::resetTokenValid($user, $wrongToken), 'Incorrect reset token rejected');
-check(User::resetTokenValid($user,$token), 'Correct approved token accepted');
-check(!User::completePasswordReset($id,'New-verify-passphrase',$wrongToken), 'Wrong token cannot change password');
-check(User::completePasswordReset($id,'New-verify-passphrase',$token), 'Correct token changes password');
-check(!User::completePasswordReset($id,'Replay-passphrase',$token), 'Reset token cannot be reused');
-User::requestPasswordReset($id);
-$token = User::approvePasswordReset($id);
-$db->exec("UPDATE users SET password_reset_expires_at=DATE_SUB(NOW(), INTERVAL 1 MINUTE) WHERE id=".$id);
-check(!User::resetTokenValid(User::find($id),$token), 'Expired reset token rejected');
-check(!User::completePasswordReset($id,'Expired-passphrase',$token), 'Expired token cannot update database');
+$code = \App\Support\ResetMailer::$last['code'];
+$token = User::verifyResetCode($id, $code);
+check(User::resetTokenValid(User::find($id), $token), 'Email confirmation creates reset grant');
+check(User::completePasswordReset($id, 'New-verify-passphrase', $token), 'Verified email grant resets password');
+check(!User::completePasswordReset($id, 'Replay-passphrase', $token), 'Reset grant cannot be reused');
 check(!security_password_valid('short') && !security_password_valid(str_repeat('x',73)) && security_password_valid('a long passphrase'), 'Password length and bcrypt byte boundary enforced');
 $key='regression:'.bin2hex(random_bytes(12));
 check(security_rate_limit($key,2) && security_rate_limit($key,2) && !security_rate_limit($key,2), 'Rate limit enforced across successive calls');

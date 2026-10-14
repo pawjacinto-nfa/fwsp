@@ -66,10 +66,10 @@
             </div>
             <div class="modal-body d-grid gap-3">
                 <button class="btn btn-outline-success text-start py-3" type="button" data-bs-toggle="modal" data-bs-target="#forgotPasswordModal" data-bs-dismiss="modal">
-                    I forgot my password and I will ask for a password reset approval.
+                    Email me a password reset code and link.
                 </button>
                 <button class="btn btn-outline-success text-start py-3" type="button" data-bs-toggle="modal" data-bs-target="#passwordResetCheckModal" data-bs-dismiss="modal">
-                    My request for a password reset has been approved.
+                    I already have an email confirmation code.
                 </button>
             </div>
         </div>
@@ -85,7 +85,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p class="text-muted">Enter your active employee number. The System Administrator will be notified with your request.</p>
+                <p class="text-muted">Enter your employee number. We will send a confirmation code and reset link to your registered email.</p>
                 <label class="form-label">Employee Number</label>
                 <input required name="username" class="form-control" inputmode="numeric" pattern="[0-9]{6}" minlength="6" maxlength="6" data-forgot-username>
             </div>
@@ -102,19 +102,19 @@
         <form method="post" class="modal-content">
             <input type="hidden" name="action" value="password-reset-check">
             <div class="modal-header">
-                <h2 class="modal-title fs-5">Check password reset approval</h2>
+                <h2 class="modal-title fs-5">Confirm your email code</h2>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p class="text-muted">Enter your employee number and the one-time code provided by the administrator after identity verification.</p>
+                <p class="text-muted">Enter your employee number and the six-digit code from your email. Codes expire after 15 minutes.</p>
                 <label class="form-label">Employee Number</label>
-                <input required name="username" class="form-control" inputmode="numeric" pattern="[0-9]{6}" minlength="6" maxlength="6" data-reset-check-username>
+                <input required name="username" class="form-control" inputmode="numeric" pattern="[0-9]{6}" minlength="6" maxlength="6" data-reset-check-username value="<?= e($_SESSION['reset_link_username'] ?? '') ?>">
                 <label class="form-label mt-3">6-digit reset code</label>
                 <input required type="password" name="reset_code" class="form-control" inputmode="numeric" pattern="[0-9]{6}" minlength="6" maxlength="6" autocomplete="one-time-code">
             </div>
             <div class="modal-footer">
                 <button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal" data-bs-target="#forgotPasswordOptionsModal" data-bs-dismiss="modal">Back</button>
-                <button class="btn btn-success" type="submit">Check Approval</button>
+                <button class="btn btn-success" type="submit">Verify Code</button>
             </div>
         </form>
     </div>

@@ -40,6 +40,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && is_string($action) && str_starts_wi
     (new \App\Controllers\DatabaseBackupController())->handle($action, $_POST, $_FILES);
 }
 $controller = new DashboardController();
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['password_reset_link'])) {
+    $link = is_string($_GET['password_reset_link']) ? $_GET['password_reset_link'] : '';
+    $_SESSION['reset_link_username'] = \App\Models\User::resetLinkUsername($link);
+    if ($_SESSION['reset_link_username'] === '') {
+        $_SESSION['flash'] = ['type'=>'danger', 'message'=>'This reset link is invalid or expired. Request a new confirmation email.'];
+    }
+    header('Location: index.php?password_reset_check=1');
+    exit;
+}
+
 if (isset($_GET['private_media'])) {
     $controller->privateMedia((string) $_GET['private_media']);
     exit;
@@ -74,7 +84,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'register' => $controller->register($_POST),
         'password-reset-request' => $controller->requestPasswordReset($_POST),
         'password-reset-check' => $controller->checkPasswordResetApproval($_POST),
-        'password-reset-approve' => $controller->approvePasswordReset($_POST),
         'password-reset-complete' => $controller->completePasswordReset($_POST),
         'account' => $controller->updateAccount($_POST, $_FILES),
         'account-deactivate' => $controller->deactivateAccount($_POST),

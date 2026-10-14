@@ -1,5 +1,5 @@
 """Controller-level reset checks using synthetic accounts in the isolated test database."""
-import importlib.util, pathlib, re, secrets, subprocess
+import importlib.util, pathlib, re, secrets, subprocess, json, os
 spec=importlib.util.spec_from_file_location('http_helpers', pathlib.Path(__file__).with_name('security-http.py'))
 h=importlib.util.module_from_spec(spec); spec.loader.exec_module(h)
 h.sql("UPDATE users SET role='System Admin' WHERE username='SECURITY_VERIFY_ADMIN'")
@@ -10,19 +10,23 @@ result=subprocess.run(['C:/xampp/mysql/bin/mysql.exe','--no-defaults','--host=12
 user_id=int(result.stdout.strip())
 requester=h.Client()
 assert requester.request(data={'action':'password-reset-request','username':username,'csrf_token':requester.token()})[0]==302
-admin=h.Client(); admin.login('SECURITY_VERIFY_ADMIN')
-assert admin.request(data={'action':'password-reset-approve','user_id':str(user_id),'csrf_token':admin.token()})[0]==302
-_,_,html=admin.request('index.php?page=users')
-code=re.search(r'Valid for 24 hours: ([0-9]{6})',html).group(1)
+mail=json.loads(pathlib.Path(os.environ['FSR_TEST_MAIL_CAPTURE']).read_text())
+assert mail['email']=='reset-'+username+'@example.invalid'
+code=mail['code']
+assert requester.request('index.php?password_reset_link='+mail['link'])[0]==302
+_,_,html=requester.request('index.php?password_reset_check=1')
+assert 'data-reset-check-username value="'+username+'"' in html
+assert 'data-force-open="false"' in html
+h.passed('Email link pre-fills confirmation screen without authorizing reset')
 attacker=h.Client()
 assert attacker.request(data={'action':'password-reset-check','username':username,'csrf_token':attacker.token()})[0]==302
 _,_,html=attacker.request()
 assert 'id="changePasswordModal" tabindex="-1" aria-hidden="true" data-force-open="false"' in html
-h.passed('Approved reset cannot be claimed with username alone over HTTP')
+h.passed('Reset cannot be claimed with username alone over HTTP')
 assert requester.request(data={'action':'password-reset-check','username':username,'reset_code':code,'csrf_token':requester.token()})[0]==302
 _,_,html=requester.request()
 assert 'id="changePasswordModal" tabindex="-1" aria-hidden="true" data-force-open="true"' in html
-h.passed('Administrator-provided code grants reset in requesting session')
+h.passed('Emailed code grants reset in requesting session')
 password='Reset-verified-passphrase-2026'
 assert requester.request(data={'action':'password-reset-complete','username':username,'password':password,'password_confirmation':password,'csrf_token':requester.token()})[0]==302
 token=requester.token(); before=requester.sid()
@@ -47,3 +51,6 @@ for attempt in range(6):
     assert status == (302 if attempt < 5 else 429), (attempt, status)
 assert headers['Retry-After'] == '1800'
 h.passed('Sixth reset code check is blocked across fresh sessions')
+
+h.sql("DELETE FROM audit_logs WHERE user_id="+str(user_id))
+h.sql("DELETE FROM users WHERE id="+str(user_id))
