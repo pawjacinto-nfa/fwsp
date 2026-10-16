@@ -1,4 +1,8 @@
 data/sessions/sess_*
 data/backups/*.sql
 data/rate-limits/
+data/database-operation.lock
 tests/__pycache__/
+output/*.html
+output/*.png
+tmp/email-preview*/

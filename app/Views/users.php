@@ -33,7 +33,7 @@
                     <?php $formId = 'userAccessForm' . (int) $account['id']; ?>
                     <tr>
                         <td><input class="form-check-input" type="checkbox" name="user_ids[]" value="<?= (int) $account['id'] ?>" form="bulkUserAccessForm" aria-label="Select <?= e($account['username']) ?>"></td>
-                        <td><?= e($account['username']) ?></td>
+                        <td><a href="index.php?page=user-profile&amp;id=<?= (int) $account['id'] ?>" title="View and edit user profile"><?= e($account['username']) ?></a></td>
                         <td><?= e($account['full_name']) ?></td>
                         <td class="user-office-cell"><?= e(str_replace("\n", ' / ', \App\Models\User::locationLabel($account))) ?></td>
                         <td><?= e($account['designation']) ?></td>

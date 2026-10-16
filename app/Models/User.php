@@ -207,6 +207,23 @@ final class User
         $stmt->execute($params);
     }
 
+    public static function updateAdminProfile(int $id, array $data): void
+    {
+        self::ensurePasswordResetSchema();
+        // Invalidate pending recovery when the registered address changes.
+        $sets = ["password_reset_status=CASE WHEN email<>:reset_email THEN NULL ELSE password_reset_status END"];
+        $params = ['id'=>$id, 'reset_email'=>$data['email']];
+        foreach (['full_name','email','contact_number','designation','office_scope','region_id','branch_id','province_id','warehouse_id','central_department_id','central_division_id','central_unit_id'] as $field) {
+            $sets[] = $field . '=:' . $field;
+            $params[$field] = $data[$field];
+        }
+        if (!empty($data['profile_image'])) {
+            $sets[] = 'profile_image=:profile_image';
+            $params['profile_image'] = $data['profile_image'];
+        }
+        Database::connection()->prepare('UPDATE users SET ' . implode(',', $sets) . ' WHERE id=:id')->execute($params);
+    }
+
     public static function deactivate(int $id, string $reason): void
     {
         self::ensurePasswordResetSchema();

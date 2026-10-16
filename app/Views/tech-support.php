@@ -64,7 +64,7 @@ $archiveKey = $isSuperAdmin ? 'admin_archived' : 'reporter_archived';
         <?php if ($isSuperAdmin): ?>
             <form method="post" id="bulkSupportTicketForm" class="row g-2 align-items-end mb-3">
                 <input type="hidden" name="action" value="support-ticket-bulk">
-                <div class="col-md-4"><label class="form-label" for="supportBulkAction">Bulk change</label><select class="form-select" id="supportBulkAction" name="bulk_action"><option value="">Choose an action</option><option value="complete">Mark as completed</option><option value="archive">Mark as archived</option></select></div>
+                <div class="col-md-4"><label class="form-label" for="supportBulkAction">Bulk change</label><select class="form-select" id="supportBulkAction" name="bulk_action"><option value="">Choose an action</option><option value="complete">Mark as completed</option><option value="archive">Mark as archived</option><option value="complete_archive">Mark as completed and archive this ticket/s</option></select></div>
                 <div class="col-md-3"><button class="btn btn-success w-100" type="submit">Apply to selected</button></div>
                 <div class="col-md-5 text-md-end"><a class="btn btn-outline-secondary" href="index.php?page=tech-support-archive">View archived tickets</a></div>
             </form>

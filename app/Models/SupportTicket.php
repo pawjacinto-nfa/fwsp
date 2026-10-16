@@ -224,6 +224,21 @@ final class SupportTicket
         return $stmt->rowCount();
     }
 
+    public static function completeAndArchiveBulk(array $ids, int $resolverId): int
+    {
+        $ids = array_values(array_unique(array_filter(array_map('intval', $ids))));
+        if ($ids === []) return 0;
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $stmt = Database::connection()->prepare("
+            UPDATE support_tickets
+            SET status = 'Completed', resolved_by = ?, resolved_at = CURRENT_TIMESTAMP,
+                admin_archived = 1, updated_at = CURRENT_TIMESTAMP
+            WHERE id IN ({$placeholders}) AND admin_archived = 0
+        ");
+        $stmt->execute([$resolverId, ...$ids]);
+        return $stmt->rowCount();
+    }
+
     public static function archiveFor(int $ticketId, string $role): void
     {
         self::ensureSchema();

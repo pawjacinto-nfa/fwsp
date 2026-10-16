@@ -649,6 +649,93 @@ final class DashboardController
         ]);
     }
 
+    public function userProfile(): void
+    {
+        if (!$this->authorizeUserProfile()) return;
+        $profile = User::find((int) ($_GET['id'] ?? 0));
+        if (!$profile) {
+            $this->flash('danger', 'User was not found.');
+            $this->redirect('?page=users');
+            return;
+        }
+        $draft = $_SESSION['admin_profile_draft'] ?? [];
+        unset($_SESSION['admin_profile_draft']);
+        if (($draft['id'] ?? 0) === (int) $profile['id']) $profile = array_replace($profile, $draft['values']);
+        View::render('user-profile', ['title'=>'User Profile', 'alert'=>$this->pullFlash(), 'profile'=>$profile]);
+    }
+
+    private function authorizeUserProfile(): bool
+    {
+        if (!$this->authorizeAuthenticated()) return false;
+        if (($_SESSION['role'] ?? '') !== 'System Admin') {
+            $this->flash('danger', 'Only System Admin can view or edit user profiles.');
+            $this->redirect();
+            return false;
+        }
+        return true;
+    }
+
+    public function updateUserProfile(array $payload, array $files): void
+    {
+        if (!$this->authorizeUserProfile()) return;
+        $id = (int) ($payload['user_id'] ?? 0);
+        $profile = User::find($id);
+        if (!$profile) {
+            $this->flash('danger', 'User was not found.');
+            $this->redirect('?page=users');
+            return;
+        }
+        $data = [];
+        $error = '';
+        foreach (['full_name'=>160,'email'=>160,'contact_number'=>40,'designation'=>120] as $field=>$limit) {
+            $data[$field] = $this->clean($payload[$field] ?? '');
+            if (mb_strlen($data[$field]) > $limit) $error = 'One or more profile fields exceed the allowed length.';
+        }
+        if ($data['full_name'] === '' || !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) $error = 'Enter a full name and a valid email address.';
+        $data['office_scope'] = $this->clean($payload['office_scope'] ?? '');
+        if (!in_array($data['office_scope'], ['field','central'], true)) $error = 'Select a valid office type.';
+        $levels = $data['office_scope'] === 'central'
+            ? [['central_department_id', CentralOffice::departments(), null], ['central_division_id', CentralOffice::divisions(), 'department_id'], ['central_unit_id', CentralOffice::units(), 'division_id']]
+            : [['region_id', Location::regions(), null], ['branch_id', Location::branches(), 'region_id'], ['province_id', Location::provinces(), 'branch_id'], ['warehouse_id', Location::warehouses(), 'province_id']];
+        foreach (['region_id','branch_id','province_id','warehouse_id','central_department_id','central_division_id','central_unit_id'] as $field) $data[$field] = null;
+        $parent = null;
+        foreach ($levels as [$field, $options, $parentField]) {
+            $value = $this->clean($payload[$field] ?? '');
+            $selected = null;
+            if ($value !== '') {
+                foreach ($options as $option) if ((string) $option['id'] === $value) $selected = $option;
+                if (!$selected || ($parentField !== null && (!$parent || (int) $selected[$parentField] !== $parent))) $error = 'Select a valid office assignment with matching parent offices.';
+                $data[$field] = $selected ? (int) $selected['id'] : null;
+            }
+            $parent = $data[$field];
+        }
+        if ($error === '' && isset($files['profile_image']) && ($files['profile_image']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
+            $data['profile_image'] = $this->saveProfileImage($files['profile_image']);
+            if (!$data['profile_image']) $error = 'Choose a JPG, PNG, or WebP profile image up to 8 MB.';
+        }
+        if ($error === '') {
+            try { User::updateAdminProfile($id, $data); }
+            catch (\PDOException $exception) {
+                if ($exception->getCode() !== '23000') throw $exception;
+                $error = 'This email is already assigned to another user, or the office assignment is no longer available.';
+            }
+        }
+        if ($error !== '') {
+            unset($data['profile_image']);
+            $_SESSION['admin_profile_draft'] = ['id'=>$id, 'values'=>$data];
+            $this->flash('danger', $error);
+        } else {
+            if ($id === (int) $_SESSION['user_id']) {
+                $_SESSION['user'] = $data['full_name'];
+                if (!empty($data['profile_image'])) $_SESSION['profile_image'] = $data['profile_image'];
+                $_SESSION['default_location'] = User::locationLabel(User::find($id));
+            }
+            Activity::add('System Admin updated profile for user ' . $profile['username'] . ' (#' . $id . ').');
+            $this->flash('success', 'User profile updated.');
+        }
+        $this->redirect('?page=user-profile&id=' . $id);
+    }
+
     public function enrollOfflineDevice(array $payload): void
     {
         header('Content-Type: application/json');
@@ -1096,16 +1183,28 @@ final class DashboardController
 
         $ids = array_values(array_unique(array_filter(array_map('intval', (array) ($payload['ticket_ids'] ?? [])))));
         $operation = (string) ($payload['bulk_action'] ?? '');
-        if ($ids === [] || !in_array($operation, ['complete', 'archive'], true)) {
+        if ($ids === [] || !in_array($operation, ['complete', 'archive', 'complete_archive'], true)) {
             $this->flash('danger', 'Select one or more tickets and a bulk action.');
             $this->redirect('?page=tech-support');
             return;
         }
-        $changed = $operation === 'complete'
-            ? SupportTicket::markCompletedBulk($ids, (int) $_SESSION['user_id'])
-            : SupportTicket::archiveBulkForAdmin($ids);
-        Activity::add($_SESSION['user'] . ' bulk ' . ($operation === 'complete' ? 'completed' : 'archived') . ' ' . $changed . ' support ticket(s).');
-        $this->flash('success', $changed . ' ticket(s) ' . ($operation === 'complete' ? 'marked completed.' : 'archived.'));
+
+        if ($operation === 'complete') {
+            $changed = SupportTicket::markCompletedBulk($ids, (int) $_SESSION['user_id']);
+            $activity = 'completed';
+            $result = 'marked completed.';
+        } elseif ($operation === 'complete_archive') {
+            $changed = SupportTicket::completeAndArchiveBulk($ids, (int) $_SESSION['user_id']);
+            $activity = 'completed and archived';
+            $result = 'marked completed and archived.';
+        } else {
+            $changed = SupportTicket::archiveBulkForAdmin($ids);
+            $activity = 'archived';
+            $result = 'archived.';
+        }
+
+        Activity::add($_SESSION['user'] . ' bulk ' . $activity . ' ' . $changed . ' support ticket(s).');
+        $this->flash('success', $changed . ' ticket(s) ' . $result);
         $this->redirect('?page=tech-support');
     }
 
